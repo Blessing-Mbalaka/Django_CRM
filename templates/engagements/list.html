@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Engagements{% endblock %}
+{% block page_heading %}Engagements{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-file-earmark-text me-2 text-uj"></i>Engagement Register</h1>
+    <p class="page-subtitle">All active and pipeline engagements</p>
+  </div>
+  <a href="{% url 'engagements:create' %}" class="btn-uj">
+    <i class="bi bi-plus-lg me-1"></i>New Engagement
+  </a>
+</div>
+<div class="uj-card">
+  <div class="uj-card-body p-0">
+    {% if engagements %}
+    <div class="table-responsive">
+      <table class="table uj-table mb-0" aria-label="Engagements">
+        <thead>
+          <tr><th>Title</th><th>Client</th><th>Status</th><th>Lead</th><th>Centre</th><th>Last Contact</th></tr>
+        </thead>
+        <tbody>
+          {% for e in engagements %}
+          <tr onclick="window.location='{% url 'engagements:detail' e.pk %}'" style="cursor:pointer;">
+            <td><strong>{{ e.title }}</strong></td>
+            <td>{{ e.client.name }}</td>
+            <td><span class="badge status-{{ e.status }}">{{ e.get_status_display }}</span></td>
+            <td>{{ e.lead_owner.get_full_name|default:"—" }}</td>
+            <td>{{ e.centre|default:"—" }}</td>
+            <td>
+              {% if e.days_since_contact is not None %}
+                {% if e.days_since_contact > 60 %}
+                  <span class="text-danger fw-700">{{ e.days_since_contact }}d ago</span>
+                {% elif e.days_since_contact > 30 %}
+                  <span class="text-warning fw-700">{{ e.days_since_contact }}d ago</span>
+                {% else %}
+                  {{ e.last_contact|date:"d M Y" }}
+                {% endif %}
+              {% else %}—{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-5 text-center text-muted">
+      <i class="bi bi-file-earmark-text fs-1 text-uj d-block mb-3"></i>
+      No engagements yet. <a href="{% url 'engagements:create' %}">Create the first one.</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

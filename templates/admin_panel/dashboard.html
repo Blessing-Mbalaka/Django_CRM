@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load core_filters %}
+{% block title %}System Administration{% endblock %}
+{% block page_heading %}System Administration{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-shield-check me-2 text-uj"></i>System Administration</h1>
+    <p class="page-subtitle">User management &amp; access control</p>
+  </div>
+  <a href="/admin/" class="btn-uj-outline" target="_blank">
+    <i class="bi bi-gear me-1"></i>Django Admin
+  </a>
+</div>
+
+<!-- Filter Bar -->
+<form method="get" class="uj-card mb-3">
+  <div class="uj-card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-5">
+        <label class="form-label fw-600 mb-1" for="q">Search</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" id="q" name="q" value="{{ search }}" class="form-control" placeholder="Name or email…">
+        </div>
+      </div>
+      <div class="col-6 col-md-4">
+        <label class="form-label fw-600 mb-1" for="role">Role</label>
+        <select id="role" name="role" class="form-select">
+          <option value="">All Roles</option>
+          {% for val, label in role_choices %}
+          <option value="{{ val }}" {% if role_filter == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn-uj w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+        <a href="{% url 'admin_panel:dashboard' %}" class="btn-uj-outline w-100" title="Clear"><i class="bi bi-x-lg"></i></a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="uj-card">
+  <div class="uj-card-header"><span>User Accounts ({{ page_obj.paginator.count }})</span></div>
+  <div class="uj-card-body p-0">
+    <div class="table-responsive">
+      <table class="table uj-table mb-0" aria-label="Users">
+        <thead>
+          <tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Centre</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td><strong>{{ u.get_full_name }}</strong></td>
+            <td class="text-muted">{{ u.username }}</td>
+            <td>{{ u.email|default:"—" }}</td>
+            <td><span class="badge bg-secondary">{{ u.get_role_display }}</span></td>
+            <td>{{ u.centre|default:"—" }}</td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-danger">Inactive</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{% url 'staff:edit' u.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit profile">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                {% if u != request.user %}
+                <form method="post" action="{% url 'admin_panel:toggle_user' u.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  {% if u.is_active %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate">
+                    <i class="bi bi-person-dash"></i>
+                  </button>
+                  {% else %}
+                  <button type="submit" class="btn btn-sm btn-outline-success" title="Activate">
+                    <i class="bi bi-person-check"></i>
+                  </button>
+                  {% endif %}
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No users match the filter.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}
+

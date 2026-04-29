@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Confirm Delete{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6">
+    <div class="uj-card border-danger">
+      <div class="uj-card-header bg-danger text-white">
+        <span><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Deletion</span>
+      </div>
+      <div class="uj-card-body text-center py-4">
+        <p class="fs-5 mb-1">Are you sure you want to delete</p>
+        <p class="fw-bold fs-4 text-danger mb-4">{{ object_name }}</p>
+        <p class="text-muted small mb-4">This action cannot be undone.</p>
+        <form method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger me-2">
+            <i class="bi bi-trash me-1"></i>Yes, Delete
+          </button>
+          {% if cancel_pk %}
+          <a href="{% url cancel_url cancel_pk %}" class="btn-uj-outline">Cancel</a>
+          {% else %}
+          <a href="{% url cancel_url %}" class="btn-uj-outline">Cancel</a>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

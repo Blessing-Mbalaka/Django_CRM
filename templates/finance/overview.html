@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Finance Overview{% endblock %}
+{% block page_heading %}Finance{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-currency-dollar me-2 text-uj"></i>Financial Overview</h1>
+    <p class="page-subtitle">Revenue tracking and pipeline valuation</p>
+  </div>
+  <a href="{% url 'finance:create' %}" class="btn-uj"><i class="bi bi-plus-lg me-1"></i>Add Record</a>
+</div>
+
+<!-- KPI Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value">R {{ total_revenue|floatformat:0 }}</div><div class="stat-label">Confirmed Revenue</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value">R {{ total_pipeline|floatformat:0 }}</div><div class="stat-label">Pipeline Value</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value">R {{ total_expenses|floatformat:0 }}</div><div class="stat-label">Expenses</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value {% if unpaid_count %}text-danger{% endif %}">{{ unpaid_count }}</div><div class="stat-label">Unpaid Invoices</div></div></div>
+</div>
+
+<div class="row g-4">
+  <!-- Recent Records -->
+  <div class="col-lg-8">
+    <div class="uj-card">
+      <div class="uj-card-header"><span>Recent Financial Records</span></div>
+      <div class="uj-card-body p-0">
+        {% if recent_records %}
+        <div class="table-responsive">
+          <table class="table uj-table mb-0" aria-label="Financial records">
+            <thead><tr><th>Engagement</th><th>Type</th><th>Amount (R)</th><th>Date</th><th>Paid</th><th></th></tr></thead>
+            <tbody>
+              {% for r in recent_records %}
+              <tr>
+                <td>{{ r.engagement }}</td>
+                <td><span class="badge bg-secondary">{{ r.get_record_type_display }}</span></td>
+                <td class="fw-700 text-uj">{{ r.amount|floatformat:2 }}</td>
+                <td>{{ r.date|date:"d M Y" }}</td>
+                <td>{% if r.is_paid %}<span class="badge bg-success">Paid</span>{% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}</td>
+                <td>
+                  <a href="{% url 'finance:edit' r.pk %}" class="btn-uj-outline" style="font-size:0.72rem;padding:2px 8px;">Edit</a>
+                  <a href="{% url 'finance:delete' r.pk %}" class="btn btn-outline-danger btn-sm" style="font-size:0.72rem;padding:2px 8px;" data-confirm="Delete this record?">Del</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">No financial records yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar: Centre Breakdown + Top Clients -->
+  <div class="col-lg-4">
+    <div class="uj-card mb-4">
+      <div class="uj-card-header"><span>Revenue by Centre</span></div>
+      <div class="uj-card-body p-0">
+        {% if centre_breakdown %}
+        <table class="table uj-table mb-0">
+          <tbody>
+            {% for row in centre_breakdown %}
+            <tr>
+              <td>{{ row.engagement__centre__name|default:"No Centre" }}</td>
+              <td class="text-end fw-700 text-uj">R {{ row.total|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="p-3 text-muted">No data yet.</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="uj-card">
+      <div class="uj-card-header"><span>Top Clients by Revenue</span></div>
+      <div class="uj-card-body p-0">
+        {% if top_clients %}
+        <table class="table uj-table mb-0">
+          <tbody>
+            {% for row in top_clients %}
+            <tr>
+              <td>{{ row.engagement__client__name }}</td>
+              <td class="text-end fw-700 text-uj">R {{ row.total|floatformat:0 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}<div class="p-3 text-muted">No data yet.</div>{% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

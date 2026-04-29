@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Clients{% endblock %}
+{% block page_heading %}Clients{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-briefcase me-2 text-uj"></i>Client Register</h1>
+    <p class="page-subtitle">All institutional clients</p>
+  </div>
+  <a href="{% url 'clients:create' %}" class="btn-uj">
+    <i class="bi bi-plus-lg me-1"></i>New Client
+  </a>
+</div>
+
+<!-- Filter Bar -->
+<form method="get" class="uj-card mb-3">
+  <div class="uj-card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <label class="form-label fw-600 mb-1" for="q">Search</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" id="q" name="q" value="{{ search }}" class="form-control" placeholder="Name, contact…">
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label fw-600 mb-1" for="sector">Sector</label>
+        <select id="sector" name="sector" class="form-select">
+          <option value="">All Sectors</option>
+          {% for val, label in sector_choices %}
+          <option value="{{ val }}" {% if sector == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label fw-600 mb-1" for="centre">Centre</label>
+        <select id="centre" name="centre" class="form-select">
+          <option value="">All Centres</option>
+          {% for c in centres %}
+          <option value="{{ c.pk }}" {% if centre_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-2 d-flex gap-2">
+        <button type="submit" class="btn-uj w-100"><i class="bi bi-funnel me-1"></i>Filter</button>
+        <a href="{% url 'clients:list' %}" class="btn-uj-outline w-100" title="Clear filters"><i class="bi bi-x-lg"></i></a>
+      </div>
+    </div>
+  </div>
+</form>
+<div class="uj-card">
+  <div class="uj-card-body p-0">
+    {% if clients %}
+    <div class="table-responsive">
+      <table class="table uj-table mb-0" aria-label="Client list">
+        <thead>
+          <tr>
+            <th>Client</th><th>Sector</th><th>Centre</th>
+            <th>Relationship Owner</th><th>Visibility</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in clients %}
+          <tr onclick="window.location='{% url 'clients:detail' c.pk %}'" style="cursor:pointer;">
+            <td><strong>{{ c.name }}</strong></td>
+            <td>{{ c.get_sector_display }}</td>
+            <td>{{ c.centre|default:"—" }}</td>
+            <td>{{ c.lead_owner.get_full_name|default:"—" }}</td>
+            <td><span class="badge bg-secondary">{{ c.get_visibility_display }}</span></td>
+            <td>
+              <a href="{% url 'clients:detail' c.pk %}" class="btn btn-sm btn-outline-secondary" aria-label="View {{ c.name }}">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-5 text-center text-muted">
+      <i class="bi bi-briefcase fs-1 text-uj d-block mb-3"></i>
+      No clients yet. <a href="{% url 'clients:create' %}">Add the first one.</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

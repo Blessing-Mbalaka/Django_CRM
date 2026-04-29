@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}{{ action }} Financial Record{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-md-8 col-lg-6">
+    <div class="uj-card">
+      <div class="uj-card-header">
+        <span><i class="bi bi-currency-dollar me-2 text-uj"></i>{{ action }} Financial Record</span>
+        <a href="{% url 'finance:overview' %}" class="btn-uj-outline" style="font-size:0.75rem;">Cancel</a>
+      </div>
+      <div class="uj-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn-uj">
+              <i class="bi bi-check-lg me-1"></i>{{ action }} Record
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

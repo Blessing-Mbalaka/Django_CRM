@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Log Contact{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-md-8 col-lg-6">
+    <div class="uj-card">
+      <div class="uj-card-header">
+        <span><i class="bi bi-chat-dots me-2 text-uj"></i>Log Contact</span>
+        <a href="{% url 'communication:health' %}" class="btn-uj-outline" style="font-size:0.75rem;">Cancel</a>
+      </div>
+      <div class="uj-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {{ form|crispy }}
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn-uj">
+              <i class="bi bi-check-lg me-1"></i>Save Log
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

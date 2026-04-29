@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Communication Health{% endblock %}
+{% block page_heading %}Communication Health{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-chat-dots me-2 text-uj"></i>Communication Health</h1>
+    <p class="page-subtitle">Relationship health across all active engagements</p>
+  </div>
+  <a href="{% url 'communication:log' %}" class="btn-uj"><i class="bi bi-plus-lg me-1"></i>Log Contact</a>
+</div>
+
+<!-- Risk Buckets -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md"><div class="stat-card"><div class="stat-value text-success">{{ risk_counts.healthy }}</div><div class="stat-label">Healthy (&le;30d)</div></div></div>
+  <div class="col-6 col-md"><div class="stat-card"><div class="stat-value text-warning">{{ risk_counts.amber }}</div><div class="stat-label">Amber (31–60d)</div></div></div>
+  <div class="col-6 col-md"><div class="stat-card"><div class="stat-value" style="color:#e67e22">{{ risk_counts.at_risk }}</div><div class="stat-label">At Risk (61–90d)</div></div></div>
+  <div class="col-6 col-md"><div class="stat-card"><div class="stat-value text-danger">{{ risk_counts.critical }}</div><div class="stat-label">Critical (&gt;90d)</div></div></div>
+  <div class="col-6 col-md"><div class="stat-card"><div class="stat-value text-secondary">{{ risk_counts.no_contact }}</div><div class="stat-label">No Contact</div></div></div>
+</div>
+
+<div class="row g-4">
+  <!-- At-Risk Engagements -->
+  {% if risk_report.critical or risk_report.at_risk %}
+  <div class="col-12">
+    <div class="uj-card">
+      <div class="uj-card-header"><span><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Needs Attention</span></div>
+      <div class="uj-card-body p-0">
+        <table class="table uj-table mb-0">
+          <thead><tr><th>Engagement</th><th>Client</th><th>Lead</th><th>Days Since Contact</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for e in risk_report.critical %}
+            <tr onclick="window.location='{% url 'engagements:detail' e.pk %}'" style="cursor:pointer;">
+              <td>{{ e.title }}</td><td>{{ e.client.name }}</td>
+              <td>{{ e.lead_owner.get_full_name|default:"—" }}</td>
+              <td><span class="badge bg-danger">{{ e.days_since_contact }} days</span></td>
+              <td><span class="badge status-{{ e.status }}">{{ e.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+            {% for e in risk_report.at_risk %}
+            <tr onclick="window.location='{% url 'engagements:detail' e.pk %}'" style="cursor:pointer;">
+              <td>{{ e.title }}</td><td>{{ e.client.name }}</td>
+              <td>{{ e.lead_owner.get_full_name|default:"—" }}</td>
+              <td><span class="badge" style="background:#e67e22">{{ e.days_since_contact }} days</span></td>
+              <td><span class="badge status-{{ e.status }}">{{ e.get_status_display }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recent Logs -->
+  <div class="col-12">
+    <div class="uj-card">
+      <div class="uj-card-header"><span>Recent Communication Logs</span></div>
+      <div class="uj-card-body p-0">
+        {% if recent_logs %}
+        <div class="table-responsive">
+          <table class="table uj-table mb-0" aria-label="Communication logs">
+            <thead><tr><th>Engagement</th><th>Type</th><th>Summary</th><th>Logged By</th><th>Date</th></tr></thead>
+            <tbody>
+              {% for log in recent_logs %}
+              <tr>
+                <td>{{ log.engagement.title }}</td>
+                <td><span class="badge bg-secondary">{{ log.get_contact_type_display }}</span></td>
+                <td>{{ log.summary|truncatechars:80 }}</td>
+                <td>{{ log.logged_by.get_full_name|default:"—" }}</td>
+                <td>{{ log.contact_date|date:"d M Y" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">No communication logs yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

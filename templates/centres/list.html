@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Centres{% endblock %}
+{% block page_heading %}Centres{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-building me-2 text-uj"></i>JBS Centres</h1>
+    <p class="page-subtitle">Active research and teaching centres</p>
+  </div>
+  <div>
+    <a href="{% url 'centres:create' %}" class="btn-uj"><i class="bi bi-plus-lg me-1"></i>New Centre</a>
+  </div>
+</div>
+<div class="row g-3">
+  {% for row in centres %}
+  {% with c=row.centre %}
+  <div class="col-md-6 col-lg-4">
+    <div class="uj-card h-100">
+      <div class="uj-card-header">
+        <span>{{ c.name }}</span>
+        <span class="badge bg-secondary">{{ c.code }}</span>
+      </div>
+      <div class="uj-card-body">
+        {% if c.director %}<p class="mb-1"><strong>Director:</strong> {{ c.director.get_full_name }}</p>{% endif %}
+        <div class="row g-2 my-2">
+          <div class="col-6">
+            <div class="p-2 bg-light rounded text-center">
+              <div class="fw-700 text-uj">{{ row.active_engagements }}</div>
+              <small class="text-muted">Active</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 bg-light rounded text-center">
+              <div class="fw-700 text-uj">R {{ row.revenue|floatformat:0 }}</div>
+              <small class="text-muted">Revenue</small>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+          <a href="{% url 'centres:detail' c.pk %}" class="btn-uj-outline" style="font-size:0.78rem;padding:4px 12px;">View</a>
+          <a href="{% url 'centres:edit' c.pk %}" class="btn-uj-outline" style="font-size:0.78rem;padding:4px 12px;">Edit</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+  {% empty %}
+  <div class="col-12">
+    <div class="uj-card"><div class="uj-card-body text-center text-muted py-4">No centres configured yet.</div></div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

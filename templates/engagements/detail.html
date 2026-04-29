@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ engagement.title }}{% endblock %}
+{% block page_heading %}Engagement Detail{% endblock %}
+{% block content %}
+<div class="uj-breadcrumb"><a href="{% url 'engagements:list' %}">Engagements</a> &rsaquo; {{ engagement.title }}</div>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ engagement.title }}</h1>
+    <p class="page-subtitle">{{ engagement.client.name }} &middot; <span class="badge status-{{ engagement.status }}">{{ engagement.get_status_display }}</span></p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'engagements:edit' engagement.pk %}" class="btn-uj-outline"><i class="bi bi-pencil me-1"></i>Edit</a>
+    <a href="{% url 'engagements:delete' engagement.pk %}" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i>Delete</a>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="uj-card mb-4">
+      <div class="uj-card-header"><span>Engagement Details</span></div>
+      <div class="uj-card-body">
+        <table class="table table-sm">
+          <tr><th>Client</th><td><a href="{% url 'clients:detail' engagement.client.pk %}">{{ engagement.client.name }}</a></td></tr>
+          <tr><th>Status</th><td><span class="badge status-{{ engagement.status }}">{{ engagement.get_status_display }}</span></td></tr>
+          <tr><th>Lead Owner</th><td>{{ engagement.lead_owner.get_full_name|default:"—" }}</td></tr>
+          <tr><th>Centre</th><td>{{ engagement.centre|default:"—" }}</td></tr>
+          <tr><th>Start Date</th><td>{{ engagement.start_date|date:"d M Y"|default:"—" }}</td></tr>
+          <tr><th>End Date</th><td>{{ engagement.end_date|date:"d M Y"|default:"—" }}</td></tr>
+          <tr><th>Last Contact</th><td>{{ engagement.last_contact|date:"d M Y"|default:"—" }}{% if engagement.days_since_contact %} <small class="text-muted">({{ engagement.days_since_contact }} days ago)</small>{% endif %}</td></tr>
+          <tr><th>Visibility</th><td>{{ engagement.get_visibility_display }}</td></tr>
+        </table>
+        {% if engagement.notes %}
+        <div class="uj-alert mt-3">{{ engagement.notes }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Team Members -->
+  <div class="col-lg-4">
+    <div class="uj-card">
+      <div class="uj-card-header">
+        <span><i class="bi bi-people me-2 text-uj"></i>Team Members</span>
+        <a href="{% url 'engagements:edit' engagement.pk %}" class="btn-uj-outline" style="font-size:0.72rem;padding:2px 8px;">Edit Team</a>
+      </div>
+      <div class="uj-card-body p-0">
+        {% with team=engagement.team_members.all %}
+        {% if team %}
+        <ul class="list-unstyled mb-0">
+          {% for member in team %}
+          <li class="d-flex align-items-center gap-2 px-3 py-2 border-bottom">
+            <span class="rounded-circle d-inline-flex align-items-center justify-content-center bg-uj text-white fw-700"
+                  style="width:32px;height:32px;font-size:0.75rem;background:var(--uj-orange)!important;">
+              {{ member.first_name|slice:":1" }}{{ member.last_name|slice:":1" }}
+            </span>
+            <div>
+              <div class="fw-600 fs-sm">{{ member.get_full_name }}</div>
+              <div class="text-muted" style="font-size:0.72rem;">{{ member.get_role_display }}</div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="p-3 text-muted text-center fs-sm">No team members assigned.</div>
+        {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

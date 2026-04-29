@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_heading %}My Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">My Profile</h1>
+    <p class="page-subtitle">Update your account information</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="uj-card">
+      <div class="uj-card-header">
+        <span><i class="bi bi-person-circle me-2 text-uj"></i>Account Details</span>
+      </div>
+      <div class="uj-card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors }}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn-uj">
+            <i class="bi bi-save me-2" aria-hidden="true"></i>Save Changes
+          </button>
+          <a href="{% url 'accounts:change_password' %}" class="btn-uj-outline ms-2">
+            <i class="bi bi-key me-2" aria-hidden="true"></i>Change Password
+          </a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="uj-card">
+      <div class="uj-card-header">
+        <span><i class="bi bi-shield-check me-2 text-uj"></i>Account Info</span>
+      </div>
+      <div class="uj-card-body">
+        <table class="table table-sm">
+          <tr><th>Role</th><td>{{ request.user.get_role_display }}</td></tr>
+          <tr><th>Joined</th><td>{{ request.user.date_joined|date:"d M Y" }}</td></tr>
+          <tr><th>Centre</th><td>{{ request.user.centre|default:"—" }}</td></tr>
+          <tr><th>Status</th><td><span class="badge bg-success">Active</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

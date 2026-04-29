@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Alert Detail{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><i class="bi bi-bell me-2 text-uj"></i>{{ alert.title }}</h1>
+    <p class="page-subtitle">Alert #{{ alert.pk }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if not alert.is_resolved %}
+    <form method="post" action="{% url 'alerts:resolve' alert.pk %}" class="d-inline">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i>Resolve</button>
+    </form>
+    {% endif %}
+    <a href="{% url 'alerts:edit' alert.pk %}" class="btn-uj-outline">Edit</a>
+    <a href="{% url 'alerts:delete' alert.pk %}" class="btn btn-outline-danger">Delete</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="uj-card">
+      <div class="uj-card-header"><span>Alert Details</span></div>
+      <div class="uj-card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Type</dt>
+          <dd class="col-sm-8"><span class="badge bg-secondary">{{ alert.get_alert_type_display }}</span></dd>
+          <dt class="col-sm-4">Severity</dt>
+          <dd class="col-sm-8"><span class="badge status-{{ alert.severity }}">{{ alert.get_severity_display }}</span></dd>
+          <dt class="col-sm-4">Status</dt>
+          <dd class="col-sm-8">{% if alert.is_resolved %}<span class="badge bg-success">Resolved</span>{% else %}<span class="badge bg-warning text-dark">Open</span>{% endif %}</dd>
+          <dt class="col-sm-4">Engagement</dt>
+          <dd class="col-sm-8">{% if alert.engagement %}<a href="{% url 'engagements:detail' alert.engagement.pk %}">{{ alert.engagement.title }}</a>{% else %}—{% endif %}</dd>
+          <dt class="col-sm-4">Client</dt>
+          <dd class="col-sm-8">{% if alert.client %}<a href="{% url 'clients:detail' alert.client.pk %}">{{ alert.client.name }}</a>{% else %}—{% endif %}</dd>
+          <dt class="col-sm-4">Created</dt>
+          <dd class="col-sm-8">{{ alert.created_at|date:"d M Y H:i" }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+  {% if alert.description %}
+  <div class="col-lg-6">
+    <div class="uj-card">
+      <div class="uj-card-header"><span>Description</span></div>
+      <div class="uj-card-body">{{ alert.description }}</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

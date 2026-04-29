@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Client{% endblock %}
+{% block page_heading %}{{ action }} Client{% endblock %}
+{% block content %}
+<div class="uj-breadcrumb"><a href="{% url 'clients:list' %}">Clients</a> &rsaquo; {{ action }}</div>
+<div class="row">
+  <div class="col-lg-7">
+    <div class="uj-card">
+      <div class="uj-card-header"><span><i class="bi bi-briefcase me-2 text-uj"></i>{{ action }} Client</span></div>
+      <div class="uj-card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+          <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors }}</div>{% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="btn-uj"><i class="bi bi-save me-2"></i>{{ action }} Client</button>
+          <a href="{% url 'clients:list' %}" class="btn-uj-outline ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% if messages %}
+<!-- ── TOAST NOTIFICATION STACK ──────────────────────────── -->
+<div class="toast-container" role="region" aria-live="polite" aria-label="Notifications">
+  {% for message in messages %}
+
+    {% if message.tags == 'success' %}
+    <div class="uj-toast toast-success" role="alert" aria-atomic="true" aria-live="assertive">
+      <span class="toast-icon text-success" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></span>
+      <div class="toast-body">{{ message }}</div>
+      <button class="toast-close" type="button" aria-label="Dismiss notification" title="Dismiss">&times;</button>
+    </div>
+
+    {% elif message.tags == 'warning' %}
+    <div class="uj-toast toast-warning" role="alert" aria-atomic="true" aria-live="assertive">
+      <span class="toast-icon text-warning" aria-hidden="true"><i class="bi bi-exclamation-triangle-fill"></i></span>
+      <div class="toast-body">{{ message }}</div>
+      <button class="toast-close" type="button" aria-label="Dismiss notification" title="Dismiss">&times;</button>
+    </div>
+
+    {% elif message.tags == 'danger' or message.tags == 'error' %}
+    <div class="uj-toast toast-danger" role="alert" aria-atomic="true" aria-live="assertive">
+      <span class="toast-icon text-danger" aria-hidden="true"><i class="bi bi-x-circle-fill"></i></span>
+      <div class="toast-body">{{ message }}</div>
+      <button class="toast-close" type="button" aria-label="Dismiss notification" title="Dismiss">&times;</button>
+    </div>
+
+    {% elif message.tags == 'info' %}
+    <div class="uj-toast toast-info" role="alert" aria-atomic="true" aria-live="assertive">
+      <span class="toast-icon text-info" aria-hidden="true"><i class="bi bi-info-circle-fill"></i></span>
+      <div class="toast-body">{{ message }}</div>
+      <button class="toast-close" type="button" aria-label="Dismiss notification" title="Dismiss">&times;</button>
+    </div>
+
+    {% else %}
+    <div class="uj-toast" role="alert" aria-atomic="true" aria-live="assertive">
+      <span class="toast-icon text-uj" aria-hidden="true"><i class="bi bi-bell-fill"></i></span>
+      <div class="toast-body">{{ message }}</div>
+      <button class="toast-close" type="button" aria-label="Dismiss notification" title="Dismiss">&times;</button>
+    </div>
+    {% endif %}
+
+  {% endfor %}
+</div>
+{% endif %}
+

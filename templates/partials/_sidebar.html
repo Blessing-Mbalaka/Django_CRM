@@ -1,0 +1,103 @@
+{% load static %}
+<!-- ── SIDEBAR ──────────────────────────────────────────────── -->
+<nav id="sidebar" class="sidebar" aria-label="Main navigation">
+
+  <!-- Brand -->
+  <a href="{% url 'core:dashboard' %}" class="sidebar-brand" title="JBS CRM Home">
+    <img
+      src="{% static 'images/uj_logo.png' %}"
+      alt="University of Johannesburg logo"
+      width="36"
+      height="36"
+    />
+    <div>
+      <div class="sidebar-brand-name">JBS CRM</div>
+      <div class="sidebar-brand-sub">Business School</div>
+    </div>
+  </a>
+
+  <!-- Navigation links -->
+  <div class="sidebar-nav" role="navigation">
+
+    <span class="sidebar-section-label">Overview</span>
+
+    <a href="{% url 'core:dashboard' %}" title="Dashboard">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-speedometer2"></i></span>
+      Dashboard
+    </a>
+
+    <span class="sidebar-section-label">People &amp; Structure</span>
+
+    <a href="{% url 'staff:list' %}" title="Staff Directory">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
+      Staff
+    </a>
+
+    <a href="{% url 'centres:list' %}" title="Centres">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-building"></i></span>
+      Centres
+    </a>
+
+    <span class="sidebar-section-label">Client Intelligence</span>
+
+    <a href="{% url 'clients:list' %}" title="Clients">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-briefcase"></i></span>
+      Clients
+    </a>
+
+    <a href="{% url 'engagements:list' %}" title="Engagements">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-file-earmark-text"></i></span>
+      Engagements
+    </a>
+
+    <span class="sidebar-section-label">Finance &amp; Risk</span>
+
+    <a href="{% url 'finance:overview' %}" title="Finance">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-currency-dollar"></i></span>
+      Finance
+    </a>
+
+    <a href="{% url 'alerts:list' %}" title="Alerts">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
+      Alerts
+      {% if alert_count and alert_count > 0 %}
+        <span class="badge bg-danger rounded-pill" aria-label="{{ alert_count }} active alerts">{{ alert_count }}</span>
+      {% endif %}
+    </a>
+
+    <span class="sidebar-section-label">Analytics</span>
+
+    <a href="{% url 'analytics:reports' %}" title="Reports &amp; Analytics">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-bar-chart-line"></i></span>
+      Reports
+    </a>
+
+    <a href="{% url 'communication:health' %}" title="Communication Health">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></span>
+      Comms Health
+    </a>
+
+    {% if user.is_staff or user.role == 'dean' %}
+    <span class="sidebar-section-label">Administration</span>
+
+    <a href="{% url 'admin_panel:dashboard' %}" title="System Admin">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
+      System Admin
+    </a>
+    {% endif %}
+
+    <!-- REST API quick link -->
+    <span class="sidebar-section-label">Developer</span>
+
+    <a href="/api/" title="Browsable REST API" target="_blank" rel="noopener">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-braces"></i></span>
+      API Explorer
+    </a>
+
+  </div><!-- /.sidebar-nav -->
+
+  <div class="sidebar-footer">
+    <small>Phase 1 &bull; SQLite &bull; DRF {{ request.user.get_full_name }}</small>
+  </div>
+
+</nav>
