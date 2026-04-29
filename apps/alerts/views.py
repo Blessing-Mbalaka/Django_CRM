@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 
 from apps.core.decorators import operational_required
 from functionalities.alerts import services
+from functionalities.ai.services import run_ai_alert_pipeline
 from .forms import AlertForm
 from .models import Alert
 
@@ -81,10 +82,18 @@ def alert_resolve(request, pk):
 
 @login_required
 def run_alert_pipeline(request):
-    """POST-only: trigger alert generation pipeline."""
+    """POST-only: trigger rule-based + AI alert generation pipeline."""
     if request.method != 'POST':
         return redirect('alerts:list')
+    # Rule-based pipeline
     summary = services.run_alert_pipeline()
-    total = sum(summary.values())
-    messages.success(request, f'Alert pipeline complete. {total} new alert(s) generated.')
+    rule_total = sum(summary.values())
+    # AI pipeline
+    ai_summary = run_ai_alert_pipeline()
+    ai_total = ai_summary['churn_created'] + ai_summary['dormancy_created']
+    total = rule_total + ai_total
+    messages.success(
+        request,
+        f'Alert pipeline complete. {rule_total} rule-based + {ai_total} AI alert(s) generated ({total} total).'
+    )
     return redirect('alerts:list')

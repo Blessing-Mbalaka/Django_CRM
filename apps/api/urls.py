@@ -17,6 +17,7 @@ from apps.alerts.api_views         import AlertViewSet
 from apps.communication.api_views  import CommunicationLogViewSet
 from apps.accounts.api_views       import UserViewSet
 from apps.analytics.api_views      import analytics_report
+from apps.ai.api_views             import ai_insights, run_pipeline as ai_run_pipeline, training_readiness
 
 router = DefaultRouter()
 router.register(r'clients',       ClientViewSet,          basename='client')
@@ -36,7 +37,7 @@ def api_root(request, format=None):
     Authentication: Session (browser) or Token — Authorization: Token <key>
     """
     return Response({
-        'status':    'JBS CRM API v1.0 — Phase 1',
+        'status':    'JBS CRM API v1.0 — Phase 1', # Informational endpoint with API overview
         'database':  'SQLite (Phase 1)',
         'framework': 'Django REST Framework',
         'endpoints': {
@@ -49,6 +50,7 @@ def api_root(request, format=None):
             'communication': reverse('communication-list', request=request, format=format),
             'users':         reverse('user-list',          request=request, format=format),
             'analytics':     reverse('analytics-report',   request=request, format=format),
+            'ai_insights':   reverse('ai-insights',          request=request, format=format),
         },
     })
 
@@ -56,5 +58,8 @@ def api_root(request, format=None):
 urlpatterns = [
     path('', api_root, name='api-root'),
     path('analytics/', analytics_report, name='analytics-report'),
+    path('ai/insights/', ai_insights, name='ai-insights'),
+    path('ai/run-pipeline/', ai_run_pipeline, name='ai-run-pipeline'),
+    path('ai/readiness/', training_readiness, name='ai-readiness'),
     path('', include(router.urls)),
 ]

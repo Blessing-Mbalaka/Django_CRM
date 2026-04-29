@@ -52,6 +52,7 @@ LOCAL_APPS = [
     'apps.alerts',        # Risk alerts, notifications
     'apps.analytics',     # Reporting, forecasting, insights
     'apps.communication', # Relationship health, contact tracking
+    'apps.ai',            # Phase 3a — Rule-based AI intelligence layer
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

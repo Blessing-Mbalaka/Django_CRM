@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 
 from apps.core.decorators import operational_required
 from functionalities.engagements import services
+from functionalities.ai.services import compute_churn_risk
 from .forms import EngagementForm
 from .models import Engagement
 
@@ -20,9 +21,12 @@ def engagement_list(request):
     )
     paginator = Paginator(qs, 25)
     page_obj = paginator.get_page(request.GET.get('page'))
+    # Pre-compute churn risk for all engagements on this page
+    risk_scores = {e.pk: compute_churn_risk(e) for e in page_obj}
     return render(request, 'engagements/list.html', {
         'engagements': page_obj,
         'page_obj':    page_obj,
+        'risk_scores': risk_scores,
         'status':      status or '',
         'search':      search or '',
     })

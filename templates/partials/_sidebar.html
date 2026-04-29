@@ -77,6 +77,11 @@
       Comms Health
     </a>
 
+    <a href="{% url 'ai:insights' %}" title="AI Insights">
+      <span class="nav-icon" aria-hidden="true"><i class="bi bi-cpu"></i></span>
+      AI Insights
+    </a>
+
     {% if user.is_staff or user.role == 'dean' %}
     <span class="sidebar-section-label">Administration</span>
 
@@ -97,7 +102,7 @@
   </div><!-- /.sidebar-nav -->
 
   <div class="sidebar-footer">
-    <small>Phase 1 &bull; SQLite &bull; DRF {{ request.user.get_full_name }}</small>
+    <small>Phase 3a &bull; AI Layer &bull; DRF {{ request.user.get_full_name }}</small>
   </div>
 
 </nav>

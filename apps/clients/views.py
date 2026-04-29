@@ -6,6 +6,7 @@ from django.http import Http404
 
 from apps.core.decorators import operational_required
 from functionalities.clients import services
+from functionalities.ai.services import compute_dormancy_risk
 from .forms import ClientForm
 from .models import Client
 
@@ -39,7 +40,12 @@ def client_detail(request, pk):
     except Client.DoesNotExist:
         raise Http404
     engagements = client.engagements.select_related('lead_owner').order_by('-updated_at')
-    return render(request, 'clients/detail.html', {'client': client, 'engagements': engagements})
+    dormancy_risk = compute_dormancy_risk(client)
+    return render(request, 'clients/detail.html', {
+        'client': client,
+        'engagements': engagements,
+        'dormancy_risk': dormancy_risk,
+    })
 
 
 @login_required

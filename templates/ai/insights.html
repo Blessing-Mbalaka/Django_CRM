@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block title %}AI Insights{% endblock %}
+{% block page_heading %}AI Insights{% endblock %}
+
+{% block extra_css %}
+<style>
+  .risk-critical { background-color: #dc3545; color: #fff; }
+  .risk-high     { background-color: #fd7e14; color: #fff; }
+  .risk-medium   { background-color: #ffc107; color: #212529; }
+  .risk-low      { background-color: #198754; color: #fff; }
+  .forecast-card { border-left: 4px solid var(--uj-orange); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="uj-breadcrumb">
+  <a href="{% url 'core:dashboard' %}">Dashboard</a> &rsaquo; AI Insights
+</div>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">AI Insights</h1>
+    <p class="page-subtitle">Rule-based intelligence — churn risk, dormancy risk, revenue forecast</p>
+  </div>
+  <form method="post" action="{% url 'ai:insights' %}">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="run_pipeline">
+    <button type="submit" class="btn-uj">
+      <i class="bi bi-lightning-charge me-1"></i>Run AI Alert Pipeline
+    </button>
+  </form>
+</div>
+
+{% if run_msg %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+  <i class="bi bi-check-circle me-2"></i>{{ run_msg }}
+  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<!-- ── KPI Summary ─────────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">Avg Churn Risk</div>
+      <div class="stat-value">{{ avg_churn_score }}%</div>
+      <div class="stat-sub">across {{ total_active_engagements }} active engagement{{ total_active_engagements|pluralize }}</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">At-Risk Engagements</div>
+      <div class="stat-value text-danger">{{ at_risk_count }}</div>
+      <div class="stat-sub">High or Critical churn risk</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">Dormant Clients</div>
+      <div class="stat-value text-warning">{{ dormant_count }}</div>
+      <div class="stat-sub">out of {{ total_clients }} client{{ total_clients|pluralize }}</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-label">30-Day Revenue Forecast</div>
+      <div class="stat-value">R {{ forecast.forecast_30d|floatformat:0 }}</div>
+      <div class="stat-sub">from pipeline records</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Revenue Forecast ────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="uj-card">
+      <div class="uj-card-header"><span><i class="bi bi-graph-up-arrow me-2"></i>Revenue Forecast</span></div>
+      <div class="uj-card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="uj-card forecast-card h-100">
+              <div class="uj-card-body text-center">
+                <div class="fs-5 text-muted mb-1">Next 30 Days</div>
+                <div class="display-6 fw-bold text-uj">R {{ forecast.forecast_30d|floatformat:0 }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="uj-card forecast-card h-100">
+              <div class="uj-card-body text-center">
+                <div class="fs-5 text-muted mb-1">Next 60 Days</div>
+                <div class="display-6 fw-bold text-uj">R {{ forecast.forecast_60d|floatformat:0 }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="uj-card forecast-card h-100">
+              <div class="uj-card-body text-center">
+                <div class="fs-5 text-muted mb-1">Next 90 Days</div>
+                <div class="display-6 fw-bold text-uj">R {{ forecast.forecast_90d|floatformat:0 }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if forecast.by_centre %}
+        <hr class="my-3">
+        <h6 class="mb-2 text-muted">30-Day Forecast by Centre</h6>
+        <div class="row g-2">
+          {% for row in forecast.by_centre %}
+          <div class="col-sm-6 col-lg-4">
+            <div class="d-flex justify-content-between align-items-center px-3 py-2 rounded border">
+              <span>{{ row.centre }}</span>
+              <strong class="text-uj">R {{ row.amount|floatformat:0 }}</strong>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Churn Risk Table ────────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+  <div class="col-lg-7">
+    <div class="uj-card h-100">
+      <div class="uj-card-header">
+        <span><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Top 10 Churn-Risk Engagements</span>
+      </div>
+      <div class="uj-card-body p-0">
+        {% if top_churn %}
+        <table class="table uj-table mb-0">
+          <thead>
+            <tr>
+              <th>Engagement</th>
+              <th>Client</th>
+              <th>Score</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in top_churn %}
+            <tr onclick="window.location='{% url 'engagements:detail' row.engagement.pk %}'" style="cursor:pointer;" title="{{ row.recommendation }}">
+              <td>{{ row.engagement.title|truncatechars:35 }}</td>
+              <td>{{ row.engagement.client.name|default:"—"|truncatechars:25 }}</td>
+              <td>
+                <div class="progress" style="height:8px;min-width:60px;">
+                  <div class="progress-bar
+                    {% if row.label == 'Critical' %}bg-danger
+                    {% elif row.label == 'High' %}bg-warning
+                    {% elif row.label == 'Medium' %}bg-info
+                    {% else %}bg-success{% endif %}"
+                    role="progressbar"
+                    style="width:{% widthratio row.score 1 100 %}%"
+                    aria-valuenow="{% widthratio row.score 1 100 %}" aria-valuemin="0" aria-valuemax="100">
+                  </div>
+                </div>
+                <small class="text-muted">{% widthratio row.score 1 100 %}%</small>
+              </td>
+              <td>
+                <span class="badge risk-{{ row.label|lower }}">{{ row.label }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+          No active engagements at elevated risk.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Dormancy Risk Table ───────────────────────────────────────────── -->
+  <div class="col-lg-5">
+    <div class="uj-card h-100">
+      <div class="uj-card-header">
+        <span><i class="bi bi-moon-stars me-2 text-warning"></i>Top 10 Dormancy-Risk Clients</span>
+      </div>
+      <div class="uj-card-body p-0">
+        {% if top_dormancy %}
+        <table class="table uj-table mb-0">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Score</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in top_dormancy %}
+            <tr onclick="window.location='{% url 'clients:detail' row.client.pk %}'" style="cursor:pointer;" title="{{ row.recommended_action }}">
+              <td>{{ row.client.name|truncatechars:30 }}</td>
+              <td><small class="text-muted">{{ row.score|floatformat:0 }}%</small></td>
+              <td>
+                <span class="badge risk-{{ row.label|lower }}">{{ row.label }}</span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+          <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+          No dormancy risks detected.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ML Training Readiness ──────────────────────────────────────────── -->
+{% if readiness %}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="uj-card">
+      <div class="uj-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-cpu me-2"></i>ML Model Training Readiness</span>
+        <span class="badge
+          {% if readiness.ready and readiness.soft_passed %}bg-success
+          {% elif readiness.ready %}bg-warning text-dark
+          {% else %}bg-danger{% endif %}">
+          {% if readiness.ready and readiness.soft_passed %}Ready
+          {% elif readiness.ready %}Ready (warnings)
+          {% else %}Not Ready{% endif %}
+        </span>
+      </div>
+      <div class="uj-card-body">
+
+        <!-- Progress bar toward minimum data threshold -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <small class="text-muted">Data collection progress</small>
+            <small class="fw-bold">{{ readiness.labelled_total }} / {{ readiness.labelled_needed }} labelled engagements</small>
+          </div>
+          <div class="progress" style="height:10px;">
+            <div class="progress-bar
+              {% if readiness.ready %}bg-success{% else %}bg-warning{% endif %}"
+              role="progressbar"
+              style="width:{{ readiness.progress_pct }}%"
+              aria-valuenow="{{ readiness.progress_pct }}"
+              aria-valuemin="0" aria-valuemax="100">
+            </div>
+          </div>
+          <small class="text-muted d-block mt-1">{{ readiness.progress_pct }}% of minimum threshold reached</small>
+        </div>
+
+        <!-- Summary verdict -->
+        <div class="alert
+          {% if readiness.ready and readiness.soft_passed %}alert-success
+          {% elif readiness.ready %}alert-warning
+          {% else %}alert-danger{% endif %} py-2 mb-3">
+          <i class="bi
+            {% if readiness.ready and readiness.soft_passed %}bi-check-circle
+            {% elif readiness.ready %}bi-exclamation-triangle
+            {% else %}bi-x-circle{% endif %} me-2"></i>
+          {{ readiness.summary }}
+        </div>
+
+        <!-- Check table -->
+        <table class="table table-sm uj-table mb-0">
+          <thead>
+            <tr>
+              <th>Check</th>
+              <th>Type</th>
+              <th>Value</th>
+              <th>Required</th>
+              <th>Status</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in readiness.checks %}
+            <tr>
+              <td>{{ c.name }}</td>
+              <td>
+                {% if c.hard %}
+                  <span class="badge bg-danger">Hard</span>
+                {% else %}
+                  <span class="badge bg-secondary">Soft</span>
+                {% endif %}
+              </td>
+              <td><code>{{ c.value }}</code></td>
+              <td><code>{{ c.required }}</code></td>
+              <td>
+                {% if c.passed %}
+                  <i class="bi bi-check-circle-fill text-success"></i>
+                {% else %}
+                  <i class="bi bi-x-circle-fill text-danger"></i>
+                {% endif %}
+              </td>
+              <td><small class="text-muted">{{ c.note }}</small></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

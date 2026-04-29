@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load core_filters %}
 {% block title %}Engagements{% endblock %}
 {% block page_heading %}Engagements{% endblock %}
 {% block content %}
@@ -17,7 +18,7 @@
     <div class="table-responsive">
       <table class="table uj-table mb-0" aria-label="Engagements">
         <thead>
-          <tr><th>Title</th><th>Client</th><th>Status</th><th>Lead</th><th>Centre</th><th>Last Contact</th></tr>
+          <tr><th>Title</th><th>Client</th><th>Status</th><th>Lead</th><th>Centre</th><th>Last Contact</th><th>AI Risk</th></tr>
         </thead>
         <tbody>
           {% for e in engagements %}
@@ -36,7 +37,19 @@
                 {% else %}
                   {{ e.last_contact|date:"d M Y" }}
                 {% endif %}
-              {% else %}—{% endif %}
+              {% else %}&mdash;{% endif %}
+            </td>
+            <td>
+              {% with r=risk_scores|get_item:e.pk %}
+                {% if r %}
+                  <span class="badge
+                    {% if r.label == 'Critical' %}bg-danger
+                    {% elif r.label == 'High' %}bg-warning text-dark
+                    {% elif r.label == 'Medium' %}bg-info text-dark
+                    {% else %}bg-success{% endif %}"
+                    title="{{ r.recommendation }}">{{ r.label }}</span>
+                {% else %}&mdash;{% endif %}
+              {% endwith %}
             </td>
           </tr>
           {% endfor %}
