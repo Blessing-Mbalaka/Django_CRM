@@ -16,6 +16,18 @@
     </div>
   </a>
 
+  <!-- Logged-in user info -->
+  <div class="sidebar-user-info" aria-label="Logged in user">
+    <div class="sidebar-user-avatar" aria-hidden="true">
+      {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+    </div>
+    <div class="sidebar-user-details">
+      <div class="sidebar-user-label">You are logged in as:</div>
+      <div class="sidebar-user-name">{{ request.user.get_full_name }}</div>
+      <div class="sidebar-user-role">{{ request.user.get_role_display }}</div>
+    </div>
+  </div>
+
   <!-- Navigation links -->
   <div class="sidebar-nav" role="navigation">
 
@@ -82,7 +94,7 @@
       AI Insights
     </a>
 
-    {% if user.is_staff or user.role == 'dean' %}
+    {% if user.is_superuser or user.is_staff or user.role == 'dean' %}
     <span class="sidebar-section-label">Administration</span>
 
     <a href="{% url 'admin_panel:dashboard' %}" title="System Admin">
@@ -102,7 +114,13 @@
   </div><!-- /.sidebar-nav -->
 
   <div class="sidebar-footer">
-    <small>Phase 3a &bull; AI Layer &bull; DRF {{ request.user.get_full_name }}</small>
+    <small>Phase 3a &bull; AI Layer</small>
+    <form method="post" action="{% url 'accounts:logout' %}" class="mt-2">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+        <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i> Logout
+      </button>
+    </form>
   </div>
 
 </nav>

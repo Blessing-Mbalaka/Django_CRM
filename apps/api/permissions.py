@@ -13,7 +13,7 @@ class IsDeanOrAdmin(BasePermission):
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role in ('dean', 'admin')
+            and (request.user.is_superuser or request.user.role in ('dean', 'admin'))
         )
 
 
@@ -25,7 +25,7 @@ class IsDeanDirectorOrAdmin(BasePermission):
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role in ('dean', 'director', 'admin')
+            and (request.user.is_superuser or request.user.role in ('dean', 'director', 'admin'))
         )
 
 
