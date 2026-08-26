@@ -57,6 +57,11 @@ LOCAL_APPS = [
     'apps.tasks',         # Persistent lightweight Kanban and task activity
     'apps.billing',       # Invoices, invoice lines, and customer payments
     'apps.expenses',      # Expense capture and management approval workflow
+    'apps.accounting',    # Double-entry ledger and accounting periods
+    'apps.products',      # Shared product and service catalogue
+    'apps.inventory',     # Locations, stock movements, and reorder rules
+    'apps.purchasing',    # Suppliers, purchase orders, and goods receipts
+    'apps.sales',         # Sales orders, fulfilment, and invoice conversion
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

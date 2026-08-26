@@ -550,6 +550,12 @@ The next execution cycle should implement these items in order:
 
 No legacy folder should be deleted, no financial source of truth should be switched, and no compliance calculation should be released until its migration/reconciliation and acceptance gates have passed.
 
+### Implementation progress — 26 August 2026
+
+- Completed: Document Management, Tasks & Kanban, Invoicing & Billing, and Expense Tracking backend/API foundations and initial API-driven screens.
+- Completed: Phase 2 backend foundations for chart of accounts/journals, products, stock movements, purchasing, sales orders, goods receipts, fulfilment, and sales-order-to-invoice conversion.
+- Next: Phase 2 operations screens, accounting reversals and reporting, partial receiving/fulfilment, supplier bills, automatic ledger postings, marketing, and integration adapters.
+
 ---
 
 ## 12. Success measures

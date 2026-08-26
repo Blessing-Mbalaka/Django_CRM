@@ -22,6 +22,11 @@ from apps.documents.api_views      import DocumentLibraryViewSet, DocumentViewSe
 from apps.tasks.api_views          import BoardColumnViewSet, BoardViewSet, TaskActivityViewSet, TaskCommentViewSet, TaskViewSet
 from apps.billing.api_views        import InvoiceLineViewSet, InvoiceViewSet, PaymentViewSet
 from apps.expenses.api_views       import ExpenseCategoryViewSet, ExpenseViewSet
+from apps.accounting.api_views     import AccountViewSet, AccountingPeriodViewSet, JournalEntryViewSet
+from apps.products.api_views       import ProductViewSet
+from apps.inventory.api_views      import ReorderRuleViewSet, StockLocationViewSet, StockMovementViewSet
+from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierViewSet
+from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewSet, SalesOrderViewSet
 
 router = DefaultRouter()
 router.register(r'clients',       ClientViewSet,          basename='client')
@@ -46,6 +51,20 @@ router.register(r'invoice-lines', InvoiceLineViewSet, basename='invoice-line')
 router.register(r'payments', PaymentViewSet, basename='payment')
 router.register(r'expense-categories', ExpenseCategoryViewSet, basename='expense-category')
 router.register(r'expenses', ExpenseViewSet, basename='expense')
+router.register(r'accounts', AccountViewSet, basename='account')
+router.register(r'accounting-periods', AccountingPeriodViewSet, basename='accounting-period')
+router.register(r'journals', JournalEntryViewSet, basename='journal')
+router.register(r'products', ProductViewSet, basename='product')
+router.register(r'stock-locations', StockLocationViewSet, basename='stock-location')
+router.register(r'stock-movements', StockMovementViewSet, basename='stock-movement')
+router.register(r'reorder-rules', ReorderRuleViewSet, basename='reorder-rule')
+router.register(r'suppliers', SupplierViewSet, basename='supplier')
+router.register(r'purchase-orders', PurchaseOrderViewSet, basename='purchase-order')
+router.register(r'purchase-order-lines', PurchaseOrderLineViewSet, basename='purchase-order-line')
+router.register(r'goods-receipts', GoodsReceiptViewSet, basename='goods-receipt')
+router.register(r'sales-orders', SalesOrderViewSet, basename='sales-order')
+router.register(r'sales-order-lines', SalesOrderLineViewSet, basename='sales-order-line')
+router.register(r'fulfilments', FulfilmentViewSet, basename='fulfilment')
 
 
 @api_view(['GET'])
@@ -74,6 +93,12 @@ def api_root(request, format=None):
             'tasks':         reverse('task-list',            request=request, format=format),
             'invoices':      reverse('invoice-list',         request=request, format=format),
             'expenses':      reverse('expense-list',         request=request, format=format),
+            'accounts':      reverse('account-list',         request=request, format=format),
+            'journals':      reverse('journal-list',         request=request, format=format),
+            'products':      reverse('product-list',         request=request, format=format),
+            'stock':         reverse('stock-movement-list',  request=request, format=format),
+            'purchasing':    reverse('purchase-order-list',  request=request, format=format),
+            'sales_orders':  reverse('sales-order-list',     request=request, format=format),
         },
     })
 
