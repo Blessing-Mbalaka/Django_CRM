@@ -23,7 +23,7 @@
           <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ member.email|default:"—" }}</dd>
           <dt class="col-sm-4">Phone</dt><dd class="col-sm-8">{{ member.phone|default:"—" }}</dd>
           <dt class="col-sm-4">Role</dt><dd class="col-sm-8"><span class="badge bg-secondary">{{ member.get_role_display }}</span></dd>
-          <dt class="col-sm-4">Centre</dt><dd class="col-sm-8">{% if member.centre %}<a href="{% url 'centres:detail' member.centre.pk %}">{{ member.centre.name }}</a>{% else %}—{% endif %}</dd>
+          <dt class="col-sm-4">Department</dt><dd class="col-sm-8">{% if member.centre %}<a href="{% url 'centres:detail' member.centre.pk %}">{{ member.centre.name }}</a>{% else %}—{% endif %}</dd>
           <dt class="col-sm-4">Status</dt><dd class="col-sm-8">{% if member.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</dd>
           <dt class="col-sm-4">Joined</dt><dd class="col-sm-8">{{ member.date_joined|date:"d M Y" }}</dd>
         </dl>

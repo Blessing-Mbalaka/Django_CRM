@@ -46,7 +46,7 @@ Task list filters: `?board={id}` and `?assignee={user_id}`.
 | `/api/invoices/{id}/issue/` | POST | Validate and allocate the next invoice number |
 | `/api/payments/` | GET, POST | Record a payment and update invoice status |
 
-Invoice writes require Dean, Director or Administrator access. Issued invoice lines cannot be edited or deleted. Payments cannot be recorded on draft/void invoices or exceed the outstanding balance.
+Invoice writes require CEO, Department Director or Administrator access. Issued invoice lines cannot be edited or deleted. Payments cannot be recorded on draft/void invoices or exceed the outstanding balance.
 
 ## Expenses
 

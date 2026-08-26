@@ -14,7 +14,7 @@ from .models import Engagement
 @login_required
 def engagement_list(request):
     status = request.GET.get('status')
-    centre = request.GET.get('centre')
+    centre = request.GET.get('department') or request.GET.get('centre')
     search = request.GET.get('q')
     qs = services.get_engagement_list(
         request.user, status=status, centre=centre, search=search
@@ -51,7 +51,7 @@ def engagement_create(request):
             messages.warning(
                 request,
                 'Warning: an active/prospect engagement already exists for this '
-                'client + centre combination. Please review for overlap.'
+                'client + department combination. Please review for overlap.'
             )
         messages.success(request, f'Engagement "{eng.title}" created.')
         return redirect('engagements:detail', pk=eng.pk)
@@ -66,7 +66,7 @@ def engagement_edit(request, pk):
     if request.method == 'POST' and form.is_valid():
         eng, duplicate = services.update_engagement(form, request.user)
         if duplicate:
-            messages.warning(request, 'Overlap detected with another active/prospect engagement for this client + centre.')
+            messages.warning(request, 'Overlap detected with another active/prospect engagement for this client + department.')
         messages.success(request, f'Engagement "{eng.title}" updated.')
         return redirect('engagements:detail', pk=eng.pk)
     return render(request, 'engagements/form.html', {'form': form, 'action': 'Edit', 'object': eng})

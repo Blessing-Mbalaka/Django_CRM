@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from functionalities.expenses.services import decide_expense, submit_expense
 from .models import Expense, ExpenseCategory
 from .serializers import ExpenseCategorySerializer, ExpenseSerializer
@@ -14,7 +14,7 @@ class ExpenseCategoryViewSet(viewsets.ModelViewSet):
     queryset = ExpenseCategory.objects.all()
 
     def get_permissions(self):
-        return [IsDeanDirectorOrAdmin()] if self.action not in ('list', 'retrieve') else [IsAuthenticated()]
+        return [IsCEODirectorOrAdmin()] if self.action not in ('list', 'retrieve') else [IsAuthenticated()]
 
 
 class ExpenseViewSet(viewsets.ModelViewSet):

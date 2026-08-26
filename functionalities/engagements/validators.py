@@ -14,7 +14,7 @@ def validate_engagement_dates(start_date, end_date):
 def validate_no_duplicate_engagement(client_id, centre_id, exclude_pk=None):
     """
     Raise ValidationError if an active/prospect engagement already exists
-    for this client + centre combination.
+    for this client + department combination.
     """
     from apps.engagements.models import Engagement
     qs = Engagement.objects.filter(
@@ -27,5 +27,5 @@ def validate_no_duplicate_engagement(client_id, centre_id, exclude_pk=None):
     if qs.exists():
         raise ValidationError(
             'An active or prospect engagement already exists for this client '
-            'and centre combination. Review for overlap.'
+            'and department combination. Review for overlap.'
         )

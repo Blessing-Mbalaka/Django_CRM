@@ -1,6 +1,6 @@
 """
 Management command: seed_users
-Creates dummy centres and users for development/demo purposes.
+Creates dummy departments and users for development/demo purposes.
 Usage: python manage.py seed_users
        python manage.py seed_users --clear   (wipe non-superuser accounts first)
 """
@@ -19,8 +19,8 @@ CENTRES = [
 
 # (first_name, last_name, email, username, role, job_title, phone, centre_code)
 USERS = [
-    # ── Dean ──
-    ('Nomsa',    'Dlamini',  'n.dlamini@uj.ac.za',   'ndlamini',  User.Role.DEAN,     'Dean: JBS',                        '+27 11 559 3001', None),
+    # ── CEO ──
+    ('Nomsa',    'Dlamini',  'n.dlamini@uj.ac.za',   'ndlamini',  User.Role.CEO,      'CEO: JBS',                         '+27 11 559 3001', None),
 
     # ── Directors ──
     ('Sipho',    'Nkosi',    's.nkosi@uj.ac.za',     'snkosi',    User.Role.DIRECTOR, 'Director: CEI',                    '+27 11 559 3101', 'CEI'),
@@ -53,7 +53,7 @@ DEFAULT_PASSWORD = 'JBS@2026!'
 
 
 class Command(BaseCommand):
-    help = 'Seed dummy centres and users for development'
+    help = 'Seed dummy departments and users for development'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -67,9 +67,9 @@ class Command(BaseCommand):
         if options['clear']:
             deleted, _ = User.objects.filter(is_superuser=False).delete()
             Centre.objects.all().delete()
-            self.stdout.write(self.style.WARNING(f'Cleared {deleted} existing user(s) and all centres.'))
+            self.stdout.write(self.style.WARNING(f'Cleared {deleted} existing user(s) and all departments.'))
 
-        # ── Create centres ──────────────────────────────────────────────────
+        # ── Create departments ──────────────────────────────────────────────
         centre_map = {}
         for c in CENTRES:
             obj, created = Centre.objects.get_or_create(
@@ -78,7 +78,7 @@ class Command(BaseCommand):
             )
             centre_map[c['code']] = obj
             status = 'created' if created else 'exists '
-            self.stdout.write(f'  [{status}] Centre: {obj.name}')
+            self.stdout.write(f'  [{status}] Department: {obj.name}')
 
         # ── Create users ────────────────────────────────────────────────────
         created_count = 0

@@ -6,8 +6,8 @@ class Client(models.Model):
 
     class Visibility(models.TextChoices):
         PRIVATE       = 'private',       'Private (Assigned Staff Only)'
-        SHARED        = 'shared',        'Shared (Centre Level)'
-        INSTITUTIONAL = 'institutional', 'Institutional (Dean Access)'
+        SHARED        = 'shared',        'Shared (Department Level)'
+        INSTITUTIONAL = 'institutional', 'Institutional (CEO Access)'
 
     class Sector(models.TextChoices):
         PUBLIC   = 'public',   'Public Sector'
@@ -27,6 +27,7 @@ class Client(models.Model):
         null=True, blank=True,
         on_delete=models.SET_NULL,
         related_name='clients',
+        verbose_name='Department',
     )
     lead_owner = models.ForeignKey(
         'accounts.User',

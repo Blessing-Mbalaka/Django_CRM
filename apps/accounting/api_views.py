@@ -4,7 +4,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from django.utils import timezone
 
 from functionalities.accounting.reconciliation import reconcile_statement_line, reconciliation_candidates, unreconcile_statement_line
@@ -16,7 +16,7 @@ from .serializers import AccountSerializer, AccountingPeriodSerializer, BankStat
 
 class ManagementWriteViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
 
 class AccountViewSet(ManagementWriteViewSet):
@@ -59,7 +59,7 @@ class BankStatementViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'head', 'options']
 
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
 
 class BankStatementLineViewSet(viewsets.ReadOnlyModelViewSet):
@@ -67,7 +67,7 @@ class BankStatementLineViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = BankStatementLine.objects.select_related('statement__bank_account', 'matched_journal_line__entry', 'reconciled_by')
 
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve', 'candidates') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve', 'candidates') else [IsCEODirectorOrAdmin()]
 
     @action(detail=True, methods=['get'])
     def candidates(self, request, pk=None):

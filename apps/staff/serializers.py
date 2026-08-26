@@ -7,12 +7,14 @@ class StaffProfileSerializer(serializers.ModelSerializer):
     centre_name = serializers.SerializerMethodField()
     email       = serializers.SerializerMethodField()
     role        = serializers.SerializerMethodField()
+    department  = serializers.IntegerField(source='centre_id', read_only=True)
+    department_name = serializers.CharField(source='centre.name', read_only=True)
 
     class Meta:
         model = StaffProfile
         fields = [
             'id', 'user', 'user_name', 'email', 'role',
-            'centre', 'centre_name', 'bio', 'expertise',
+            'department', 'department_name', 'centre', 'centre_name', 'bio', 'expertise',
             'is_active', 'created_at',
         ]
         read_only_fields = ['id', 'created_at']

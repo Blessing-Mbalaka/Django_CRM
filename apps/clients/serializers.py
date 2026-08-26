@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.centres.models import Centre
 from apps.clients.models import Client
 
 
@@ -7,13 +8,15 @@ class ClientSerializer(serializers.ModelSerializer):
     visibility_display = serializers.SerializerMethodField()
     lead_name          = serializers.SerializerMethodField()
     centre_name        = serializers.SerializerMethodField()
+    department         = serializers.PrimaryKeyRelatedField(source='centre', queryset=Centre.objects.all(), required=False, allow_null=True)
+    department_name    = serializers.CharField(source='centre.name', read_only=True)
 
     class Meta:
         model = Client
         fields = [
             'id', 'name', 'sector', 'sector_display', 'ownership', 'website',
             'notes', 'visibility', 'visibility_display',
-            'centre', 'centre_name', 'lead_owner', 'lead_name',
+            'department', 'department_name', 'centre', 'centre_name', 'lead_owner', 'lead_name',
             'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']

@@ -5,9 +5,9 @@ Role-based access control for all API endpoints.
 from rest_framework.permissions import BasePermission, IsAuthenticated  # noqa: F401
 
 
-class IsDeanOrAdmin(BasePermission):
-    """Full system control — Dean and System Administrators only."""
-    message = 'Access restricted to Dean and System Administrators.'
+class IsCEOOrAdmin(BasePermission):
+    """Full system control: CEO and System Administrators only."""
+    message = 'Access restricted to the CEO and System Administrators.'
 
     def has_permission(self, request, view):
         return bool(
@@ -17,9 +17,9 @@ class IsDeanOrAdmin(BasePermission):
         )
 
 
-class IsDeanDirectorOrAdmin(BasePermission):
-    """Operational write access — Dean, Centre Directors, and Administrators."""
-    message = 'Access restricted to Dean, Directors, and Administrators.'
+class IsCEODirectorOrAdmin(BasePermission):
+    """Operational write access: CEO, Department Directors, and Administrators."""
+    message = 'Access restricted to the CEO, Department Directors, and Administrators.'
 
     def has_permission(self, request, view):
         return bool(
@@ -38,3 +38,8 @@ class IsAuthenticatedReadOnly(BasePermission):
         if not (request.user and request.user.is_authenticated):
             return False
         return request.method in ('GET', 'HEAD', 'OPTIONS')
+
+
+# Compatibility aliases for extensions using the former permission names.
+IsDeanOrAdmin = IsCEOOrAdmin
+IsDeanDirectorOrAdmin = IsCEODirectorOrAdmin

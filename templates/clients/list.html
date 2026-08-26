@@ -33,9 +33,9 @@
         </select>
       </div>
       <div class="col-6 col-md-3">
-        <label class="form-label fw-600 mb-1" for="centre">Centre</label>
-        <select id="centre" name="centre" class="form-select">
-          <option value="">All Centres</option>
+        <label class="form-label fw-600 mb-1" for="department">Department</label>
+        <select id="department" name="department" class="form-select">
+          <option value="">All Departments</option>
           {% for c in centres %}
           <option value="{{ c.pk }}" {% if centre_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
@@ -55,7 +55,7 @@
       <table class="table uj-table mb-0" aria-label="Client list">
         <thead>
           <tr>
-            <th>Client</th><th>Sector</th><th>Centre</th>
+            <th>Client</th><th>Sector</th><th>Department</th>
             <th>Relationship Owner</th><th>Visibility</th><th></th>
           </tr>
         </thead>

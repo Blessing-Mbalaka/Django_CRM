@@ -1,5 +1,5 @@
 Role	Users
-Dean	Nomsa Dlamini (ndlamini)
+CEO	Nomsa Dlamini (ndlamini)
 Director	Sipho Nkosi, Fatima Essop, Johan Pretorius, Lindiwe Mokoena
 Lead	Kagiso Sithole, Priya Naidoo, Andile Zulu, Thandeka Khoza
 Analyst	Ruan van Wyk, Amahle Buthelezi, Yusuf Hendricks

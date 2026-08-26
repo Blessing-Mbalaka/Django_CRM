@@ -18,6 +18,6 @@ def handle_pipeline_run_complete(summary):
     """
     Called after run_alert_pipeline() completes.
     summary: {no_contact: int, payment_due: int, overlap: int}
-    Placeholder: log results, send digest to Dean.
+    Placeholder: log results, send digest to CEO.
     """
     pass

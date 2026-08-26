@@ -16,8 +16,8 @@ def validate_unique_email(email, exclude_pk=None):
 
 
 def validate_role_centre_pairing(role, centre):
-    """Dean and admin roles do not require a centre assignment."""
+    """CEO and admin roles do not require a department assignment."""
     if role not in ('dean', 'admin') and not centre:
         raise ValidationError(
-            f'Role "{role}" must be assigned to a centre.'
+            f'Role "{role}" must be assigned to a department.'
         )

@@ -42,7 +42,7 @@
       <div class="uj-card-body">
         <table class="table table-sm">
           <tr><th>Sector</th><td>{{ client.get_sector_display }}</td></tr>
-          <tr><th>Centre</th><td>{{ client.centre|default:"—" }}</td></tr>
+          <tr><th>Department</th><td>{{ client.centre|default:"—" }}</td></tr>
           <tr><th>Owner</th><td>{{ client.lead_owner.get_full_name|default:"—" }}</td></tr>
           <tr><th>Website</th><td>{% if client.website %}<a href="{{ client.website }}" target="_blank">{{ client.website }}</a>{% else %}—{% endif %}</td></tr>
           <tr><th>Created</th><td>{{ client.created_at|date:"d M Y" }}</td></tr>

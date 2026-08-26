@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from .models import Alert
 from .serializers import AlertSerializer
 
@@ -28,7 +28,7 @@ class AlertViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ('create', 'update', 'partial_update', 'destroy'):
-            return [IsDeanDirectorOrAdmin()]
+            return [IsCEODirectorOrAdmin()]
         return [IsAuthenticated()]
 
     def get_queryset(self):

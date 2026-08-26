@@ -50,7 +50,7 @@
         <table class="table table-sm">
           <tr><th>Role</th><td>{{ request.user.get_role_display }}</td></tr>
           <tr><th>Joined</th><td>{{ request.user.date_joined|date:"d M Y" }}</td></tr>
-          <tr><th>Centre</th><td>{{ request.user.centre|default:"—" }}</td></tr>
+          <tr><th>Department</th><td>{{ request.user.centre|default:"—" }}</td></tr>
           <tr><th>Status</th><td><span class="badge bg-success">Active</span></td></tr>
         </table>
       </div>

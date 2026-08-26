@@ -14,7 +14,7 @@ from .forms import StaffProfileForm
 
 @login_required
 def staff_list(request):
-    centre_id = request.GET.get('centre')
+    centre_id = request.GET.get('department') or request.GET.get('centre')
     search = request.GET.get('q')
     qs = services.get_staff_directory(centre_id=centre_id, search=search)
     paginator = Paginator(qs, 25)

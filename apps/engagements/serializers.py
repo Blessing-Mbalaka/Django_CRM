@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from apps.centres.models import Centre
 from apps.engagements.models import Engagement
 
 
@@ -7,11 +8,13 @@ class EngagementSerializer(serializers.ModelSerializer):
     client_name        = serializers.SerializerMethodField()
     lead_name          = serializers.SerializerMethodField()
     days_since_contact = serializers.ReadOnlyField()
+    department         = serializers.PrimaryKeyRelatedField(source='centre', queryset=Centre.objects.all(), required=False, allow_null=True)
+    department_name    = serializers.CharField(source='centre.name', read_only=True)
 
     class Meta:
         model = Engagement
         fields = [
-            'id', 'title', 'client', 'client_name', 'centre',
+            'id', 'title', 'client', 'client_name', 'department', 'department_name', 'centre',
             'lead_owner', 'lead_name', 'status', 'status_display',
             'visibility', 'start_date', 'end_date', 'last_contact',
             'days_since_contact', 'notes', 'created_at', 'updated_at',

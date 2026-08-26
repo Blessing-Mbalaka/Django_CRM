@@ -9,8 +9,8 @@ class User(AbstractUser):
     """
 
     class Role(models.TextChoices):
-        DEAN          = 'dean',        'Dean (Executive)'
-        DIRECTOR      = 'director',    'Centre Director'
+        CEO           = 'dean',        'CEO (Executive)'
+        DIRECTOR      = 'director',    'Department Director'
         LEAD          = 'lead',        'Engagement Lead'
         ANALYST       = 'analyst',     'Analyst'
         STAFF         = 'staff',       'General Staff'
@@ -31,7 +31,7 @@ class User(AbstractUser):
         blank=True,
         on_delete=models.SET_NULL,
         related_name='users',
-        verbose_name='Centre',
+        verbose_name='Department',
     )
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
@@ -44,8 +44,13 @@ class User(AbstractUser):
         return f'{self.get_full_name()} ({self.get_role_display()})'
 
     @property
+    def is_ceo(self):
+        return self.role == self.Role.CEO
+
+    @property
     def is_dean(self):
-        return self.role == self.Role.DEAN
+        """Compatibility alias for integrations using the former role name."""
+        return self.is_ceo
 
     @property
     def is_director(self):

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Centres{% endblock %}
-{% block page_heading %}Centres{% endblock %}
+{% block title %}Departments{% endblock %}
+{% block page_heading %}Departments{% endblock %}
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title"><i class="bi bi-building me-2 text-uj"></i>JBS Centres</h1>
-    <p class="page-subtitle">Active research and teaching centres</p>
+    <h1 class="page-title"><i class="bi bi-building me-2 text-uj"></i>Departments</h1>
+    <p class="page-subtitle">Manage business departments, ownership and performance</p>
   </div>
   <div>
-    <a href="{% url 'centres:create' %}" class="btn-uj"><i class="bi bi-plus-lg me-1"></i>New Centre</a>
+    <a href="{% url 'centres:create' %}" class="btn-uj"><i class="bi bi-plus-lg me-1"></i>New Department</a>
   </div>
 </div>
 <div class="row g-3">
@@ -46,7 +46,7 @@
   {% endwith %}
   {% empty %}
   <div class="col-12">
-    <div class="uj-card"><div class="uj-card-body text-center text-muted py-4">No centres configured yet.</div></div>
+    <div class="uj-card"><div class="uj-card-body text-center text-muted py-4">No departments configured yet.</div></div>
   </div>
   {% endfor %}
 </div>

@@ -52,17 +52,17 @@
     </div>
   </div>
 
-  <!-- Sidebar: Centre Breakdown + Top Clients -->
+  <!-- Sidebar: Department Breakdown + Top Clients -->
   <div class="col-lg-4">
     <div class="uj-card mb-4">
-      <div class="uj-card-header"><span>Revenue by Centre</span></div>
+      <div class="uj-card-header"><span>Revenue by Department</span></div>
       <div class="uj-card-body p-0">
         {% if centre_breakdown %}
         <table class="table uj-table mb-0">
           <tbody>
             {% for row in centre_breakdown %}
             <tr>
-              <td>{{ row.engagement__centre__name|default:"No Centre" }}</td>
+              <td>{{ row.engagement__centre__name|default:"No Department" }}</td>
               <td class="text-end fw-700 text-uj">R {{ row.total|floatformat:0 }}</td>
             </tr>
             {% endfor %}

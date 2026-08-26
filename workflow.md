@@ -7,7 +7,7 @@
 
 ## 1. Project Overview
 
-The JBS CRM is a **modular, API-first Institutional Intelligence Platform** built on Django with Django REST Framework. It gives the Dean executive-level oversight of clients, engagements, finances, and risk — while enabling staff to manage their own portfolios.
+The JBS CRM is a **modular, API-first Institutional Intelligence Platform** built on Django with Django REST Framework. It gives the CEO executive-level oversight of clients, engagements, finances, and risk — while enabling staff to manage their own portfolios.
 
 ---
 
@@ -54,10 +54,10 @@ Each major domain is its own Django app inside `apps/`:
 ```
 apps/
 ├── accounts/       → Login, logout, custom User model, roles, profile
-├── core/           → Dashboard (Dean view), home page
+├── core/           → Dashboard (CEO view), home page
 ├── admin_panel/    → System administration, user management
-├── staff/          → Staff directory, roles, centre allocation
-├── centres/        → Centre profiles, KPIs, director assignment
+├── staff/          → Staff directory, roles, department allocation
+├── centres/        → Department profiles, KPIs, director assignment (legacy package name)
 ├── clients/        → Client & stakeholder register
 ├── engagements/    → Engagement lifecycle management
 ├── finance/        → Revenue, pipeline, financial records
@@ -94,7 +94,7 @@ Request → urls.py → views.py → functionalities/*/services.py → models.py
 
 ### Engagement Rules
 - Every engagement must have a **lead owner**
-- No duplicate client engagements across centres (to prevent overlap)
+- No duplicate client engagements across departments (to prevent overlap)
 - `last_contact` date tracked; `days_since_contact` auto-computed
 - Lifecycle: `prospect → active → on_hold → closed / lost`
 
@@ -102,8 +102,8 @@ Request → urls.py → views.py → functionalities/*/services.py → models.py
 | Level           | Access                              |
 |-----------------|-------------------------------------|
 | `private`       | Assigned staff only                 |
-| `shared`        | All staff in the same centre        |
-| `institutional` | Dean-level access (all data)        |
+| `shared`        | All staff in the same department    |
+| `institutional` | CEO-level access (all data)         |
 
 ### Alert Rules
 - No contact > 30 days: `MEDIUM` alert
@@ -122,8 +122,8 @@ GET /accounts/login/ → LoginForm rendered
 POST credentials → Django authenticates → messages.success("Welcome back")
 → redirect to /dashboard/
 Role-based dashboard:
-  Dean     → Full institutional view (all clients, all centres)
-  Director → Centre-scoped view
+  CEO      → Full institutional view (all clients, all departments)
+  Director → Department-scoped view
   Staff    → Personal engagement portfolio
 ```
 
@@ -191,7 +191,7 @@ POST /api/clients/       → ClientSerializer.validate() → save()
 | `/api/clients/`        | GET, POST  | List/create clients                |
 | `/api/clients/{id}/`   | GET, PUT, PATCH, DELETE | Client CRUD          |
 | `/api/engagements/`    | GET, POST  | List/create engagements            |
-| `/api/centres/`        | GET, POST  | List/create centres                |
+| `/api/departments/`    | GET, POST  | List/create departments            |
 | `/api/staff/`          | GET        | Staff directory                    |
 | `/api/finance/`        | GET, POST  | Financial records                  |
 | `/api/alerts/`         | GET, POST  | Alerts management                  |
@@ -233,7 +233,7 @@ pip install -r requirements.txt
 # 3. Apply migrations
 python manage.py migrate
 
-# 4. Create superuser (Dean account)
+# 4. Create superuser (CEO account)
 python manage.py createsuperuser
 
 # 5. Run development server
@@ -241,7 +241,7 @@ python manage.py runserver
 
 # 6. Access the system
 http://localhost:8000/            → Login page
-http://localhost:8000/dashboard/  → Dean Dashboard
+http://localhost:8000/dashboard/  → CEO Dashboard
 http://localhost:8000/api/        → Browsable REST API
 http://localhost:8000/admin/      → Django Admin
 ```
@@ -274,7 +274,7 @@ CRM/
 │   ├── core/                     ← Dashboard, home
 │   ├── admin_panel/              ← System admin
 │   ├── staff/                    ← People management
-│   ├── centres/                  ← Centre management
+│   ├── centres/                  ← Department management (legacy package name)
 │   ├── clients/                  ← Client register
 │   ├── engagements/              ← Engagement lifecycle
 │   ├── finance/                  ← Financial tracking

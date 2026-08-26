@@ -44,7 +44,7 @@
 
     <span class="sidebar-section-label">People &amp; Administration</span>
     <a href="{% url 'staff:list' %}"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Staff</a>
-    <a href="{% url 'centres:list' %}"><span class="nav-icon"><i class="bi bi-building"></i></span>Centres</a>
+    <a href="{% url 'centres:list' %}"><span class="nav-icon"><i class="bi bi-building"></i></span>Departments</a>
     {% if user.is_superuser or user.is_staff or user.role == 'dean' or user.role == 'admin' %}
     <a href="{% url 'admin_panel:dashboard' %}"><span class="nav-icon"><i class="bi bi-shield-check"></i></span>System Admin</a>
     {% endif %}

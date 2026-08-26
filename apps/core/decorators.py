@@ -37,12 +37,12 @@ def role_required(*allowed_roles):
 
 
 # Pre-composed shorthand decorators
-# ── Executive: dean + admin only (centres, system config) ─────────────────
+# ── Executive: CEO + admin only (departments, system config) ──────────────
 def exec_required(view_func):
     return role_required('dean', 'admin')(view_func)
 
 
-# ── Management: dean + admin + director (finance, staff, centre ops) ──────
+# ── Management: CEO + admin + director (finance, staff, department ops) ──
 def management_required(view_func):
     return role_required('dean', 'admin', 'director')(view_func)
 

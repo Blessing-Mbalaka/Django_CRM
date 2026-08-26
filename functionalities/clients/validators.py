@@ -17,7 +17,7 @@ def validate_client_name_unique(name, exclude_pk=None):
 
 def validate_visibility_permission(user, visibility):
     """Only deans/admins may create institutional-visibility clients."""
-    if visibility == 'institutional' and not (user.is_dean or user.role == 'admin'):
+    if visibility == 'institutional' and not (user.is_ceo or user.role == 'admin'):
         raise ValidationError(
-            'Only Dean or Admin users may set visibility to Institutional.'
+            'Only CEO or Admin users may set visibility to Institutional.'
         )

@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from .models import FinancialRecord
 from .serializers import FinancialRecordSerializer
 
@@ -23,7 +23,7 @@ class FinancialRecordViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ('list', 'retrieve'):
             return [IsAuthenticated()]
-        return [IsDeanDirectorOrAdmin()]
+        return [IsCEODirectorOrAdmin()]
 
     def get_queryset(self):
         qs = super().get_queryset()

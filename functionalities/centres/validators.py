@@ -12,4 +12,4 @@ def validate_centre_code_unique(code, exclude_pk=None):
     if exclude_pk:
         qs = qs.exclude(pk=exclude_pk)
     if qs.exists():
-        raise ValidationError(f'Centre code "{code}" is already in use.')
+        raise ValidationError(f'Department code "{code}" is already in use.')

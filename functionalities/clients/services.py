@@ -11,7 +11,7 @@ from apps.clients.models import Client
 def apply_visibility_filter(queryset, user):
     """
     Enforce visibility rules:
-      - Dean / Admin  → see everything
+      - CEO / Admin  → see everything
       - Director/Lead → see institutional + shared + their own private
       - Staff/Analyst → see institutional + shared
     """

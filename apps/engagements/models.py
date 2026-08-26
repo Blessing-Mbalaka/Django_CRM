@@ -28,6 +28,7 @@ class Engagement(models.Model):
         null=True, blank=True,
         on_delete=models.SET_NULL,
         related_name='engagements',
+        verbose_name='Department',
     )
     lead_owner   = models.ForeignKey(
         'accounts.User',

@@ -149,7 +149,7 @@ Core entities: `SalesOrder`, `SalesOrderLine`, `Fulfilment`, `DeliveryNote`, `Re
 
 #### 9. CRM & Customers — existing
 
-Keep clients, relationship owners, engagements, contact history, stages, health scoring, visibility, and centre ownership. Extend carefully with contact persons, billing/shipping addresses, consent/preferences, customer tags, and a single customer timeline containing sales, invoice, support, marketing, task, and document events.
+Keep clients, relationship owners, engagements, contact history, stages, health scoring, visibility, and department ownership. Extend carefully with contact persons, billing/shipping addresses, consent/preferences, customer tags, and a single customer timeline containing sales, invoice, support, marketing, task, and document events.
 
 #### 10. Projects & Tasks — replace legacy app, Priority 1
 
@@ -163,7 +163,7 @@ MVP capabilities:
 - Drag-and-drop status/order updates saved to the database through a transactional service/API.
 - Comments, attachments via Document Management, watchers, reminders, and an append-only activity history.
 - List/My Tasks view and overdue task alerts.
-- Permission scopes: private, team/centre, and organisation.
+- Permission scopes: private, team/department, and organisation.
 
 Out of MVP scope: Gantt charts, complex resource planning, academic papers, conferences, learning content, student/supervisor workflows, and a separate project authentication system.
 
@@ -557,6 +557,7 @@ No legacy folder should be deleted, no financial source of truth should be switc
 - Completed: Phase 2 API-driven screens for products/services, inventory, purchasing, sales orders, and accounting.
 - Completed: Phase 2 workflow completion for partial goods receipts and fulfilments, supplier bills, accounting reversals, and automatic invoice, payment, expense and supplier-bill ledger postings using configured system accounts.
 - Completed: Phase 2 financial controls for API-driven trial balance, income statement, balance sheet, bank-statement import, exact ledger matching, reconciliation and reversal of matches.
+- Completed: Product terminology alignment from Dean to CEO and Centres to Departments, with compatibility aliases for stored role values, legacy URLs and API clients.
 - Next: Purchase and sales returns, marketing, integration adapters, organisation isolation, report exports, and authoritative `FinancialRecord` reconciliation.
 
 ---

@@ -1,19 +1,15 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from apps.api.permissions import IsDeanOrAdmin
+from apps.api.permissions import IsCEOOrAdmin
 from .models import Centre
 from .serializers import CentreSerializer
 
 
 class CentreViewSet(viewsets.ModelViewSet):
     """
-    list:   GET  /api/centres/
-    create: POST /api/centres/
-    retrieve: GET  /api/centres/{id}/
-    update: PUT  /api/centres/{id}/
-    partial_update: PATCH /api/centres/{id}/
-    destroy: DELETE /api/centres/{id}/
+    Department CRUD is exposed at /api/v1/departments/.
+    The former /api/v1/centres/ route remains as a compatibility alias.
 
     Query params: ?is_active=true|false  ?director=
     """
@@ -22,7 +18,7 @@ class CentreViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ('create', 'update', 'partial_update', 'destroy'):
-            return [IsDeanOrAdmin()]
+            return [IsCEOOrAdmin()]
         return [IsAuthenticated()]
 
     def get_queryset(self):

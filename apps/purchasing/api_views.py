@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from functionalities.purchasing.services import approve_purchase_order, create_supplier_bill, post_supplier_bill, receive_purchase_order
 from .models import GoodsReceipt, PurchaseOrder, PurchaseOrderLine, Supplier, SupplierBill
 from .serializers import GoodsReceiptSerializer, PurchaseOrderLineSerializer, PurchaseOrderSerializer, SupplierBillSerializer, SupplierSerializer
@@ -13,7 +13,7 @@ from .serializers import GoodsReceiptSerializer, PurchaseOrderLineSerializer, Pu
 
 class ManagementWriteViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
 
 class SupplierViewSet(ManagementWriteViewSet):
@@ -89,7 +89,7 @@ class SupplierBillViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = SupplierBill.objects.select_related('purchase_order__supplier', 'journal_entry', 'created_by')
 
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
     @action(detail=True, methods=['post'])
     def post(self, request, pk=None):

@@ -15,7 +15,7 @@ from .models import Client
 def client_list(request):
     search = request.GET.get('q')
     sector = request.GET.get('sector')
-    centre = request.GET.get('centre')
+    centre = request.GET.get('department') or request.GET.get('centre')
     clients_qs = services.get_client_list(request.user, search=search, sector=sector, centre=centre)
 
     from .models import Client

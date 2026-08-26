@@ -114,7 +114,7 @@ Stock items require a location. Fulfilment accepts the same optional line/quanti
 ## Permissions and current boundary
 
 - Authenticated users can read Phase 2 resources.
-- Dean, Director, and Administrator roles can create or change operational and financial resources.
+- CEO, Department Director, and Administrator roles can create or change operational and financial resources.
 - Stock movements, goods receipts, fulfilments, issued invoices, and posted journals are protected from ordinary destructive edits.
 - Organisation tenancy, returns, statement-file parsers and bank-feed adapters, report exports, and authoritative `FinancialRecord` reconciliation remain subsequent increments.
 

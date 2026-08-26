@@ -19,7 +19,8 @@ urlpatterns = [
 
     # Domain apps
     path('staff/', include('apps.staff.urls', namespace='staff')),
-    path('centres/', include('apps.centres.urls', namespace='centres')),
+    path('departments/', include('apps.centres.urls', namespace='centres')),
+    path('centres/', include('apps.centres.urls', namespace='centres_legacy')),
     path('clients/', include('apps.clients.urls', namespace='clients')),
     path('engagements/', include('apps.engagements.urls', namespace='engagements')),
     path('finance/', include('apps.finance.urls', namespace='finance')),

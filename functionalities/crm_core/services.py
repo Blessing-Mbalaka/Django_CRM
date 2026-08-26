@@ -28,7 +28,7 @@ def _engagement_qs_for_user(user):
 def get_dashboard_context(user):
     """
     Returns aggregated KPIs for the dashboard template.
-    Role-aware: dean/admin see institutional totals; others see scoped data.
+    Role-aware: CEO/admin see institutional totals; others see scoped data.
     """
     role = getattr(user, 'role', 'staff')
     is_exec = role in _EXEC_ROLES
@@ -118,7 +118,7 @@ def get_dashboard_context(user):
 
 def _dashboard_title(role):
     titles = {
-        'dean':     'Dean Overview',
+        'dean':     'CEO Overview',
         'admin':    'Admin Overview',
         'director': 'Director Dashboard',
         'lead':     'My Engagements',

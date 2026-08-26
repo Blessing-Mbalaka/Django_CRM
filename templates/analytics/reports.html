@@ -41,14 +41,14 @@
     </div>
   </div>
 
-  <!-- Centre Performance -->
+  <!-- Department Performance -->
   <div class="col-lg-6">
     <div class="uj-card">
-      <div class="uj-card-header"><span><i class="bi bi-building me-2 text-uj"></i>Centre Performance</span></div>
+      <div class="uj-card-header"><span><i class="bi bi-building me-2 text-uj"></i>Department Performance</span></div>
       <div class="uj-card-body p-0">
         {% if centre_performance %}
         <table class="table uj-table mb-0">
-          <thead><tr><th>Centre</th><th class="text-center">Active</th><th class="text-center">Staff</th><th class="text-end">Revenue (R)</th></tr></thead>
+          <thead><tr><th>Department</th><th class="text-center">Active</th><th class="text-center">Staff</th><th class="text-end">Revenue (R)</th></tr></thead>
           <tbody>
             {% for row in centre_performance %}
             <tr>
@@ -60,7 +60,7 @@
             {% endfor %}
           </tbody>
         </table>
-        {% else %}<div class="p-3 text-muted">No centre data yet.</div>{% endif %}
+        {% else %}<div class="p-3 text-muted">No department data yet.</div>{% endif %}
       </div>
     </div>
   </div>

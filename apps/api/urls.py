@@ -31,6 +31,7 @@ from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewS
 router = DefaultRouter()
 router.register(r'clients',       ClientViewSet,          basename='client')
 router.register(r'engagements',   EngagementViewSet,      basename='engagement')
+router.register(r'departments',   CentreViewSet,          basename='department')
 router.register(r'centres',       CentreViewSet,          basename='centre')
 router.register(r'staff',         StaffViewSet,           basename='staff')
 router.register(r'finance',       FinancialRecordViewSet, basename='finance')
@@ -83,7 +84,8 @@ def api_root(request, format=None):
         'endpoints': {
             'clients':       reverse('client-list',        request=request, format=format),
             'engagements':   reverse('engagement-list',    request=request, format=format),
-            'centres':       reverse('centre-list',        request=request, format=format),
+            'departments':   reverse('department-list',    request=request, format=format),
+            'centres_legacy': reverse('centre-list',       request=request, format=format),
             'staff':         reverse('staff-list',         request=request, format=format),
             'finance':       reverse('finance-list',       request=request, format=format),
             'alerts':        reverse('alert-list',         request=request, format=format),

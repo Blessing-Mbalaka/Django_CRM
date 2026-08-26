@@ -22,7 +22,7 @@
           <tr><th>Client</th><td><a href="{% url 'clients:detail' engagement.client.pk %}">{{ engagement.client.name }}</a></td></tr>
           <tr><th>Status</th><td><span class="badge status-{{ engagement.status }}">{{ engagement.get_status_display }}</span></td></tr>
           <tr><th>Lead Owner</th><td>{{ engagement.lead_owner.get_full_name|default:"—" }}</td></tr>
-          <tr><th>Centre</th><td>{{ engagement.centre|default:"—" }}</td></tr>
+          <tr><th>Department</th><td>{{ engagement.centre|default:"—" }}</td></tr>
           <tr><th>Start Date</th><td>{{ engagement.start_date|date:"d M Y"|default:"—" }}</td></tr>
           <tr><th>End Date</th><td>{{ engagement.end_date|date:"d M Y"|default:"—" }}</td></tr>
           <tr><th>Last Contact</th><td>{{ engagement.last_contact|date:"d M Y"|default:"—" }}{% if engagement.days_since_contact %} <small class="text-muted">({{ engagement.days_since_contact }} days ago)</small>{% endif %}</td></tr>

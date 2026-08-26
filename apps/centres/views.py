@@ -30,7 +30,7 @@ def centre_create(request):
     form = CentreForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         centre = form.save()
-        messages.success(request, f'Centre "{centre.name}" created.')
+        messages.success(request, f'Department "{centre.name}" created.')
         return redirect('centres:detail', pk=centre.pk)
     return render(request, 'centres/form.html', {'form': form, 'action': 'Create'})
 
@@ -42,7 +42,7 @@ def centre_edit(request, pk):
     form = CentreForm(request.POST or None, instance=centre)
     if request.method == 'POST' and form.is_valid():
         form.save()
-        messages.success(request, f'Centre "{centre.name}" updated.')
+        messages.success(request, f'Department "{centre.name}" updated.')
         return redirect('centres:detail', pk=centre.pk)
     return render(request, 'centres/form.html', {'form': form, 'action': 'Edit', 'object': centre})
 
@@ -54,7 +54,7 @@ def centre_delete(request, pk):
     if request.method == 'POST':
         name = centre.name
         centre.delete()
-        messages.success(request, f'Centre "{name}" deleted.')
+        messages.success(request, f'Department "{name}" deleted.')
         return redirect('centres:list')
     return render(request, 'confirm_delete.html', {
         'object': centre,

@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from functionalities.billing.services import issue_invoice
 from .models import Invoice, InvoiceLine, Payment
 from .serializers import InvoiceLineSerializer, InvoiceSerializer, PaymentSerializer
@@ -14,7 +14,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.select_related('client', 'engagement', 'created_by').prefetch_related('lines', 'payments')
 
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -38,7 +38,7 @@ class InvoiceLineViewSet(viewsets.ModelViewSet):
     queryset = InvoiceLine.objects.select_related('invoice')
 
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -56,4 +56,4 @@ class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.select_related('invoice', 'recorded_by')
 
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]

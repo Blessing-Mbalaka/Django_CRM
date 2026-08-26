@@ -1,14 +1,14 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from .models import ReorderRule, StockLocation, StockMovement
 from .serializers import ReorderRuleSerializer, StockLocationSerializer, StockMovementSerializer
 
 
 class ManagementWriteViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
 
 class StockLocationViewSet(ManagementWriteViewSet):
@@ -33,4 +33,3 @@ class StockMovementViewSet(ManagementWriteViewSet):
 class ReorderRuleViewSet(ManagementWriteViewSet):
     serializer_class = ReorderRuleSerializer
     queryset = ReorderRule.objects.select_related('product', 'location')
-

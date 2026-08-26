@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from apps.billing.serializers import InvoiceSerializer
 from functionalities.sales.services import confirm_sales_order, fulfil_sales_order, invoice_sales_order
 from .models import Fulfilment, SalesOrder, SalesOrderLine
@@ -14,7 +14,7 @@ from .serializers import FulfilmentSerializer, SalesOrderLineSerializer, SalesOr
 
 class ManagementWriteViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
-        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsDeanDirectorOrAdmin()]
+        return [IsAuthenticated()] if self.action in ('list', 'retrieve') else [IsCEODirectorOrAdmin()]
 
 
 class SalesOrderViewSet(ManagementWriteViewSet):

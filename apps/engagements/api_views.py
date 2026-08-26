@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.api.permissions import IsDeanDirectorOrAdmin
+from apps.api.permissions import IsCEODirectorOrAdmin
 from apps.accounts.serializers import UserSerializer
 from .models import Engagement
 from .serializers import EngagementSerializer
@@ -18,7 +18,7 @@ class EngagementViewSet(viewsets.ModelViewSet):
     partial_update: PATCH /api/engagements/{id}/
     destroy: DELETE /api/engagements/{id}/
 
-    Query params: ?status=  ?centre=  ?client=  ?lead_owner=
+    Query params: ?status=  ?department=  ?client=  ?lead_owner= (`centre` remains supported)
 
     Extra:
         GET /api/engagements/{id}/team/   → list team members
@@ -33,7 +33,7 @@ class EngagementViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ('create', 'update', 'partial_update', 'destroy'):
-            return [IsDeanDirectorOrAdmin()]
+            return [IsCEODirectorOrAdmin()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
@@ -41,7 +41,7 @@ class EngagementViewSet(viewsets.ModelViewSet):
         p = self.request.query_params
         if status := p.get('status'):
             qs = qs.filter(status=status)
-        if centre := p.get('centre'):
+        if centre := p.get('department') or p.get('centre'):
             qs = qs.filter(centre_id=centre)
         if client := p.get('client'):
             qs = qs.filter(client_id=client)

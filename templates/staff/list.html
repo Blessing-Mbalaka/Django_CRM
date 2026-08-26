@@ -22,9 +22,9 @@
         </div>
       </div>
       <div class="col-6 col-md-4">
-        <label class="form-label fw-600 mb-1" for="centre">Centre</label>
-        <select id="centre" name="centre" class="form-select">
-          <option value="">All Centres</option>
+        <label class="form-label fw-600 mb-1" for="department">Department</label>
+        <select id="department" name="department" class="form-select">
+          <option value="">All Departments</option>
           {% for c in centres %}
           <option value="{{ c.pk }}" {% if centre_filter == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
           {% endfor %}
@@ -43,7 +43,7 @@
     {% if staff %}
     <div class="table-responsive">
       <table class="table uj-table mb-0" aria-label="Staff list">
-        <thead><tr><th>Name</th><th>Role</th><th>Centre</th><th>Job Title</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Job Title</th><th></th></tr></thead>
         <tbody>
           {% for s in staff %}
           <tr onclick="window.location='{% url 'staff:detail' s.user.pk %}'" style="cursor:pointer;">

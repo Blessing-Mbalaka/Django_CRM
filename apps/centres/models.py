@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Centre(models.Model):
-    """JBS Research / Teaching Centre."""
+    """Organisational department (legacy model name retained for compatibility)."""
 
     name        = models.CharField(max_length=200, unique=True)
     code        = models.CharField(max_length=20, unique=True)
@@ -20,8 +20,8 @@ class Centre(models.Model):
 
     class Meta:
         ordering = ['name']
-        verbose_name = 'Centre'
-        verbose_name_plural = 'Centres'
+        verbose_name = 'Department'
+        verbose_name_plural = 'Departments'
 
     def __str__(self):
         return self.name
