@@ -6,4 +6,5 @@ Analyst	Ruan van Wyk, Amahle Buthelezi, Yusuf Hendricks
 Staff	Zanele Mahlangu, Pieter Botha, Nokukhanya Ntuli, Deon Joubert
 Admin	Mpho Radebe (mradebe)
 
+initial and surname is the username.
 Password for all: JBS@2026!
