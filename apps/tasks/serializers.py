@@ -1,3 +1,4 @@
+from django.db.models import Max
 from rest_framework import serializers
 
 from .models import Board, BoardColumn, Task, TaskActivity, TaskComment
@@ -31,7 +32,7 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = ['id', 'board', 'column', 'column_name', 'title', 'description', 'priority', 'position', 'creator', 'assignee', 'assignee_name', 'client', 'engagement', 'due_date', 'completed_at', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'creator', 'completed_at', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'position', 'creator', 'completed_at', 'created_at', 'updated_at']
 
     def validate(self, attrs):
         board = attrs.get('board', getattr(self.instance, 'board', None))
@@ -42,6 +43,12 @@ class TaskSerializer(serializers.ModelSerializer):
         if board and column and column.board_id != board.id:
             raise serializers.ValidationError({'column': 'Column must belong to the selected board.'})
         return attrs
+
+    def create(self, validated_data):
+        column = validated_data['column']
+        last_position = Task.objects.filter(column=column).aggregate(value=Max('position'))['value']
+        validated_data['position'] = (last_position + 1) if last_position is not None else 0
+        return super().create(validated_data)
 
 
 class TaskCommentSerializer(serializers.ModelSerializer):
