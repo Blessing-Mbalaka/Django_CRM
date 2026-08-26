@@ -34,3 +34,9 @@ class ExpenseApiTests(APITestCase):
         self.client.post(f"/api/expenses/{created['id']}/submit/", {}, format='json')
         response = self.client.delete(f"/api/expenses/{created['id']}/")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_expense_page_renders(self):
+        self.client.force_login(self.staff)
+        response = self.client.get('/expenses/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'Expense Tracking')

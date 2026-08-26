@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Expense Tracking{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/sme_suite.css' %}">{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="eyebrow">Finance &amp; Accounting</div><h1 class="page-title"><i class="bi bi-wallet2 me-2 text-uj"></i>Expense Tracking</h1><p class="page-subtitle">Capture costs, VAT and approval evidence in one place.</p></div>
+  <div class="d-flex gap-2"><button id="newCategoryButton" class="btn-uj-outline"><i class="bi bi-tags me-1"></i>Category</button><button class="btn-uj" data-bs-toggle="modal" data-bs-target="#expenseModal"><i class="bi bi-plus-lg me-1"></i>New expense</button></div>
+</div>
+<div id="moduleFeedback" class="module-feedback" role="status" aria-live="polite" hidden></div>
+<div class="uj-card">
+  <div class="module-toolbar"><div class="filter-pills" role="group" aria-label="Expense status"><button class="active" data-expense-status="">All</button><button data-expense-status="draft">Draft</button><button data-expense-status="submitted">Submitted</button><button data-expense-status="approved">Approved</button><button data-expense-status="rejected">Rejected</button></div><span id="expenseTotal" class="toolbar-meta">R0 total</span></div>
+  <div class="table-responsive"><table class="table uj-table module-table mb-0"><thead><tr><th>Description</th><th>Category</th><th>Date</th><th>Amount</th><th>VAT</th><th>Method</th><th>Status</th><th></th></tr></thead><tbody id="expenseRows"><tr><td colspan="8" class="module-empty">Loading expenses…</td></tr></tbody></table></div>
+</div>
+
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="expenseModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><form id="expenseForm" class="modal-content">
+  <div class="modal-header"><div><div class="eyebrow">Cost capture</div><h2 class="modal-title fs-5" id="expenseModalLabel">New expense</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><label class="form-label" for="expenseDescription">Description</label><input id="expenseDescription" class="form-control mb-3" required maxlength="255"><label class="form-label" for="expenseCategory">Category</label><select id="expenseCategory" class="form-select mb-3" required><option value="">Choose a category</option></select><div class="row g-3"><div class="col-sm-6"><label class="form-label" for="expenseAmount">Total amount</label><input id="expenseAmount" type="number" min="0.01" step="0.01" class="form-control" required></div><div class="col-sm-6"><label class="form-label" for="expenseVat">VAT included</label><input id="expenseVat" type="number" min="0" step="0.01" value="0" class="form-control" required></div><div class="col-sm-6"><label class="form-label" for="expenseDate">Date</label><input id="expenseDate" type="date" class="form-control" required></div><div class="col-sm-6"><label class="form-label" for="expenseMethod">Payment method</label><select id="expenseMethod" class="form-select"><option value="card">Card</option><option value="eft">EFT</option><option value="cash">Cash</option><option value="other">Other</option></select></div></div><label class="form-label mt-3" for="expenseNotes">Notes</label><textarea id="expenseNotes" class="form-control" rows="2"></textarea></div>
+  <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button id="saveExpenseButton" type="submit" class="btn-uj">Save draft</button></div>
+</form></div></div>
+{% endblock %}
+{% block extra_js %}<script type="module" src="{% static 'js/modules/expenses/expenses.js' %}"></script>{% endblock %}

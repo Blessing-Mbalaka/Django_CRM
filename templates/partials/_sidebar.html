@@ -1,126 +1,58 @@
 {% load static %}
-<!-- ── SIDEBAR ──────────────────────────────────────────────── -->
 <nav id="sidebar" class="sidebar" aria-label="Main navigation">
-
-  <!-- Brand -->
-  <a href="{% url 'core:dashboard' %}" class="sidebar-brand" title="JBS CRM Home">
-    <img
-      src="{% static 'images/uj_logo.png' %}"
-      alt="University of Johannesburg logo"
-      width="36"
-      height="36"
-    />
-    <div>
-      <div class="sidebar-brand-name">JBS CRM</div>
-      <div class="sidebar-brand-sub">Business School</div>
-    </div>
+  <a href="{% url 'core:dashboard' %}" class="sidebar-brand" title="JBS Business Suite Home">
+    <img src="{% static 'images/uj_logo.png' %}" alt="University of Johannesburg logo" width="36" height="36" />
+    <div><div class="sidebar-brand-name">JBS Business Suite</div><div class="sidebar-brand-sub">SME Operations</div></div>
   </a>
 
-  <!-- Logged-in user info -->
   <div class="sidebar-user-info" aria-label="Logged in user">
-    <div class="sidebar-user-avatar" aria-hidden="true">
-      {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
-    </div>
+    <div class="sidebar-user-avatar" aria-hidden="true">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
     <div class="sidebar-user-details">
-      <div class="sidebar-user-label">You are logged in as:</div>
-      <div class="sidebar-user-name">{{ request.user.get_full_name }}</div>
+      <div class="sidebar-user-label">Logged in as</div>
+      <div class="sidebar-user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
       <div class="sidebar-user-role">{{ request.user.get_role_display }}</div>
     </div>
   </div>
 
-  <!-- Navigation links -->
   <div class="sidebar-nav" role="navigation">
-
     <span class="sidebar-section-label">Overview</span>
+    <a href="{% url 'core:dashboard' %}"><span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>Dashboard</a>
 
-    <a href="{% url 'core:dashboard' %}" title="Dashboard">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-speedometer2"></i></span>
-      Dashboard
-    </a>
+    <span class="sidebar-section-label">Sales &amp; Customers</span>
+    <a href="{% url 'clients:list' %}"><span class="nav-icon"><i class="bi bi-people"></i></span>CRM &amp; Customers</a>
+    <a href="{% url 'engagements:list' %}"><span class="nav-icon"><i class="bi bi-briefcase"></i></span>Engagements</a>
 
-    <span class="sidebar-section-label">People &amp; Structure</span>
+    <span class="sidebar-section-label">Finance &amp; Accounting</span>
+    <a href="{% url 'billing:invoices' %}"><span class="nav-icon"><i class="bi bi-receipt"></i></span>Invoicing &amp; Billing</a>
+    <a href="{% url 'expenses:expenses' %}"><span class="nav-icon"><i class="bi bi-wallet2"></i></span>Expense Tracking</a>
+    <a href="{% url 'finance:overview' %}"><span class="nav-icon"><i class="bi bi-cash-coin"></i></span>Financial Overview</a>
 
-    <a href="{% url 'staff:list' %}" title="Staff Directory">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-people"></i></span>
-      Staff
-    </a>
+    <span class="sidebar-section-label">Operations</span>
+    <a href="{% url 'tasks:board' %}"><span class="nav-icon"><i class="bi bi-kanban"></i></span>Tasks &amp; Kanban</a>
+    <a href="{% url 'documents:library' %}"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Documents</a>
 
-    <a href="{% url 'centres:list' %}" title="Centres">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-building"></i></span>
-      Centres
-    </a>
+    <span class="sidebar-section-label">Insights &amp; Control</span>
+    <a href="{% url 'analytics:reports' %}"><span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span>Reports &amp; Analytics</a>
+    <a href="{% url 'alerts:list' %}"><span class="nav-icon"><i class="bi bi-bell"></i></span>Alerts{% if alert_count and alert_count > 0 %}<span class="badge bg-danger rounded-pill">{{ alert_count }}</span>{% endif %}</a>
+    <a href="{% url 'communication:health' %}"><span class="nav-icon"><i class="bi bi-chat-dots"></i></span>Comms Health</a>
+    <a href="{% url 'ai:insights' %}"><span class="nav-icon"><i class="bi bi-cpu"></i></span>AI Insights</a>
 
-    <span class="sidebar-section-label">Client Intelligence</span>
-
-    <a href="{% url 'clients:list' %}" title="Clients">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-briefcase"></i></span>
-      Clients
-    </a>
-
-    <a href="{% url 'engagements:list' %}" title="Engagements">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-file-earmark-text"></i></span>
-      Engagements
-    </a>
-
-    <span class="sidebar-section-label">Finance &amp; Risk</span>
-
-    <a href="{% url 'finance:overview' %}" title="Finance">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-currency-dollar"></i></span>
-      Finance
-    </a>
-
-    <a href="{% url 'alerts:list' %}" title="Alerts">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
-      Alerts
-      {% if alert_count and alert_count > 0 %}
-        <span class="badge bg-danger rounded-pill" aria-label="{{ alert_count }} active alerts">{{ alert_count }}</span>
-      {% endif %}
-    </a>
-
-    <span class="sidebar-section-label">Analytics</span>
-
-    <a href="{% url 'analytics:reports' %}" title="Reports &amp; Analytics">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-bar-chart-line"></i></span>
-      Reports
-    </a>
-
-    <a href="{% url 'communication:health' %}" title="Communication Health">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-chat-dots"></i></span>
-      Comms Health
-    </a>
-
-    <a href="{% url 'ai:insights' %}" title="AI Insights">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-cpu"></i></span>
-      AI Insights
-    </a>
-
-    {% if user.is_superuser or user.is_staff or user.role == 'dean' %}
-    <span class="sidebar-section-label">Administration</span>
-
-    <a href="{% url 'admin_panel:dashboard' %}" title="System Admin">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-shield-check"></i></span>
-      System Admin
-    </a>
+    <span class="sidebar-section-label">People &amp; Administration</span>
+    <a href="{% url 'staff:list' %}"><span class="nav-icon"><i class="bi bi-person-badge"></i></span>Staff</a>
+    <a href="{% url 'centres:list' %}"><span class="nav-icon"><i class="bi bi-building"></i></span>Centres</a>
+    {% if user.is_superuser or user.is_staff or user.role == 'dean' or user.role == 'admin' %}
+    <a href="{% url 'admin_panel:dashboard' %}"><span class="nav-icon"><i class="bi bi-shield-check"></i></span>System Admin</a>
     {% endif %}
 
-    <!-- REST API quick link -->
     <span class="sidebar-section-label">Developer</span>
-
-    <a href="/api/" title="Browsable REST API" target="_blank" rel="noopener">
-      <span class="nav-icon" aria-hidden="true"><i class="bi bi-braces"></i></span>
-      API Explorer
-    </a>
-
-  </div><!-- /.sidebar-nav -->
-
-  <div class="sidebar-footer">
-    <small>Phase 3a &bull; AI Layer</small>
-    <form method="post" action="{% url 'accounts:logout' %}" class="mt-2">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-sm btn-outline-danger w-100">
-        <i class="bi bi-box-arrow-right me-1" aria-hidden="true"></i> Logout
-      </button>
-    </form>
+    <a href="/api/v1/" target="_blank" rel="noopener"><span class="nav-icon"><i class="bi bi-braces"></i></span>API Explorer</a>
   </div>
 
+  <div class="sidebar-footer">
+    <small>SME Suite &bull; Phase 1</small>
+    <form method="post" action="{% url 'accounts:logout' %}" class="mt-2">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-box-arrow-right me-1"></i>Logout</button>
+    </form>
+  </div>
 </nav>

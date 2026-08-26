@@ -28,6 +28,10 @@ urlpatterns = [
     path('communication/', include('apps.communication.urls', namespace='communication')),
     path('system-admin/', include('apps.admin_panel.urls', namespace='admin_panel')),
     path('ai/', include('apps.ai.urls', namespace='ai')),
+    path('documents/', include('apps.documents.urls', namespace='documents')),
+    path('tasks/', include('apps.tasks.urls', namespace='tasks')),
+    path('billing/', include('apps.billing.urls', namespace='billing')),
+    path('expenses/', include('apps.expenses.urls', namespace='expenses')),
 
     # Versioned REST API; legacy /api/ routes remain for current clients.
     path('api/v1/', include('apps.api.urls')),

@@ -46,3 +46,9 @@ class DocumentApiTests(APITestCase):
     def test_versioned_api_route_is_available(self):
         response = self.client.get('/api/v1/documents/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_document_library_page_renders(self):
+        self.client.force_login(self.user)
+        response = self.client.get('/documents/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'Document Management')

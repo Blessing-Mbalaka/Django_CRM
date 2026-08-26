@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Documents{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/sme_suite.css' %}">{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="eyebrow">Operations</div><h1 class="page-title"><i class="bi bi-folder2-open me-2 text-uj"></i>Document Management</h1><p class="page-subtitle">Store, version and organise important business files.</p></div>
+  <button class="btn-uj" data-bs-toggle="modal" data-bs-target="#uploadModal"><i class="bi bi-cloud-arrow-up me-1"></i>Upload document</button>
+</div>
+<div id="moduleFeedback" class="module-feedback" role="status" aria-live="polite" hidden></div>
+
+<div class="document-shell uj-card">
+  <aside class="document-rail" aria-label="Document views">
+    <button class="rail-link active" data-document-view="files"><i class="bi bi-folder"></i><span>My files</span></button>
+    <button class="rail-link" data-document-view="recent"><i class="bi bi-clock-history"></i><span>Recent</span></button>
+    <button class="rail-link" data-document-view="favourites"><i class="bi bi-star"></i><span>Favourites</span></button>
+    <button class="rail-link" data-document-view="trash"><i class="bi bi-trash3"></i><span>Trash</span></button>
+    <div class="rail-meta"><span class="text-uppercase">Library</span><strong id="libraryName">Loading…</strong></div>
+  </aside>
+  <section class="document-workspace">
+    <div class="module-toolbar">
+      <label class="search-control"><i class="bi bi-search"></i><span class="visually-hidden">Search documents</span><input id="documentSearch" type="search" placeholder="Search documents"></label>
+      <div class="toolbar-meta"><span id="documentCount">0 files</span><button id="refreshDocuments" class="icon-button" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button></div>
+    </div>
+    <div class="table-responsive">
+      <table class="table uj-table module-table mb-0" aria-label="Documents">
+        <thead><tr><th>Name</th><th>Classification</th><th>Version</th><th>Size</th><th>Modified</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+        <tbody id="documentRows"><tr><td colspan="6" class="module-empty"><span class="spinner-border spinner-border-sm me-2"></span>Loading documents…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><form id="documentUploadForm" class="modal-content">
+    <div class="modal-header"><div><div class="eyebrow">New file</div><h2 class="modal-title fs-5" id="uploadModalLabel">Upload document</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <label class="form-label" for="documentTitle">Document title</label><input class="form-control mb-3" id="documentTitle" name="title" maxlength="255" required>
+      <label class="form-label" for="documentClassification">Classification</label><select class="form-select mb-3" id="documentClassification" name="classification"><option value="internal">Internal</option><option value="confidential">Confidential</option><option value="restricted">Restricted</option><option value="public">Public</option></select>
+      <label class="upload-dropzone" for="documentFile"><i class="bi bi-file-earmark-arrow-up"></i><strong>Choose a file</strong><span>PDF, Office, image or text up to 25 MB</span><input id="documentFile" name="file" type="file" required></label>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button id="uploadDocumentButton" class="btn-uj" type="submit">Upload</button></div>
+  </form></div>
+</div>
+{% endblock %}
+{% block extra_js %}<script type="module" src="{% static 'js/modules/documents/library.js' %}"></script>{% endblock %}
+

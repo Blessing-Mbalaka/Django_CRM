@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Tasks & Kanban{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/sme_suite.css' %}">{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><div class="eyebrow">Operations</div><h1 class="page-title"><i class="bi bi-kanban me-2 text-uj"></i>Tasks &amp; Kanban</h1><p class="page-subtitle">Plan work, assign ownership and keep progress visible.</p></div>
+  <div class="d-flex gap-2"><select id="boardSelect" class="form-select module-select" aria-label="Select board"></select><button id="newBoardButton" class="btn-uj-outline"><i class="bi bi-plus-lg"></i> Board</button><button class="btn-uj" data-bs-toggle="modal" data-bs-target="#taskModal"><i class="bi bi-plus-lg"></i> Task</button></div>
+</div>
+<div id="moduleFeedback" class="module-feedback" role="status" aria-live="polite" hidden></div>
+<div id="kanbanBoard" class="kanban-board" aria-label="Kanban board"><div class="module-empty w-100"><span class="spinner-border spinner-border-sm me-2"></span>Loading board…</div></div>
+
+<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered"><form id="taskForm" class="modal-content">
+    <div class="modal-header"><div><div class="eyebrow">New work item</div><h2 class="modal-title fs-5" id="taskModalLabel">Create task</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <label class="form-label" for="taskTitle">Title</label><input id="taskTitle" name="title" class="form-control mb-3" maxlength="255" required>
+      <label class="form-label" for="taskDescription">Description</label><textarea id="taskDescription" name="description" class="form-control mb-3" rows="3"></textarea>
+      <div class="row g-3"><div class="col-sm-6"><label class="form-label" for="taskPriority">Priority</label><select id="taskPriority" name="priority" class="form-select"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div><div class="col-sm-6"><label class="form-label" for="taskDueDate">Due date</label><input id="taskDueDate" name="due_date" type="date" class="form-control"></div></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button id="createTaskButton" class="btn-uj" type="submit">Create task</button></div>
+  </form></div>
+</div>
+{% endblock %}
+{% block extra_js %}<script type="module" src="{% static 'js/modules/tasks/kanban.js' %}"></script>{% endblock %}

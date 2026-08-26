@@ -60,9 +60,9 @@ Invoice writes require Dean, Director or Administrator access. Issued invoice li
 
 Expense list filter: `?status=draft|submitted|approved|rejected|paid`. Ordinary staff see their own expenses; management roles can review all expenses.
 
-## Proposed frontend module layout
+## Frontend module layout
 
-The UI pass should keep transport logic independent from page behaviour:
+The frontend implements transport logic independently from page behaviour:
 
 ```text
 static/js/
@@ -87,6 +87,17 @@ Rules for JavaScript modules:
 - UI modules own DOM events and rendering, but never reproduce state-transition or financial rules.
 - Use progressive enhancement so standard forms and keyboard-accessible controls remain available where possible.
 
+Authenticated application pages:
+
+| Page | Route | Frontend module |
+|---|---|---|
+| Document library | `/documents/` | `modules/documents/library.js` |
+| Tasks and Kanban | `/tasks/` | `modules/tasks/kanban.js` |
+| Invoicing and billing | `/billing/` | `modules/billing/invoices.js` |
+| Expense tracking | `/expenses/` | `modules/expenses/expenses.js` |
+
+All four pages inherit the existing Django base shell and UJ theme. Shared SME components are defined in `static/css/sme_suite.css`.
+
 ## Current boundary
 
-This phase establishes API and persistence foundations. Private object storage, malware scanning, organisation tenancy, shared document permissions, double-entry posting, PDF generation and the HTML/CSS/JavaScript screens remain subsequent delivery gates from the master plan.
+This phase establishes API, persistence, and the initial API-driven application screens. Private object storage, malware scanning, organisation tenancy, shared document permissions, double-entry posting, and PDF generation remain subsequent delivery gates from the master plan.

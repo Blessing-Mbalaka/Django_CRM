@@ -42,3 +42,9 @@ class TaskApiTests(APITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.post('/api/tasks/', {'board': board['id'], 'column': column.id, 'title': 'Intrusion'}, format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_kanban_page_renders(self):
+        self.client.force_login(self.user)
+        response = self.client.get('/tasks/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'Tasks &amp; Kanban')

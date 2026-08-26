@@ -60,3 +60,9 @@ class BillingApiTests(APITestCase):
         self.client.post(f"/api/invoices/{invoice['id']}/issue/", {}, format='json')
         response = self.client.delete(f"/api/invoices/{invoice['id']}/")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_invoice_page_renders(self):
+        self.client.force_login(self.user)
+        response = self.client.get('/billing/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'Invoicing &amp; Billing')
