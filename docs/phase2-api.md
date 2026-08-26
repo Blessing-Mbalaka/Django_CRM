@@ -10,6 +10,7 @@ Phase 2 introduces the shared catalogue, authoritative stock ledger, purchasing,
 | `/api/v1/accounting-periods/` | Open and closed posting periods |
 | `/api/v1/journals/` | Create and inspect immutable journal entries |
 | `/api/v1/journals/{id}/post/` | Validate and post a balanced draft journal |
+| `/api/v1/journals/{id}/reverse/` | Post a dated reversing journal entry |
 
 Journal creation accepts nested lines:
 
@@ -31,7 +32,9 @@ Rules:
 - An entry requires at least two lines.
 - Posting requires equal, non-zero debit and credit totals.
 - Closed accounting periods reject posting.
-- Journal entries cannot be edited or deleted through the API. Corrections will use reversal entries in the next accounting increment.
+- Journal entries cannot be edited or deleted through the API. A posted entry can be reversed once; the original is retained and marked `reversed`.
+- Chart-of-account system roles identify the bank, receivables, payables, revenue, VAT, expense and inventory control accounts.
+- Issued invoices, customer payments, approved expenses and posted supplier bills create balanced journals automatically when their required system roles are configured. With no roles configured, legacy workflows continue without posting; incomplete configurations are rejected.
 
 ## Products and inventory
 
@@ -55,7 +58,10 @@ Filters: `/stock-movements/?product={id}&location={id}` and `/products/?type=sto
 | `/api/v1/purchase-order-lines/` | Draft purchase order lines |
 | `/api/v1/purchase-orders/{id}/approve/` | Validate and number a purchase order |
 | `/api/v1/purchase-orders/{id}/receive/` | Create a goods receipt and stock movements |
+| `/api/v1/purchase-orders/{id}/create-bill/` | Create a draft supplier bill after full receipt |
 | `/api/v1/goods-receipts/` | Read-only receipt history |
+| `/api/v1/supplier-bills/` | Inspect supplier bills |
+| `/api/v1/supplier-bills/{id}/post/` | Post a supplier bill and payable journal |
 
 Purchase order lifecycle:
 
@@ -63,7 +69,7 @@ Purchase order lifecycle:
 Draft → Approved (PO number allocated) → Received (stock receipt posted)
 ```
 
-Only draft orders and lines can be edited or deleted. A purchase order can be received once; the transaction rolls back if any stock movement fails.
+Only draft orders and lines can be edited or deleted. Receiving accepts an optional `lines` array of `{ "line": id, "quantity": amount }`; omitting it receives every outstanding quantity. Each receipt is retained separately and the transaction rolls back if any stock movement fails. A supplier bill can be created once the order is fully received.
 
 ## Sales orders
 
@@ -82,14 +88,14 @@ Sales lifecycle:
 Draft → Confirmed → Invoice and/or Fulfilment
 ```
 
-Stock items require a location. Fulfilment is transactional and fails without sufficient stock. Service lines are invoiced but do not affect inventory. A sales order can generate only one invoice.
+Stock items require a location. Fulfilment accepts the same optional line/quantity shape as receiving, is transactional, and fails without sufficient stock. Service lines are invoiced but do not affect inventory. Each fulfilment is retained separately and a sales order can generate only one invoice.
 
 ## Permissions and current boundary
 
 - Authenticated users can read Phase 2 resources.
 - Dean, Director, and Administrator roles can create or change operational and financial resources.
 - Stock movements, goods receipts, fulfilments, issued invoices, and posted journals are protected from ordinary destructive edits.
-- Organisation tenancy, purchase supplier bills, partial receipts/fulfilments, returns, accounting reversals, automatic sub-ledger posting, and bank reconciliation remain subsequent increments.
+- Organisation tenancy, returns, bank reconciliation, financial statements, and authoritative `FinancialRecord` reconciliation remain subsequent increments.
 
 ## Phase 2 application screens
 

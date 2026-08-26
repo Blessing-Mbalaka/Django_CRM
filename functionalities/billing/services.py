@@ -17,6 +17,8 @@ def issue_invoice(*, invoice):
     sequence.save(update_fields=['next_number'])
     invoice.status = Invoice.Status.ISSUED
     invoice.save(update_fields=['number', 'status', 'updated_at'])
+    from functionalities.accounting.posting import post_invoice
+    post_invoice(invoice)
     return invoice
 
 
@@ -27,4 +29,6 @@ def record_payment(*, invoice, amount, paid_on, user, reference=''):
     payment = Payment.objects.create(invoice=invoice, amount=amount, paid_on=paid_on, reference=reference, recorded_by=user)
     invoice.status = Invoice.Status.PAID if invoice.balance_due == 0 else Invoice.Status.PART_PAID
     invoice.save(update_fields=['status', 'updated_at'])
+    from functionalities.accounting.posting import post_customer_payment
+    post_customer_payment(payment)
     return payment

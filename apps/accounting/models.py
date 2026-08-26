@@ -13,9 +13,20 @@ class Account(models.Model):
         REVENUE = 'revenue', 'Revenue'
         EXPENSE = 'expense', 'Expense'
 
+    class SystemRole(models.TextChoices):
+        BANK = 'bank', 'Bank / Cash'
+        ACCOUNTS_RECEIVABLE = 'accounts_receivable', 'Accounts Receivable'
+        ACCOUNTS_PAYABLE = 'accounts_payable', 'Accounts Payable'
+        SALES_REVENUE = 'sales_revenue', 'Sales Revenue'
+        OUTPUT_VAT = 'output_vat', 'Output VAT'
+        INPUT_VAT = 'input_vat', 'Input VAT'
+        GENERAL_EXPENSE = 'general_expense', 'General Expense'
+        INVENTORY = 'inventory', 'Inventory Asset'
+
     code = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=160)
     account_type = models.CharField(max_length=12, choices=Type.choices)
+    system_role = models.CharField(max_length=30, choices=SystemRole.choices, null=True, blank=True, unique=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -50,6 +61,7 @@ class JournalEntry(models.Model):
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
     source_type = models.CharField(max_length=40, blank=True)
     source_id = models.PositiveBigIntegerField(null=True, blank=True)
+    reversal_of = models.OneToOneField('self', null=True, blank=True, on_delete=models.PROTECT, related_name='reversal_entry')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_journal_entries')
     posted_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -81,4 +93,3 @@ class JournalLine(models.Model):
         constraints = [
             models.CheckConstraint(condition=models.Q(debit__gte=0, credit__gte=0), name='accounting_non_negative_lines'),
         ]
-

@@ -1,0 +1,87 @@
+from decimal import Decimal
+
+from django.core.exceptions import ValidationError
+
+from apps.accounting.models import Account, JournalEntry
+from .services import create_draft_entry, post_entry
+
+
+def system_accounts(*roles):
+    accounts = {account.system_role: account for account in Account.objects.filter(system_role__in=roles, is_active=True)}
+    if not accounts:
+        return None
+    missing = [role for role in roles if role not in accounts]
+    if missing:
+        raise ValidationError(f'Missing configured system accounts: {", ".join(missing)}.')
+    return accounts
+
+
+def post_source(*, source_type, source_id, date, reference, description, lines, user):
+    existing = JournalEntry.objects.filter(source_type=source_type, source_id=source_id).exclude(status=JournalEntry.Status.DRAFT).first()
+    if existing:
+        return existing
+    entry = create_draft_entry(date=date, reference=reference, description=description, source_type=source_type, source_id=source_id, lines=lines, user=user)
+    return post_entry(entry=entry)
+
+
+def post_invoice(invoice):
+    roles = [Account.SystemRole.ACCOUNTS_RECEIVABLE, Account.SystemRole.SALES_REVENUE]
+    if invoice.tax_total:
+        roles.append(Account.SystemRole.OUTPUT_VAT)
+    accounts = system_accounts(*roles)
+    if not accounts:
+        return None
+    lines = [
+        {'account': accounts[Account.SystemRole.ACCOUNTS_RECEIVABLE], 'debit': invoice.total},
+        {'account': accounts[Account.SystemRole.SALES_REVENUE], 'credit': invoice.subtotal},
+    ]
+    if invoice.tax_total:
+        lines.append({'account': accounts[Account.SystemRole.OUTPUT_VAT], 'credit': invoice.tax_total})
+    return post_source(source_type='invoice', source_id=invoice.id, date=invoice.issue_date, reference=invoice.number or '', description=f'Invoice issued to {invoice.client.name}', lines=lines, user=invoice.created_by)
+
+
+def post_customer_payment(payment):
+    accounts = system_accounts(Account.SystemRole.BANK, Account.SystemRole.ACCOUNTS_RECEIVABLE)
+    if not accounts:
+        return None
+    return post_source(source_type='customer_payment', source_id=payment.id, date=payment.paid_on, reference=payment.reference, description=f'Payment for {payment.invoice.number}', lines=[{'account': accounts[Account.SystemRole.BANK], 'debit': payment.amount}, {'account': accounts[Account.SystemRole.ACCOUNTS_RECEIVABLE], 'credit': payment.amount}], user=payment.recorded_by)
+
+
+def post_expense(expense, user):
+    roles = [Account.SystemRole.BANK, Account.SystemRole.GENERAL_EXPENSE]
+    if expense.vat_amount:
+        roles.append(Account.SystemRole.INPUT_VAT)
+    accounts = system_accounts(*roles)
+    if not accounts:
+        return None
+    net = expense.amount - expense.vat_amount
+    lines = [{'account': accounts[Account.SystemRole.GENERAL_EXPENSE], 'debit': net}, {'account': accounts[Account.SystemRole.BANK], 'credit': expense.amount}]
+    if expense.vat_amount:
+        lines.insert(1, {'account': accounts[Account.SystemRole.INPUT_VAT], 'debit': expense.vat_amount})
+    return post_source(source_type='expense', source_id=expense.id, date=expense.incurred_on, reference=f'EXP-{expense.id}', description=expense.description, lines=lines, user=user)
+
+
+def post_supplier_bill(supplier_bill):
+    from apps.products.models import Product
+    roles = [Account.SystemRole.ACCOUNTS_PAYABLE]
+    if supplier_bill.tax_total:
+        roles.append(Account.SystemRole.INPUT_VAT)
+    order_lines = list(supplier_bill.purchase_order.lines.select_related('product'))
+    if any(line.product.product_type == Product.Type.STOCK for line in order_lines):
+        roles.append(Account.SystemRole.INVENTORY)
+    if any(line.product.product_type == Product.Type.SERVICE for line in order_lines):
+        roles.append(Account.SystemRole.GENERAL_EXPENSE)
+    accounts = system_accounts(*roles)
+    if not accounts:
+        return None
+    inventory_total = sum((line.line_total for line in order_lines if line.product.product_type == Product.Type.STOCK), Decimal('0.00'))
+    expense_total = supplier_bill.subtotal - inventory_total
+    lines = []
+    if inventory_total:
+        lines.append({'account': accounts[Account.SystemRole.INVENTORY], 'debit': inventory_total})
+    if expense_total:
+        lines.append({'account': accounts[Account.SystemRole.GENERAL_EXPENSE], 'debit': expense_total})
+    if supplier_bill.tax_total:
+        lines.append({'account': accounts[Account.SystemRole.INPUT_VAT], 'debit': supplier_bill.tax_total})
+    lines.append({'account': accounts[Account.SystemRole.ACCOUNTS_PAYABLE], 'credit': supplier_bill.total})
+    return post_source(source_type='supplier_bill', source_id=supplier_bill.id, date=supplier_bill.bill_date, reference=supplier_bill.supplier_invoice_number, description=f'Supplier bill from {supplier_bill.purchase_order.supplier.name}', lines=lines, user=supplier_bill.created_by)

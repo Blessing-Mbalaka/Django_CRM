@@ -16,6 +16,7 @@ class SalesOrder(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         CONFIRMED = 'confirmed', 'Confirmed'
+        PART_FULFILLED = 'part_fulfilled', 'Part Fulfilled'
         FULFILLED = 'fulfilled', 'Fulfilled'
         CANCELLED = 'cancelled', 'Cancelled'
 
@@ -24,7 +25,7 @@ class SalesOrder(models.Model):
     engagement = models.ForeignKey('engagements.Engagement', null=True, blank=True, on_delete=models.SET_NULL, related_name='sales_orders')
     location = models.ForeignKey('inventory.StockLocation', null=True, blank=True, on_delete=models.PROTECT, related_name='sales_orders')
     invoice = models.OneToOneField('billing.Invoice', null=True, blank=True, on_delete=models.SET_NULL, related_name='sales_order')
-    status = models.CharField(max_length=12, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT)
     order_date = models.DateField(default=timezone.localdate)
     notes = models.TextField(blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_sales_orders')
@@ -54,6 +55,7 @@ class SalesOrderLine(models.Model):
     quantity = models.DecimalField(max_digits=14, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
     unit_price = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
     tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('15.00'))
+    fulfilled_quantity = models.DecimalField(max_digits=14, decimal_places=3, default=0)
 
     @property
     def net_amount(self):
@@ -65,9 +67,14 @@ class SalesOrderLine(models.Model):
 
 
 class Fulfilment(models.Model):
-    sales_order = models.OneToOneField(SalesOrder, on_delete=models.PROTECT, related_name='fulfilment')
+    sales_order = models.ForeignKey(SalesOrder, on_delete=models.PROTECT, related_name='fulfilments')
     fulfilled_on = models.DateField(default=timezone.localdate)
     reference = models.CharField(max_length=100, blank=True)
     fulfilled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='sales_fulfilments')
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+class FulfilmentLine(models.Model):
+    fulfilment = models.ForeignKey(Fulfilment, on_delete=models.CASCADE, related_name='lines')
+    sales_order_line = models.ForeignKey(SalesOrderLine, on_delete=models.PROTECT, related_name='fulfilment_lines')
+    quantity = models.DecimalField(max_digits=14, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])

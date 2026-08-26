@@ -10,8 +10,8 @@ class SalesOrderLineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SalesOrderLine
-        fields = ['id', 'sales_order', 'product', 'product_name', 'description', 'quantity', 'unit_price', 'tax_rate', 'net_amount', 'tax_amount']
-        read_only_fields = ['id']
+        fields = ['id', 'sales_order', 'product', 'product_name', 'description', 'quantity', 'fulfilled_quantity', 'unit_price', 'tax_rate', 'net_amount', 'tax_amount']
+        read_only_fields = ['id', 'fulfilled_quantity']
 
     def validate_sales_order(self, sales_order):
         if sales_order.status != SalesOrder.Status.DRAFT:
@@ -38,8 +38,12 @@ class SalesOrderSerializer(serializers.ModelSerializer):
 
 
 class FulfilmentSerializer(serializers.ModelSerializer):
+    lines = serializers.SerializerMethodField()
+
     class Meta:
         model = Fulfilment
-        fields = ['id', 'sales_order', 'fulfilled_on', 'reference', 'fulfilled_by', 'created_at']
+        fields = ['id', 'sales_order', 'fulfilled_on', 'reference', 'fulfilled_by', 'created_at', 'lines']
         read_only_fields = fields
 
+    def get_lines(self, obj):
+        return [{'sales_order_line': line.sales_order_line_id, 'quantity': line.quantity} for line in obj.lines.all()]

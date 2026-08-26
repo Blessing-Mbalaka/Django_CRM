@@ -25,7 +25,7 @@ from apps.expenses.api_views       import ExpenseCategoryViewSet, ExpenseViewSet
 from apps.accounting.api_views     import AccountViewSet, AccountingPeriodViewSet, JournalEntryViewSet
 from apps.products.api_views       import ProductViewSet
 from apps.inventory.api_views      import ReorderRuleViewSet, StockLocationViewSet, StockMovementViewSet
-from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierViewSet
+from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierBillViewSet, SupplierViewSet
 from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewSet, SalesOrderViewSet
 
 router = DefaultRouter()
@@ -62,6 +62,7 @@ router.register(r'suppliers', SupplierViewSet, basename='supplier')
 router.register(r'purchase-orders', PurchaseOrderViewSet, basename='purchase-order')
 router.register(r'purchase-order-lines', PurchaseOrderLineViewSet, basename='purchase-order-line')
 router.register(r'goods-receipts', GoodsReceiptViewSet, basename='goods-receipt')
+router.register(r'supplier-bills', SupplierBillViewSet, basename='supplier-bill')
 router.register(r'sales-orders', SalesOrderViewSet, basename='sales-order')
 router.register(r'sales-order-lines', SalesOrderLineViewSet, basename='sales-order-line')
 router.register(r'fulfilments', FulfilmentViewSet, basename='fulfilment')

@@ -41,7 +41,13 @@ class SalesOrderViewSet(ManagementWriteViewSet):
 
     @action(detail=True, methods=['post'])
     def fulfil(self, request, pk=None):
-        fulfilment = self._service(fulfil_sales_order, fulfilled_on=request.data.get('fulfilled_on') or timezone.localdate(), reference=request.data.get('reference', ''), user=request.user)
+        line_quantities = None
+        if 'lines' in request.data:
+            try:
+                line_quantities = {line['line']: line['quantity'] for line in request.data['lines']}
+            except (KeyError, TypeError):
+                raise serializers.ValidationError({'lines': 'Each line requires line and quantity values.'})
+        fulfilment = self._service(fulfil_sales_order, fulfilled_on=request.data.get('fulfilled_on') or timezone.localdate(), reference=request.data.get('reference', ''), line_quantities=line_quantities, user=request.user)
         return Response(FulfilmentSerializer(fulfilment).data)
 
     @action(detail=True, methods=['post'])
@@ -65,4 +71,4 @@ class SalesOrderLineViewSet(ManagementWriteViewSet):
 class FulfilmentViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = FulfilmentSerializer
-    queryset = Fulfilment.objects.select_related('sales_order', 'fulfilled_by')
+    queryset = Fulfilment.objects.select_related('sales_order', 'fulfilled_by').prefetch_related('lines')

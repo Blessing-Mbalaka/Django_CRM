@@ -34,3 +34,24 @@ def post_entry(*, entry):
     entry.save(update_fields=['status', 'posted_at'])
     return entry
 
+
+@transaction.atomic
+def reverse_entry(*, entry, reversal_date, user, description=''):
+    entry = JournalEntry.objects.select_for_update().prefetch_related('lines').get(pk=entry.pk)
+    if entry.status != JournalEntry.Status.POSTED:
+        raise ValidationError('Only posted journal entries can be reversed.')
+    reversal = create_draft_entry(
+        date=reversal_date,
+        reference=f'REV-{entry.reference or entry.pk}',
+        description=description or f'Reversal of {entry.description}',
+        source_type='journal_reversal',
+        source_id=entry.id,
+        user=user,
+        lines=[{'account': line.account, 'description': line.description, 'debit': line.credit, 'credit': line.debit} for line in entry.lines.all()],
+    )
+    reversal.reversal_of = entry
+    reversal.save(update_fields=['reversal_of'])
+    reversal = post_entry(entry=reversal)
+    entry.status = JournalEntry.Status.REVERSED
+    entry.save(update_fields=['status'])
+    return reversal

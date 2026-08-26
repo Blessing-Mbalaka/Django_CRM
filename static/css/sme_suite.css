@@ -91,7 +91,7 @@
 
 /* Finance modules */
 .stat-card.compact { min-height: 105px; }.stat-card.compact .stat-value { font-size: 1.45rem; }
-.suite-status.status-draft { background: #e2e3e5; color: #555; }.suite-status.status-issued, .suite-status.status-submitted { background: #dbeafe; color: #174ea6; }.suite-status.status-part_paid { background: #fff3cd; color: #735c00; }.suite-status.status-paid, .suite-status.status-approved { background: #d1e7dd; color: #0f5132; }.suite-status.status-void, .suite-status.status-rejected { background: #f8d7da; color: #842029; }
+.suite-status.status-draft { background: #e2e3e5; color: #555; }.suite-status.status-issued, .suite-status.status-submitted { background: #dbeafe; color: #174ea6; }.suite-status.status-part_paid, .suite-status.status-part_received, .suite-status.status-part_fulfilled { background: #fff3cd; color: #735c00; }.suite-status.status-paid, .suite-status.status-approved { background: #d1e7dd; color: #0f5132; }.suite-status.status-void, .suite-status.status-rejected { background: #f8d7da; color: #842029; }
 .filter-pills { display: flex; flex-wrap: wrap; gap: .35rem; }
 .filter-pills button { background: #f4f4f7; border: 1px solid transparent; border-radius: 999px; color: var(--uj-text-muted); font-size: .75rem; font-weight: 700; padding: .4rem .75rem; }
 .filter-pills button:hover, .filter-pills button.active { background: var(--uj-orange-tint); border-color: #f5c0aa; color: var(--uj-orange-dark); }

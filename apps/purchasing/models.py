@@ -30,13 +30,14 @@ class PurchaseOrder(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         APPROVED = 'approved', 'Approved'
+        PART_RECEIVED = 'part_received', 'Part Received'
         RECEIVED = 'received', 'Received'
         CANCELLED = 'cancelled', 'Cancelled'
 
     number = models.CharField(max_length=40, unique=True, null=True, blank=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name='purchase_orders')
     location = models.ForeignKey('inventory.StockLocation', on_delete=models.PROTECT, related_name='purchase_orders')
-    status = models.CharField(max_length=12, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT)
     order_date = models.DateField(default=timezone.localdate)
     expected_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
@@ -58,6 +59,7 @@ class PurchaseOrderLine(models.Model):
     description = models.CharField(max_length=255, blank=True)
     quantity = models.DecimalField(max_digits=14, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
     unit_cost = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('15.00'))
     received_quantity = models.DecimalField(max_digits=14, decimal_places=3, default=0)
 
     @property
@@ -66,9 +68,37 @@ class PurchaseOrderLine(models.Model):
 
 
 class GoodsReceipt(models.Model):
-    purchase_order = models.OneToOneField(PurchaseOrder, on_delete=models.PROTECT, related_name='goods_receipt')
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.PROTECT, related_name='goods_receipts')
     received_on = models.DateField(default=timezone.localdate)
     reference = models.CharField(max_length=100, blank=True)
     received_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='goods_receipts')
     created_at = models.DateTimeField(auto_now_add=True)
 
+
+class GoodsReceiptLine(models.Model):
+    receipt = models.ForeignKey(GoodsReceipt, on_delete=models.CASCADE, related_name='lines')
+    purchase_order_line = models.ForeignKey(PurchaseOrderLine, on_delete=models.PROTECT, related_name='receipt_lines')
+    quantity = models.DecimalField(max_digits=14, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
+
+
+class SupplierBill(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Draft'
+        POSTED = 'posted', 'Posted'
+        PAID = 'paid', 'Paid'
+
+    purchase_order = models.OneToOneField(PurchaseOrder, on_delete=models.PROTECT, related_name='supplier_bill')
+    supplier_invoice_number = models.CharField(max_length=80)
+    bill_date = models.DateField(default=timezone.localdate)
+    due_date = models.DateField()
+    subtotal = models.DecimalField(max_digits=16, decimal_places=2)
+    tax_total = models.DecimalField(max_digits=16, decimal_places=2)
+    total = models.DecimalField(max_digits=16, decimal_places=2)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
+    journal_entry = models.OneToOneField('accounting.JournalEntry', null=True, blank=True, on_delete=models.PROTECT, related_name='supplier_bill')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_supplier_bills')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-bill_date', '-id']
+        constraints = [models.UniqueConstraint(fields=['purchase_order', 'supplier_invoice_number'], name='purchasing_unique_supplier_bill_number')]

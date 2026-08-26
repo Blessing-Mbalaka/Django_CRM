@@ -6,4 +6,5 @@ export const createPurchaseOrder = (body) => apiRequest('/purchase-orders/', { m
 export const addPurchaseOrderLine = (body) => apiRequest('/purchase-order-lines/', { method: 'POST', body });
 export const approvePurchaseOrder = (id) => apiRequest(`/purchase-orders/${id}/approve/`, { method: 'POST', body: {} });
 export const receivePurchaseOrder = (id, body) => apiRequest(`/purchase-orders/${id}/receive/`, { method: 'POST', body });
-
+export const createSupplierBill = (id, body) => apiRequest(`/purchase-orders/${id}/create-bill/`, { method: 'POST', body });
+export const postSupplierBill = (id) => apiRequest(`/supplier-bills/${id}/post/`, { method: 'POST', body: {} });

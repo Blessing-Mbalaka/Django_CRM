@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import GoodsReceipt, PurchaseOrder, PurchaseOrderLine, Supplier
+from .models import GoodsReceipt, GoodsReceiptLine, PurchaseOrder, PurchaseOrderLine, Supplier, SupplierBill
 
 
 class SupplierSerializer(serializers.ModelSerializer):
@@ -15,7 +15,7 @@ class PurchaseOrderLineSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PurchaseOrderLine
-        fields = ['id', 'purchase_order', 'product', 'product_name', 'description', 'quantity', 'unit_cost', 'received_quantity', 'line_total']
+        fields = ['id', 'purchase_order', 'product', 'product_name', 'description', 'quantity', 'unit_cost', 'tax_rate', 'received_quantity', 'line_total']
         read_only_fields = ['id', 'received_quantity']
 
     def validate_purchase_order(self, purchase_order):
@@ -29,10 +29,12 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
     location_name = serializers.CharField(source='location.name', read_only=True)
     lines = PurchaseOrderLineSerializer(many=True, read_only=True)
     total = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
+    supplier_bill = serializers.IntegerField(source='supplier_bill.id', read_only=True)
+    supplier_bill_status = serializers.CharField(source='supplier_bill.status', read_only=True)
 
     class Meta:
         model = PurchaseOrder
-        fields = ['id', 'number', 'supplier', 'supplier_name', 'location', 'location_name', 'status', 'order_date', 'expected_date', 'notes', 'created_by', 'created_at', 'updated_at', 'total', 'lines']
+        fields = ['id', 'number', 'supplier', 'supplier_name', 'location', 'location_name', 'status', 'order_date', 'expected_date', 'notes', 'created_by', 'created_at', 'updated_at', 'total', 'supplier_bill', 'supplier_bill_status', 'lines']
         read_only_fields = ['id', 'number', 'status', 'created_by', 'created_at', 'updated_at']
 
     def validate(self, attrs):
@@ -42,8 +44,21 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
 
 
 class GoodsReceiptSerializer(serializers.ModelSerializer):
+    lines = serializers.SerializerMethodField()
+
     class Meta:
         model = GoodsReceipt
-        fields = ['id', 'purchase_order', 'received_on', 'reference', 'received_by', 'created_at']
+        fields = ['id', 'purchase_order', 'received_on', 'reference', 'received_by', 'created_at', 'lines']
         read_only_fields = fields
 
+    def get_lines(self, obj):
+        return [{'purchase_order_line': line.purchase_order_line_id, 'quantity': line.quantity} for line in obj.lines.all()]
+
+
+class SupplierBillSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField(source='purchase_order.supplier.name', read_only=True)
+
+    class Meta:
+        model = SupplierBill
+        fields = ['id', 'purchase_order', 'supplier_name', 'supplier_invoice_number', 'bill_date', 'due_date', 'subtotal', 'tax_total', 'total', 'status', 'journal_entry', 'created_by', 'created_at']
+        read_only_fields = fields

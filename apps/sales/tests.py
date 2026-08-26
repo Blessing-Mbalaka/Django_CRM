@@ -30,7 +30,7 @@ class SalesApiTests(APITestCase):
         self.assertEqual(invoice.data['status'], 'issued')
         fulfilled = self.client.post(f"/api/v1/sales-orders/{order['id']}/fulfil/", {'fulfilled_on': timezone.localdate()}, format='json')
         self.assertEqual(fulfilled.status_code, status.HTTP_200_OK)
-        self.assertEqual(StockMovement.objects.filter(source_type='sales_order').get().quantity, 2)
+        self.assertEqual(StockMovement.objects.filter(source_type='fulfilment').get().quantity, 2)
 
     def test_fulfilment_fails_without_enough_stock(self):
         order = self.client.post('/api/v1/sales-orders/', {'client': self.customer.id, 'location': self.location.id}, format='json').data
@@ -45,3 +45,13 @@ class SalesApiTests(APITestCase):
         response = self.client.get('/sales/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, 'Sales Orders')
+
+    def test_partial_fulfilments_accumulate(self):
+        order = self.client.post('/api/v1/sales-orders/', {'client': self.customer.id, 'location': self.location.id}, format='json').data
+        line = self.client.post('/api/v1/sales-order-lines/', {'sales_order': order['id'], 'product': self.product.id, 'quantity': '4.000', 'unit_price': '100.00'}, format='json').data
+        self.client.post(f"/api/v1/sales-orders/{order['id']}/confirm/", {}, format='json')
+        first = self.client.post(f"/api/v1/sales-orders/{order['id']}/fulfil/", {'lines': [{'line': line['id'], 'quantity': '1.500'}]}, format='json')
+        self.assertEqual(first.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get(f"/api/v1/sales-orders/{order['id']}/").data['status'], 'part_fulfilled')
+        self.client.post(f"/api/v1/sales-orders/{order['id']}/fulfil/", {'lines': [{'line': line['id'], 'quantity': '2.500'}]}, format='json')
+        self.assertEqual(self.client.get(f"/api/v1/sales-orders/{order['id']}/").data['status'], 'fulfilled')
