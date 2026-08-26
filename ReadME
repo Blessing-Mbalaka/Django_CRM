@@ -1,0 +1,23 @@
+1. Outstanding Features:
+Ecommerce, SARS Compliance and Website Services(Maybe this can just be a series of prebuilt templates and we manage the build and deplyment, 
+or we add AI website builder in the App using pre-built templates.)
+
+2. Running the app and the deployment needs us use the runtime of python 3.12:
+You will see dust if you try another python Runtime. Trust me here.
+
+3. Create virtual environment to ensure we modularise the packages so they don't clash with your system.
+
+4. The  pip install the requirements.txt to get all packages.
+
+5. Once done, the app is easy to run: Python manage.py runserver
+and if you want to be extra, just specify the port after "runserver" for example, python manage.py runserver 70  and it will run there. This matters when deploying many apps on same server to avoid port conflict.
+
+6. The apps an functionalities are mapped together: What do I mean?
+So each app and each apps functionalities are split, using same name so you can trace the logic. 
+
+7. Models is where the schema is derived, so what I did is put models relevant to each app in one place, so we can make changes in one place regarding an app...
+
+8. Just becareful for foreignkey and API endpoints that might be affected, so study the schema before making migrations. This will make us all suffer.
+
+Regards, Blessing Mbalaka 
+8/26/2026
