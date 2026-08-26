@@ -109,3 +109,73 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// Runtime toasts for API-driven modules. Server-side Django messages use the
+// same visual component and are initialised above.
+(function () {
+  'use strict';
+
+  const ICONS = {
+    success: 'bi-check-circle-fill',
+    warning: 'bi-exclamation-triangle-fill',
+    danger: 'bi-x-circle-fill',
+    info: 'bi-info-circle-fill',
+  };
+
+  function show(message, tone = 'info', options = {}) {
+    if (!message) return null;
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      container.setAttribute('role', 'region');
+      container.setAttribute('aria-live', 'polite');
+      container.setAttribute('aria-label', 'Notifications');
+      document.body.appendChild(container);
+    }
+    const safeTone = Object.prototype.hasOwnProperty.call(ICONS, tone) ? tone : 'info';
+    const toast = document.createElement('div');
+    toast.className = `uj-toast toast-${safeTone}`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-atomic', 'true');
+
+    const icon = document.createElement('span');
+    icon.className = `toast-icon text-${safeTone}`;
+    icon.innerHTML = `<i class="bi ${ICONS[safeTone]}"></i>`;
+    const body = document.createElement('div');
+    body.className = 'toast-body';
+    body.textContent = String(message);
+    const close = document.createElement('button');
+    close.className = 'toast-close';
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Dismiss notification');
+    close.textContent = '×';
+    toast.append(icon, body, close);
+    container.appendChild(toast);
+
+    const dismiss = () => {
+      toast.style.animation = 'toastFadeOut 0.3s ease-in forwards';
+      setTimeout(() => toast.remove(), 320);
+    };
+    const timer = setTimeout(dismiss, options.duration || (safeTone === 'danger' ? 9000 : 5000));
+    close.addEventListener('click', () => { clearTimeout(timer); dismiss(); });
+    return toast;
+  }
+
+  window.JBSToast = { show };
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!window.bootstrap?.Modal && document.querySelector('[data-bs-toggle="modal"]')) {
+      show('Interface library failed to load. Modal buttons are unavailable; hard-refresh the page and check network access.', 'danger', { duration: 15000 });
+    }
+  });
+  window.addEventListener('error', (event) => {
+    if (!event.error) return;
+    console.error('Interface error', event.error);
+    show(`Interface error: ${event.error.message || 'Unknown JavaScript error'}`, 'danger');
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason instanceof Error ? event.reason.message : String(event.reason || 'Unknown request error');
+    console.error('Unhandled request error', event.reason);
+    show(`Request error: ${reason}`, 'danger');
+  });
+})();

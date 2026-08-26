@@ -27,7 +27,7 @@ function setOptions() {
   locationFilter.innerHTML = `<option value="">All locations</option>${locationOptions}`;
 }
 
-async function loadReferenceData() { const [products, locations] = await Promise.all([listProducts('stock'), listLocations()]); state.products = collection(products); state.locations = collection(locations); setOptions(); }
+async function loadReferenceData() { const [products, locations] = await Promise.all([listProducts('stock'), listLocations()]); state.products = collection(products); state.locations = collection(locations); setOptions(); if (!state.products.some((item) => item.product_type === 'stock') || !state.locations.length) { setFeedback('Inventory setup: create a stock product and a location before recording movements.', 'warning'); } }
 async function loadMovements() { try { state.movements = collection(await listMovements({ product: productFilter.value, location: locationFilter.value })); render(); } catch (error) { setFeedback(error.message, 'danger'); } }
 productFilter.addEventListener('change', loadMovements); locationFilter.addEventListener('change', loadMovements);
 document.getElementById('newLocationButton').addEventListener('click', async () => { const name = window.prompt('Location name'); if (!name?.trim()) return; const code = window.prompt('Short location code', name.trim().slice(0, 6).toUpperCase()); if (!code?.trim()) return; try { await createLocation({ name: name.trim(), code: code.trim().toUpperCase(), is_active: true }); await loadReferenceData(); setFeedback('Stock location created.', 'success'); } catch (error) { setFeedback(error.message, 'danger'); } });

@@ -15,10 +15,12 @@ export function formatDate(value) {
 
 export function setFeedback(message, tone = 'info') {
   const region = document.getElementById('moduleFeedback');
-  if (!region) return;
-  region.className = `module-feedback is-${tone}`;
-  region.textContent = message;
-  region.hidden = !message;
+  if (region) {
+    region.className = `module-feedback is-${tone}`;
+    region.textContent = message;
+    region.hidden = !message;
+  }
+  if (message) window.JBSToast?.show(message, tone);
 }
 
 export function setBusy(element, busy, label = 'Working…') {
@@ -32,4 +34,3 @@ export function setBusy(element, busy, label = 'Working…') {
     element.innerHTML = element.dataset.originalLabel || element.innerHTML;
   }
 }
-
