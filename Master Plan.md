@@ -554,7 +554,8 @@ No legacy folder should be deleted, no financial source of truth should be switc
 
 - Completed: Document Management, Tasks & Kanban, Invoicing & Billing, and Expense Tracking backend/API foundations and initial API-driven screens.
 - Completed: Phase 2 backend foundations for chart of accounts/journals, products, stock movements, purchasing, sales orders, goods receipts, fulfilment, and sales-order-to-invoice conversion.
-- Next: Phase 2 operations screens, accounting reversals and reporting, partial receiving/fulfilment, supplier bills, automatic ledger postings, marketing, and integration adapters.
+- Completed: Phase 2 API-driven screens for products/services, inventory, purchasing, sales orders, and accounting.
+- Next: Accounting reversals and reporting, partial receiving/fulfilment, supplier bills, automatic ledger postings, marketing, and integration adapters.
 
 ---
 

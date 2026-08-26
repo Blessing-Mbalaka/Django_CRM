@@ -26,3 +26,9 @@ class PurchasingApiTests(APITestCase):
         self.assertEqual(StockMovement.objects.get(source_type='purchase_order').quantity, 5)
         repeated = self.client.post(f"/api/v1/purchase-orders/{order['id']}/receive/", {'received_on': timezone.localdate()}, format='json')
         self.assertEqual(repeated.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_purchasing_page_renders(self):
+        self.client.force_login(self.user)
+        response = self.client.get('/purchasing/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'Purchase Management')

@@ -32,6 +32,11 @@ urlpatterns = [
     path('tasks/', include('apps.tasks.urls', namespace='tasks')),
     path('billing/', include('apps.billing.urls', namespace='billing')),
     path('expenses/', include('apps.expenses.urls', namespace='expenses')),
+    path('products/', include('apps.products.urls', namespace='products')),
+    path('inventory/', include('apps.inventory.urls', namespace='inventory')),
+    path('purchasing/', include('apps.purchasing.urls', namespace='purchasing')),
+    path('sales/', include('apps.sales.urls', namespace='sales')),
+    path('accounting/', include('apps.accounting.urls', namespace='accounting')),
 
     # Versioned REST API; legacy /api/ routes remain for current clients.
     path('api/v1/', include('apps.api.urls')),

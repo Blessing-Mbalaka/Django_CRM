@@ -1,0 +1,9 @@
+import { apiRequest } from './client.js';
+export const listSuppliers = () => apiRequest('/suppliers/');
+export const createSupplier = (body) => apiRequest('/suppliers/', { method: 'POST', body });
+export const listPurchaseOrders = () => apiRequest('/purchase-orders/');
+export const createPurchaseOrder = (body) => apiRequest('/purchase-orders/', { method: 'POST', body });
+export const addPurchaseOrderLine = (body) => apiRequest('/purchase-order-lines/', { method: 'POST', body });
+export const approvePurchaseOrder = (id) => apiRequest(`/purchase-orders/${id}/approve/`, { method: 'POST', body: {} });
+export const receivePurchaseOrder = (id, body) => apiRequest(`/purchase-orders/${id}/receive/`, { method: 'POST', body });
+

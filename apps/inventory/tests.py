@@ -25,3 +25,8 @@ class InventoryApiTests(APITestCase):
         response = self.client.get(f'/api/v1/stock-movements/?product={self.product.id}')
         self.assertEqual(response.data['count'], 2)
 
+    def test_inventory_page_renders(self):
+        self.client.force_login(self.user)
+        response = self.client.get('/inventory/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'Inventory Management')

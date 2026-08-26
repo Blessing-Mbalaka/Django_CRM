@@ -21,13 +21,18 @@
     <span class="sidebar-section-label">Sales &amp; Customers</span>
     <a href="{% url 'clients:list' %}"><span class="nav-icon"><i class="bi bi-people"></i></span>CRM &amp; Customers</a>
     <a href="{% url 'engagements:list' %}"><span class="nav-icon"><i class="bi bi-briefcase"></i></span>Engagements</a>
+    <a href="{% url 'sales:orders' %}"><span class="nav-icon"><i class="bi bi-bag-check"></i></span>Sales Orders</a>
 
     <span class="sidebar-section-label">Finance &amp; Accounting</span>
     <a href="{% url 'billing:invoices' %}"><span class="nav-icon"><i class="bi bi-receipt"></i></span>Invoicing &amp; Billing</a>
     <a href="{% url 'expenses:expenses' %}"><span class="nav-icon"><i class="bi bi-wallet2"></i></span>Expense Tracking</a>
     <a href="{% url 'finance:overview' %}"><span class="nav-icon"><i class="bi bi-cash-coin"></i></span>Financial Overview</a>
+    <a href="{% url 'accounting:ledger' %}"><span class="nav-icon"><i class="bi bi-journal-text"></i></span>Accounting</a>
 
     <span class="sidebar-section-label">Operations</span>
+    <a href="{% url 'products:catalogue' %}"><span class="nav-icon"><i class="bi bi-box-seam"></i></span>Products &amp; Services</a>
+    <a href="{% url 'inventory:inventory' %}"><span class="nav-icon"><i class="bi bi-boxes"></i></span>Inventory</a>
+    <a href="{% url 'purchasing:orders' %}"><span class="nav-icon"><i class="bi bi-cart-check"></i></span>Purchasing</a>
     <a href="{% url 'tasks:board' %}"><span class="nav-icon"><i class="bi bi-kanban"></i></span>Tasks &amp; Kanban</a>
     <a href="{% url 'documents:library' %}"><span class="nav-icon"><i class="bi bi-folder2-open"></i></span>Documents</a>
 

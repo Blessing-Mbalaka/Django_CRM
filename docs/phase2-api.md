@@ -89,4 +89,16 @@ Stock items require a location. Fulfilment is transactional and fails without su
 - Authenticated users can read Phase 2 resources.
 - Dean, Director, and Administrator roles can create or change operational and financial resources.
 - Stock movements, goods receipts, fulfilments, issued invoices, and posted journals are protected from ordinary destructive edits.
-- Organisation tenancy, purchase supplier bills, partial receipts/fulfilments, returns, accounting reversals, automatic sub-ledger posting, bank reconciliation, and the Phase 2 HTML/JavaScript screens remain subsequent increments.
+- Organisation tenancy, purchase supplier bills, partial receipts/fulfilments, returns, accounting reversals, automatic sub-ledger posting, and bank reconciliation remain subsequent increments.
+
+## Phase 2 application screens
+
+| Module | Route | JavaScript module |
+|---|---|---|
+| Products & Services | `/products/` | `modules/products/catalogue.js` |
+| Inventory | `/inventory/` | `modules/inventory/inventory.js` |
+| Purchasing | `/purchasing/` | `modules/purchasing/orders.js` |
+| Sales Orders | `/sales/` | `modules/sales/orders.js` |
+| Accounting | `/accounting/` | `modules/accounting/ledger.js` |
+
+These pages use the shared API transport, UJ SME component stylesheet, authenticated Django shell, and app-specific frontend modules. Operational validation and state transitions remain server-side.
