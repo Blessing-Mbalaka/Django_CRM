@@ -18,6 +18,10 @@ from apps.communication.api_views  import CommunicationLogViewSet
 from apps.accounts.api_views       import UserViewSet
 from apps.analytics.api_views      import analytics_report
 from apps.ai.api_views             import ai_insights, run_pipeline as ai_run_pipeline, training_readiness
+from apps.documents.api_views      import DocumentLibraryViewSet, DocumentViewSet, DocumentVersionViewSet, FolderViewSet
+from apps.tasks.api_views          import BoardColumnViewSet, BoardViewSet, TaskActivityViewSet, TaskCommentViewSet, TaskViewSet
+from apps.billing.api_views        import InvoiceLineViewSet, InvoiceViewSet, PaymentViewSet
+from apps.expenses.api_views       import ExpenseCategoryViewSet, ExpenseViewSet
 
 router = DefaultRouter()
 router.register(r'clients',       ClientViewSet,          basename='client')
@@ -28,6 +32,20 @@ router.register(r'finance',       FinancialRecordViewSet, basename='finance')
 router.register(r'alerts',        AlertViewSet,           basename='alert')
 router.register(r'communication', CommunicationLogViewSet, basename='communication')
 router.register(r'users',         UserViewSet,            basename='user')
+router.register(r'document-libraries', DocumentLibraryViewSet, basename='document-library')
+router.register(r'document-folders', FolderViewSet, basename='document-folder')
+router.register(r'documents', DocumentViewSet, basename='document')
+router.register(r'document-versions', DocumentVersionViewSet, basename='document-version')
+router.register(r'task-boards', BoardViewSet, basename='task-board')
+router.register(r'task-columns', BoardColumnViewSet, basename='task-column')
+router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r'task-comments', TaskCommentViewSet, basename='task-comment')
+router.register(r'task-activity', TaskActivityViewSet, basename='task-activity')
+router.register(r'invoices', InvoiceViewSet, basename='invoice')
+router.register(r'invoice-lines', InvoiceLineViewSet, basename='invoice-line')
+router.register(r'payments', PaymentViewSet, basename='payment')
+router.register(r'expense-categories', ExpenseCategoryViewSet, basename='expense-category')
+router.register(r'expenses', ExpenseViewSet, basename='expense')
 
 
 @api_view(['GET'])
@@ -51,6 +69,11 @@ def api_root(request, format=None):
             'users':         reverse('user-list',          request=request, format=format),
             'analytics':     reverse('analytics-report',   request=request, format=format),
             'ai_insights':   reverse('ai-insights',          request=request, format=format),
+            'documents':     reverse('document-list',        request=request, format=format),
+            'task_boards':   reverse('task-board-list',      request=request, format=format),
+            'tasks':         reverse('task-list',            request=request, format=format),
+            'invoices':      reverse('invoice-list',         request=request, format=format),
+            'expenses':      reverse('expense-list',         request=request, format=format),
         },
     })
 

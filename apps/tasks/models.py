@@ -1,0 +1,88 @@
+from django.conf import settings
+from django.db import models
+
+
+class Board(models.Model):
+    name = models.CharField(max_length=160)
+    description = models.TextField(blank=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='task_boards')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class BoardColumn(models.Model):
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='columns')
+    name = models.CharField(max_length=80)
+    position = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['position', 'id']
+        constraints = [
+            models.UniqueConstraint(fields=['board', 'name'], name='tasks_unique_column_name'),
+            models.UniqueConstraint(fields=['board', 'position'], name='tasks_unique_column_position'),
+        ]
+
+    def __str__(self):
+        return f'{self.board}: {self.name}'
+
+
+class Task(models.Model):
+    class Priority(models.TextChoices):
+        LOW = 'low', 'Low'
+        MEDIUM = 'medium', 'Medium'
+        HIGH = 'high', 'High'
+        URGENT = 'urgent', 'Urgent'
+
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='tasks')
+    column = models.ForeignKey(BoardColumn, on_delete=models.PROTECT, related_name='tasks')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    priority = models.CharField(max_length=12, choices=Priority.choices, default=Priority.MEDIUM)
+    position = models.PositiveIntegerField(default=0)
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_tasks')
+    assignee = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='assigned_tasks')
+    client = models.ForeignKey('clients.Client', null=True, blank=True, on_delete=models.SET_NULL, related_name='tasks')
+    engagement = models.ForeignKey('engagements.Engagement', null=True, blank=True, on_delete=models.SET_NULL, related_name='tasks')
+    due_date = models.DateField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['column__position', 'position', 'id']
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.column_id and self.column.board_id != self.board_id:
+            raise ValidationError({'column': 'Column must belong to the selected board.'})
+
+    def __str__(self):
+        return self.title
+
+
+class TaskComment(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='task_comments')
+    body = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+
+class TaskActivity(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='activities')
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='+')
+    action = models.CharField(max_length=40)
+    detail = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+

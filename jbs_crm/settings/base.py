@@ -53,6 +53,10 @@ LOCAL_APPS = [
     'apps.analytics',     # Reporting, forecasting, insights
     'apps.communication', # Relationship health, contact tracking
     'apps.ai',            # Phase 3a — Rule-based AI intelligence layer
+    'apps.documents',     # Secure document libraries and file versioning
+    'apps.tasks',         # Persistent lightweight Kanban and task activity
+    'apps.billing',       # Invoices, invoice lines, and customer payments
+    'apps.expenses',      # Expense capture and management approval workflow
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

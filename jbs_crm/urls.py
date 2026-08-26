@@ -29,6 +29,9 @@ urlpatterns = [
     path('system-admin/', include('apps.admin_panel.urls', namespace='admin_panel')),
     path('ai/', include('apps.ai.urls', namespace='ai')),
 
+    # Versioned REST API; legacy /api/ routes remain for current clients.
+    path('api/v1/', include('apps.api.urls')),
+
     # REST Framework browsable API + token auth
     path('api/', include('apps.api.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
