@@ -12,6 +12,7 @@ class CEOApplicationSmokeTests(TestCase):
             '/alerts/', '/analytics/', '/communication/', '/documents/', '/tasks/',
             '/billing/', '/expenses/', '/products/', '/inventory/', '/purchasing/',
             '/sales/', '/accounting/',
+            '/payroll/',
         ]:
             with self.subTest(path=path):
                 response = self.client.get(path)

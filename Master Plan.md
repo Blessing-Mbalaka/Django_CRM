@@ -558,7 +558,10 @@ No legacy folder should be deleted, no financial source of truth should be switc
 - Completed: Phase 2 workflow completion for partial goods receipts and fulfilments, supplier bills, accounting reversals, and automatic invoice, payment, expense and supplier-bill ledger postings using configured system accounts.
 - Completed: Phase 2 financial controls for API-driven trial balance, income statement, balance sheet, bank-statement import, exact ledger matching, reconciliation and reversal of matches.
 - Completed: Product terminology alignment from Dean to CEO and Centres to Departments, with compatibility aliases for stored role values, legacy URLs and API clients.
-- Next: Purchase and sales returns, marketing, integration adapters, organisation isolation, report exports, and authoritative `FinancialRecord` reconciliation.
+- Completed: Restricted Payroll MVP with employee profiles, draft pay runs, payslips, approval/paid controls, and explicit manual PAYE/UIF review boundaries.
+- Completed: Bank-statement CSV upload/preview with a downloadable template and guided bank-ledger-account setup state.
+- Release candidate gate: full automated regression, production settings checks, migrated database, and authenticated module smoke tests must pass. Browser interaction must be rechecked when the in-app browser connection is available.
+- Next: Purchase and sales returns, marketing, integration adapters, organisation isolation, report exports, authoritative `FinancialRecord` reconciliation, and versioned SARS payroll rules before any statutory automation.
 
 ---
 

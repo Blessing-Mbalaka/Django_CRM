@@ -27,6 +27,7 @@ from apps.products.api_views       import ProductViewSet
 from apps.inventory.api_views      import ReorderRuleViewSet, StockLocationViewSet, StockMovementViewSet
 from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierBillViewSet, SupplierViewSet
 from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewSet, SalesOrderViewSet
+from apps.payroll.api_views        import PayrollEmployeeViewSet, PayRunViewSet, PayslipViewSet
 
 router = DefaultRouter()
 router.register(r'clients',       ClientViewSet,          basename='client')
@@ -69,6 +70,9 @@ router.register(r'supplier-bills', SupplierBillViewSet, basename='supplier-bill'
 router.register(r'sales-orders', SalesOrderViewSet, basename='sales-order')
 router.register(r'sales-order-lines', SalesOrderLineViewSet, basename='sales-order-line')
 router.register(r'fulfilments', FulfilmentViewSet, basename='fulfilment')
+router.register(r'payroll-employees', PayrollEmployeeViewSet, basename='payroll-employee')
+router.register(r'pay-runs', PayRunViewSet, basename='pay-run')
+router.register(r'payslips', PayslipViewSet, basename='payslip')
 
 
 @api_view(['GET'])
@@ -78,8 +82,8 @@ def api_root(request, format=None):
     Authentication: Session (browser) or Token — Authorization: Token <key>
     """
     return Response({
-        'status':    'JBS CRM API v1.0 — Phase 1', # Informational endpoint with API overview
-        'database':  'SQLite (Phase 1)',
+        'status':    'JBS SME Suite API v1.0 — Release candidate',
+        'database':  'SQLite (development)',
         'framework': 'Django REST Framework',
         'endpoints': {
             'clients':       reverse('client-list',        request=request, format=format),
@@ -106,6 +110,7 @@ def api_root(request, format=None):
             'stock':         reverse('stock-movement-list',  request=request, format=format),
             'purchasing':    reverse('purchase-order-list',  request=request, format=format),
             'sales_orders':  reverse('sales-order-list',     request=request, format=format),
+            'payroll':       reverse('pay-run-list',         request=request, format=format),
         },
     })
 

@@ -1,0 +1,31 @@
+import { collection } from '../../api/client.js';
+import { approvePayRun, createPayRun, createPayrollEmployee, listPayRuns, listPayrollEmployees, listUsers, markPayRunPaid } from '../../api/payroll-api.js';
+import { escapeHtml, formatDate, formatMoney, setBusy, setFeedback } from '../ui.js';
+
+const state = { users: [], employees: [], runs: [] };
+const rows = document.getElementById('payRunRows');
+
+function render() {
+  document.getElementById('payrollEmployeeCount').textContent = state.employees.length;
+  document.getElementById('payRunCount').textContent = state.runs.length;
+  document.getElementById('latestPayrollNet').textContent = formatMoney(state.runs[0]?.net_total || 0);
+  document.getElementById('payrollCount').textContent = `${state.runs.length} records`;
+  rows.innerHTML = state.runs.length ? state.runs.map((run) => { const action = run.status === 'draft' ? `<button class="table-action" data-approve-run="${run.id}"><i class="bi bi-check2-circle"></i> Approve</button>` : run.status === 'approved' ? `<button class="table-action" data-pay-run="${run.id}"><i class="bi bi-cash"></i> Mark paid</button>` : ''; return `<tr><td><strong>${formatDate(run.period_start)} - ${formatDate(run.period_end)}</strong></td><td>${formatDate(run.payment_date)}</td><td>${run.payslips.length}</td><td>${formatMoney(run.gross_total)}</td><td>${formatMoney(run.deductions_total)}</td><td class="fw-700 text-uj">${formatMoney(run.net_total)}</td><td><span class="suite-status status-${run.status === 'paid' ? 'paid' : run.status}">${escapeHtml(run.status)}</span></td><td class="text-end">${action}</td></tr>`; }).join('') : '<tr><td colspan="8" class="module-empty"><i class="bi bi-people-fill"></i><strong>No pay runs</strong><span>Add a payroll employee, then create the first controlled pay run.</span></td></tr>';
+}
+
+function employeeOptions() {
+  const availableUsers = state.users.filter((user) => !state.employees.some((employee) => employee.user === user.id));
+  document.getElementById('payrollUser').innerHTML = '<option value="">Choose staff user</option>' + availableUsers.map((user) => `<option value="${user.id}">${escapeHtml(user.full_name || user.username)} - ${escapeHtml(user.role_display)}</option>`).join('');
+  document.getElementById('payEmployee').innerHTML = '<option value="">Choose payroll employee</option>' + state.employees.filter((employee) => employee.is_active).map((employee) => `<option value="${employee.id}">${escapeHtml(employee.employee_number)} - ${escapeHtml(employee.employee_name)}</option>`).join('');
+}
+
+async function load() { try { const [users, employees, runs] = await Promise.all([listUsers(), listPayrollEmployees(), listPayRuns()]); state.users = collection(users); state.employees = collection(employees); state.runs = collection(runs); employeeOptions(); render(); } catch (error) { setFeedback(error.message, 'danger'); } }
+
+document.getElementById('payEmployee').addEventListener('change', (event) => { const employee = state.employees.find((item) => item.id === Number(event.target.value)); if (employee) document.getElementById('payBasic').value = employee.monthly_basic; });
+document.getElementById('payrollEmployeeForm').addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('savePayrollEmployeeButton'); setBusy(button, true, 'Saving...'); try { await createPayrollEmployee({ user: Number(document.getElementById('payrollUser').value), employee_number: document.getElementById('employeeNumber').value.trim().toUpperCase(), tax_number: document.getElementById('employeeTaxNumber').value.trim(), monthly_basic: document.getElementById('employeeBasic').value, is_active: true }); bootstrap.Modal.getOrCreateInstance(document.getElementById('payrollEmployeeModal')).hide(); event.target.reset(); setFeedback('Payroll employee created.', 'success'); await load(); } catch (error) { setFeedback(error.message, 'danger'); } finally { setBusy(button, false); } });
+document.getElementById('payRunForm').addEventListener('submit', async (event) => { event.preventDefault(); const button = document.getElementById('savePayRunButton'); setBusy(button, true, 'Creating...'); try { await createPayRun({ period_start: document.getElementById('payPeriodStart').value, period_end: document.getElementById('payPeriodEnd').value, payment_date: document.getElementById('payPaymentDate').value, initial_payslip: { employee: Number(document.getElementById('payEmployee').value), basic_salary: document.getElementById('payBasic').value, overtime: document.getElementById('payOvertime').value || 0, allowances: document.getElementById('payAllowances').value || 0, paye: document.getElementById('payPaye').value || 0, uif_employee: document.getElementById('payUifEmployee').value || 0, uif_employer: document.getElementById('payUifEmployer').value || 0, other_deductions: document.getElementById('payOtherDeductions').value || 0 } }); bootstrap.Modal.getOrCreateInstance(document.getElementById('payRunModal')).hide(); event.target.reset(); setPayDates(); setFeedback('Draft pay run created.', 'success'); await load(); } catch (error) { setFeedback(error.message, 'danger'); } finally { setBusy(button, false); } });
+rows.addEventListener('click', async (event) => { const approve = event.target.closest('[data-approve-run]'); const paid = event.target.closest('[data-pay-run]'); try { if (approve) { if (!window.confirm('Approve this pay run? Payslips will become immutable.')) return; await approvePayRun(approve.dataset.approveRun); setFeedback('Pay run approved.', 'success'); } else if (paid) { if (!window.confirm('Confirm this pay run has been paid?')) return; await markPayRunPaid(paid.dataset.payRun); setFeedback('Pay run marked paid.', 'success'); } else return; await load(); } catch (error) { setFeedback(error.message, 'danger'); } });
+
+function setPayDates() { const today = new Date(); const year = today.getFullYear(); const month = String(today.getMonth() + 1).padStart(2, '0'); const lastDay = new Date(year, today.getMonth() + 1, 0).getDate(); document.getElementById('payPeriodStart').value = `${year}-${month}-01`; document.getElementById('payPeriodEnd').value = `${year}-${month}-${lastDay}`; document.getElementById('payPaymentDate').value = `${year}-${month}-${lastDay}`; }
+
+setPayDates(); load();

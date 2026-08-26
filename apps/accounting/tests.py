@@ -44,6 +44,9 @@ class AccountingApiTests(APITestCase):
         self.assertContains(response, 'Accounting &amp; Bookkeeping')
         self.assertContains(response, 'Financial statements')
         self.assertContains(response, 'Bank reconciliation')
+        self.assertContains(response, 'statementFile')
+        self.assertContains(response, 'Download CSV template')
+        self.assertContains(response, 'Bank / Cash system role')
 
     def test_posted_journal_can_be_reversed_once(self):
         today = timezone.localdate()

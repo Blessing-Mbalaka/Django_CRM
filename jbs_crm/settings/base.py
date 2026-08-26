@@ -13,6 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ['localhost', '127.0.0.1']),
+    CORS_ALLOW_ALL_ORIGINS=(bool, False),
 )
 environ.Env.read_env(BASE_DIR / '.env')
 
@@ -62,6 +63,7 @@ LOCAL_APPS = [
     'apps.inventory',     # Locations, stock movements, and reorder rules
     'apps.purchasing',    # Suppliers, purchase orders, and goods receipts
     'apps.sales',         # Sales orders, fulfilment, and invoice conversion
+    'apps.payroll',       # Restricted employee pay profiles, runs, and payslips
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -155,7 +157,7 @@ REST_FRAMEWORK = {
 # ---------------------------------------------------------------------------
 # CORS — Allow local development
 # ---------------------------------------------------------------------------
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS')
 
 # FOR DEPLOYMENT: Restrict CORS to trusted origins E.G BELOW: 
 # CORS_ALLOWED_ORIGINS = [
