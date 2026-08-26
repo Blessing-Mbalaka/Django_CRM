@@ -556,7 +556,8 @@ No legacy folder should be deleted, no financial source of truth should be switc
 - Completed: Phase 2 backend foundations for chart of accounts/journals, products, stock movements, purchasing, sales orders, goods receipts, fulfilment, and sales-order-to-invoice conversion.
 - Completed: Phase 2 API-driven screens for products/services, inventory, purchasing, sales orders, and accounting.
 - Completed: Phase 2 workflow completion for partial goods receipts and fulfilments, supplier bills, accounting reversals, and automatic invoice, payment, expense and supplier-bill ledger postings using configured system accounts.
-- Next: Financial statements and bank reconciliation, returns, marketing, integration adapters, organisation isolation, and authoritative `FinancialRecord` reconciliation.
+- Completed: Phase 2 financial controls for API-driven trial balance, income statement, balance sheet, bank-statement import, exact ledger matching, reconciliation and reversal of matches.
+- Next: Purchase and sales returns, marketing, integration adapters, organisation isolation, report exports, and authoritative `FinancialRecord` reconciliation.
 
 ---
 

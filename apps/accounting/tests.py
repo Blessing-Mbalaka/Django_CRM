@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from apps.accounts.models import User
 from apps.clients.models import Client
 from apps.expenses.models import ExpenseCategory
-from .models import Account, AccountingPeriod, JournalEntry
+from .models import Account, AccountingPeriod, BankStatement, JournalEntry
 
 
 class AccountingApiTests(APITestCase):
@@ -42,6 +42,8 @@ class AccountingApiTests(APITestCase):
         response = self.client.get('/accounting/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, 'Accounting &amp; Bookkeeping')
+        self.assertContains(response, 'Financial statements')
+        self.assertContains(response, 'Bank reconciliation')
 
     def test_posted_journal_can_be_reversed_once(self):
         today = timezone.localdate()
@@ -86,3 +88,82 @@ class AutomaticPostingTests(APITestCase):
         approved = self.client.post(f"/api/v1/expenses/{expense['id']}/approve/", {}, format='json')
         self.assertEqual(approved.status_code, status.HTTP_200_OK)
         self.assertTrue(JournalEntry.objects.filter(source_type='expense', source_id=expense['id'], status='posted').exists())
+
+
+class FinancialReportingTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='report-user', password='test-pass-123', role=User.Role.DIRECTOR)
+        self.client.force_authenticate(self.user)
+        self.bank = Account.objects.create(code='1000', name='Bank', account_type=Account.Type.ASSET)
+        self.equity = Account.objects.create(code='3000', name='Capital', account_type=Account.Type.EQUITY)
+        self.sales = Account.objects.create(code='4000', name='Sales', account_type=Account.Type.REVENUE)
+        self.expense = Account.objects.create(code='5000', name='Operating costs', account_type=Account.Type.EXPENSE)
+
+    def post_journal(self, lines, reference):
+        entry = self.client.post('/api/v1/journals/', {'date': timezone.localdate(), 'reference': reference, 'description': reference, 'lines': lines}, format='json').data
+        return self.client.post(f"/api/v1/journals/{entry['id']}/post/", {}, format='json')
+
+    def test_trial_balance_income_statement_and_balance_sheet(self):
+        self.post_journal([{'account': self.bank.id, 'debit': '1000.00'}, {'account': self.equity.id, 'credit': '1000.00'}], 'CAPITAL')
+        self.post_journal([{'account': self.bank.id, 'debit': '230.00'}, {'account': self.sales.id, 'credit': '230.00'}], 'SALE')
+        self.post_journal([{'account': self.expense.id, 'debit': '30.00'}, {'account': self.bank.id, 'credit': '30.00'}], 'COST')
+        today = timezone.localdate().isoformat()
+
+        trial = self.client.get('/api/v1/accounting/reports/trial-balance/', {'as_of': today})
+        self.assertEqual(trial.status_code, status.HTTP_200_OK)
+        self.assertTrue(trial.data['is_balanced'])
+        self.assertEqual(Decimal(trial.data['total_debit']), Decimal('1230.00'))
+
+        income = self.client.get('/api/v1/accounting/reports/income-statement/', {'start_date': today, 'end_date': today})
+        self.assertEqual(Decimal(income.data['net_profit']), Decimal('200.00'))
+
+        balance = self.client.get('/api/v1/accounting/reports/balance-sheet/', {'as_of': today})
+        self.assertTrue(balance.data['is_balanced'])
+        self.assertEqual(Decimal(balance.data['total_assets']), Decimal('1200.00'))
+        self.assertEqual(Decimal(balance.data['total_equity']), Decimal('1200.00'))
+
+    def test_report_rejects_invalid_date_range(self):
+        response = self.client.get('/api/v1/accounting/reports/income-statement/', {'start_date': '2026-08-02', 'end_date': '2026-08-01'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class BankReconciliationTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='reconcile-user', password='test-pass-123', role=User.Role.DIRECTOR)
+        self.client.force_authenticate(self.user)
+        self.bank = Account.objects.create(code='1000', name='Bank', account_type=Account.Type.ASSET, system_role=Account.SystemRole.BANK)
+        self.sales = Account.objects.create(code='4000', name='Sales', account_type=Account.Type.REVENUE)
+        today = timezone.localdate()
+        entry = self.client.post('/api/v1/journals/', {'date': today, 'reference': 'DEP-100', 'description': 'Deposit', 'lines': [{'account': self.bank.id, 'debit': '100.00'}, {'account': self.sales.id, 'credit': '100.00'}]}, format='json').data
+        self.client.post(f"/api/v1/journals/{entry['id']}/post/", {}, format='json')
+        self.today = today
+
+    def test_statement_import_candidate_and_reconciliation(self):
+        response = self.client.post('/api/v1/bank-statements/', {
+            'bank_account': self.bank.id,
+            'reference': 'AUG-2026',
+            'start_date': self.today,
+            'end_date': self.today,
+            'opening_balance': '0.00',
+            'closing_balance': '100.00',
+            'lines': [{'transaction_date': self.today, 'description': 'Customer deposit', 'reference': 'DEP-100', 'amount': '100.00'}],
+        }, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        line_id = response.data['statement_lines'][0]['id']
+        candidates = self.client.get(f'/api/v1/bank-statement-lines/{line_id}/candidates/')
+        self.assertEqual(candidates.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(candidates.data), 1)
+        invalid_match = self.client.post(f'/api/v1/bank-statement-lines/{line_id}/reconcile/', {'journal_line': 'invalid'}, format='json')
+        self.assertEqual(invalid_match.status_code, status.HTTP_400_BAD_REQUEST)
+        matched = self.client.post(f'/api/v1/bank-statement-lines/{line_id}/reconcile/', {'journal_line': candidates.data[0]['id']}, format='json')
+        self.assertEqual(matched.status_code, status.HTTP_200_OK)
+        self.assertTrue(matched.data['is_reconciled'])
+        self.assertEqual(BankStatement.objects.get(pk=response.data['id']).status, BankStatement.Status.RECONCILED)
+
+        unmatched = self.client.post(f'/api/v1/bank-statement-lines/{line_id}/unreconcile/', {}, format='json')
+        self.assertEqual(unmatched.status_code, status.HTTP_200_OK)
+        self.assertEqual(BankStatement.objects.get(pk=response.data['id']).status, BankStatement.Status.OPEN)
+
+    def test_statement_totals_must_reconcile(self):
+        response = self.client.post('/api/v1/bank-statements/', {'bank_account': self.bank.id, 'reference': 'BAD', 'start_date': self.today, 'end_date': self.today, 'opening_balance': '0.00', 'closing_balance': '90.00', 'lines': [{'transaction_date': self.today, 'description': 'Deposit', 'amount': '100.00'}]}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

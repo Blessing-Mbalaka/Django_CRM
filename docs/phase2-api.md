@@ -36,6 +36,27 @@ Rules:
 - Chart-of-account system roles identify the bank, receivables, payables, revenue, VAT, expense and inventory control accounts.
 - Issued invoices, customer payments, approved expenses and posted supplier bills create balanced journals automatically when their required system roles are configured. With no roles configured, legacy workflows continue without posting; incomplete configurations are rejected.
 
+### Financial statements
+
+| Endpoint | Parameters |
+|---|---|
+| `/api/v1/accounting/reports/trial-balance/` | `as_of=YYYY-MM-DD` |
+| `/api/v1/accounting/reports/income-statement/` | `start_date=YYYY-MM-DD&end_date=YYYY-MM-DD` |
+| `/api/v1/accounting/reports/balance-sheet/` | `as_of=YYYY-MM-DD` |
+
+Reports are calculated directly from posted and reversed ledger entries. A reversed entry and its equal-and-opposite reversal are both retained in the reporting population, preserving the audit trail while netting to zero. The balance sheet includes cumulative current retained earnings and both the trial balance and balance sheet return an `is_balanced` control flag.
+
+### Bank reconciliation
+
+| Endpoint | Purpose |
+|---|---|
+| `/api/v1/bank-statements/` | Import and inspect statements with nested transactions |
+| `/api/v1/bank-statement-lines/{id}/candidates/` | Find unused, exact-amount ledger candidates in the statement period |
+| `/api/v1/bank-statement-lines/{id}/reconcile/` | Match a statement line to a posted bank-account journal line |
+| `/api/v1/bank-statement-lines/{id}/unreconcile/` | Remove a match and reopen the statement |
+
+Statement amounts are signed from the bank account perspective: deposits are positive and payments are negative. Imports require `opening_balance + sum(lines) = closing_balance`, all transaction dates must fall in the statement period, and only an account assigned the Bank / Cash system role can be used. A statement becomes reconciled when every line is matched.
+
 ## Products and inventory
 
 | Endpoint | Purpose |
@@ -95,7 +116,7 @@ Stock items require a location. Fulfilment accepts the same optional line/quanti
 - Authenticated users can read Phase 2 resources.
 - Dean, Director, and Administrator roles can create or change operational and financial resources.
 - Stock movements, goods receipts, fulfilments, issued invoices, and posted journals are protected from ordinary destructive edits.
-- Organisation tenancy, returns, bank reconciliation, financial statements, and authoritative `FinancialRecord` reconciliation remain subsequent increments.
+- Organisation tenancy, returns, statement-file parsers and bank-feed adapters, report exports, and authoritative `FinancialRecord` reconciliation remain subsequent increments.
 
 ## Phase 2 application screens
 
@@ -105,6 +126,6 @@ Stock items require a location. Fulfilment accepts the same optional line/quanti
 | Inventory | `/inventory/` | `modules/inventory/inventory.js` |
 | Purchasing | `/purchasing/` | `modules/purchasing/orders.js` |
 | Sales Orders | `/sales/` | `modules/sales/orders.js` |
-| Accounting | `/accounting/` | `modules/accounting/ledger.js` |
+| Accounting | `/accounting/` | `modules/accounting/ledger.js`, `reports.js`, `reconciliation.js` |
 
 These pages use the shared API transport, UJ SME component stylesheet, authenticated Django shell, and app-specific frontend modules. Operational validation and state transitions remain server-side.

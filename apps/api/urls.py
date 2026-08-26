@@ -22,7 +22,7 @@ from apps.documents.api_views      import DocumentLibraryViewSet, DocumentViewSe
 from apps.tasks.api_views          import BoardColumnViewSet, BoardViewSet, TaskActivityViewSet, TaskCommentViewSet, TaskViewSet
 from apps.billing.api_views        import InvoiceLineViewSet, InvoiceViewSet, PaymentViewSet
 from apps.expenses.api_views       import ExpenseCategoryViewSet, ExpenseViewSet
-from apps.accounting.api_views     import AccountViewSet, AccountingPeriodViewSet, JournalEntryViewSet
+from apps.accounting.api_views     import AccountViewSet, AccountingPeriodViewSet, BankStatementLineViewSet, BankStatementViewSet, JournalEntryViewSet, balance_sheet_report, income_statement_report, trial_balance_report
 from apps.products.api_views       import ProductViewSet
 from apps.inventory.api_views      import ReorderRuleViewSet, StockLocationViewSet, StockMovementViewSet
 from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierBillViewSet, SupplierViewSet
@@ -54,6 +54,8 @@ router.register(r'expenses', ExpenseViewSet, basename='expense')
 router.register(r'accounts', AccountViewSet, basename='account')
 router.register(r'accounting-periods', AccountingPeriodViewSet, basename='accounting-period')
 router.register(r'journals', JournalEntryViewSet, basename='journal')
+router.register(r'bank-statements', BankStatementViewSet, basename='bank-statement')
+router.register(r'bank-statement-lines', BankStatementLineViewSet, basename='bank-statement-line')
 router.register(r'products', ProductViewSet, basename='product')
 router.register(r'stock-locations', StockLocationViewSet, basename='stock-location')
 router.register(r'stock-movements', StockMovementViewSet, basename='stock-movement')
@@ -96,6 +98,8 @@ def api_root(request, format=None):
             'expenses':      reverse('expense-list',         request=request, format=format),
             'accounts':      reverse('account-list',         request=request, format=format),
             'journals':      reverse('journal-list',         request=request, format=format),
+            'bank_statements': reverse('bank-statement-list', request=request, format=format),
+            'trial_balance': reverse('trial-balance-report',  request=request, format=format),
             'products':      reverse('product-list',         request=request, format=format),
             'stock':         reverse('stock-movement-list',  request=request, format=format),
             'purchasing':    reverse('purchase-order-list',  request=request, format=format),
@@ -106,6 +110,9 @@ def api_root(request, format=None):
 
 urlpatterns = [
     path('', api_root, name='api-root'),
+    path('accounting/reports/trial-balance/', trial_balance_report, name='trial-balance-report'),
+    path('accounting/reports/income-statement/', income_statement_report, name='income-statement-report'),
+    path('accounting/reports/balance-sheet/', balance_sheet_report, name='balance-sheet-report'),
     path('analytics/', analytics_report, name='analytics-report'),
     path('ai/insights/', ai_insights, name='ai-insights'),
     path('ai/run-pipeline/', ai_run_pipeline, name='ai-run-pipeline'),

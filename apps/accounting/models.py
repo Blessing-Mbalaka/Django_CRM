@@ -93,3 +93,47 @@ class JournalLine(models.Model):
         constraints = [
             models.CheckConstraint(condition=models.Q(debit__gte=0, credit__gte=0), name='accounting_non_negative_lines'),
         ]
+
+
+class BankStatement(models.Model):
+    class Status(models.TextChoices):
+        OPEN = 'open', 'Open'
+        RECONCILED = 'reconciled', 'Reconciled'
+
+    bank_account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name='bank_statements')
+    reference = models.CharField(max_length=80)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    opening_balance = models.DecimalField(max_digits=16, decimal_places=2)
+    closing_balance = models.DecimalField(max_digits=16, decimal_places=2)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.OPEN)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_bank_statements')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-end_date', '-id']
+        constraints = [models.UniqueConstraint(fields=['bank_account', 'reference'], name='accounting_unique_bank_statement_reference')]
+
+    def __str__(self):
+        return f'{self.bank_account.code} - {self.reference}'
+
+
+class BankStatementLine(models.Model):
+    statement = models.ForeignKey(BankStatement, on_delete=models.CASCADE, related_name='lines')
+    transaction_date = models.DateField()
+    description = models.CharField(max_length=255)
+    reference = models.CharField(max_length=80, blank=True)
+    amount = models.DecimalField(max_digits=16, decimal_places=2)
+    matched_journal_line = models.OneToOneField(JournalLine, null=True, blank=True, on_delete=models.PROTECT, related_name='bank_statement_match')
+    reconciled_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='reconciled_bank_lines')
+    reconciled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['transaction_date', 'id']
+
+    @property
+    def is_reconciled(self):
+        return self.matched_journal_line_id is not None
+
+    def __str__(self):
+        return self.reference or self.description

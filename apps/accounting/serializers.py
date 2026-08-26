@@ -2,7 +2,8 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 from functionalities.accounting.services import create_draft_entry
-from .models import Account, AccountingPeriod, JournalEntry, JournalLine
+from functionalities.accounting.reconciliation import create_bank_statement
+from .models import Account, AccountingPeriod, BankStatement, BankStatementLine, JournalEntry, JournalLine
 
 
 class AccountSerializer(serializers.ModelSerializer):
@@ -67,3 +68,68 @@ class JournalEntrySerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         raise serializers.ValidationError('Journal entries cannot be edited; use a reversal entry.')
+
+
+class BankStatementLineInputSerializer(serializers.Serializer):
+    transaction_date = serializers.DateField()
+    description = serializers.CharField(max_length=255)
+    reference = serializers.CharField(max_length=80, required=False, allow_blank=True)
+    amount = serializers.DecimalField(max_digits=16, decimal_places=2)
+
+
+class BankStatementLineSerializer(serializers.ModelSerializer):
+    is_reconciled = serializers.BooleanField(read_only=True)
+    journal_date = serializers.DateField(source='matched_journal_line.entry.date', read_only=True)
+    journal_reference = serializers.CharField(source='matched_journal_line.entry.reference', read_only=True)
+
+    class Meta:
+        model = BankStatementLine
+        fields = ['id', 'statement', 'transaction_date', 'description', 'reference', 'amount', 'is_reconciled', 'matched_journal_line', 'journal_date', 'journal_reference', 'reconciled_by', 'reconciled_at']
+        read_only_fields = fields
+
+
+class BankStatementSerializer(serializers.ModelSerializer):
+    bank_account_name = serializers.CharField(source='bank_account.name', read_only=True)
+    lines = BankStatementLineInputSerializer(many=True, write_only=True)
+    statement_lines = BankStatementLineSerializer(source='lines', many=True, read_only=True)
+    reconciled_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BankStatement
+        fields = ['id', 'bank_account', 'bank_account_name', 'reference', 'start_date', 'end_date', 'opening_balance', 'closing_balance', 'status', 'created_by', 'created_at', 'reconciled_count', 'lines', 'statement_lines']
+        read_only_fields = ['id', 'status', 'created_by', 'created_at']
+
+    def get_reconciled_count(self, obj):
+        return sum(1 for line in obj.lines.all() if line.is_reconciled)
+
+    def validate_lines(self, value):
+        if not value:
+            raise serializers.ValidationError('A bank statement requires at least one transaction.')
+        return value
+
+    def validate(self, attrs):
+        if BankStatement.objects.filter(bank_account=attrs.get('bank_account'), reference=attrs.get('reference')).exists():
+            raise serializers.ValidationError({'reference': 'This statement reference already exists for the selected bank account.'})
+        return attrs
+
+    def create(self, validated_data):
+        lines = validated_data.pop('lines')
+        try:
+            return create_bank_statement(lines=lines, user=self.context['request'].user, **validated_data)
+        except DjangoValidationError as exc:
+            detail = exc.message_dict if hasattr(exc, 'message_dict') else exc.messages
+            raise serializers.ValidationError(detail) from exc
+
+
+class ReconciliationCandidateSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(source='entry.date', read_only=True)
+    reference = serializers.CharField(source='entry.reference', read_only=True)
+    description = serializers.CharField(source='entry.description', read_only=True)
+    amount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = JournalLine
+        fields = ['id', 'date', 'reference', 'description', 'amount']
+
+    def get_amount(self, obj):
+        return obj.debit - obj.credit

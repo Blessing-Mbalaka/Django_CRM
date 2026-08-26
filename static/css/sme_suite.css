@@ -103,6 +103,14 @@
 .movement-type { border-radius: 999px; display: inline-block; font-size: .68rem; font-weight: 800; padding: .25rem .55rem; text-transform: capitalize; }
 .movement-receipt, .movement-adjustment_in { background: #d1e7dd; color: #0f5132; }
 .movement-issue, .movement-adjustment_out { background: #f8d7da; color: #842029; }
+.accounting-report-grid { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.report-lines { padding: .5rem 1rem 1rem; }
+.report-lines h3 { color: var(--uj-text-muted); font-size: .7rem; font-weight: 800; letter-spacing: .08em; margin: 1rem 0 .35rem; text-transform: uppercase; }
+.report-line { align-items: center; border-bottom: 1px solid #f0f0f4; display: flex; font-size: .78rem; gap: .75rem; justify-content: space-between; padding: .55rem 0; }
+.report-total { border-bottom: 0; border-top: 2px solid var(--uj-border); font-weight: 800; margin-top: .35rem; }
+.report-empty { color: var(--uj-text-muted); font-size: .78rem; padding: 1rem 0; text-align: center; }
+.trial-amounts { display: grid; gap: .4rem; grid-template-columns: 90px 90px; text-align: right; }
+.clickable-row { cursor: pointer; }.clickable-row:hover, .clickable-row.is-selected { background: var(--uj-orange-tint); }
 
 @media (max-width: 767.98px) {
   .document-shell { grid-template-columns: 1fr; }
@@ -114,6 +122,7 @@
   .module-select { flex: 1; }
   .kanban-column { max-height: none; }
   .journal-grid { grid-template-columns: 1fr 90px 90px; }
+  .accounting-report-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 575.98px) {
