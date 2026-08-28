@@ -5,6 +5,8 @@ Read-only analytics/reporting API endpoint.
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import serializers
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 from functionalities.analytics import services
 
@@ -54,3 +56,31 @@ def analytics_report(request):
         'health_scores':      health_scores,
         'staff_activity':     list(context.get('staff_activity') or []),
     })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def business_activity(request):
+    def optional_id(name):
+        value = request.query_params.get(name)
+        if not value:
+            return None
+        try:
+            return serializers.IntegerField(min_value=1).run_validation(value)
+        except serializers.ValidationError as exc:
+            raise serializers.ValidationError({name: exc.detail}) from exc
+
+    try:
+        result = services.get_business_activity(
+            start_date=request.query_params.get('start_date'),
+            end_date=request.query_params.get('end_date'),
+            granularity=request.query_params.get('granularity', 'month'),
+            source=request.query_params.get('source', 'all'),
+            product=optional_id('product'),
+            location=optional_id('location'),
+            supplier=optional_id('supplier'),
+        )
+    except DjangoValidationError as exc:
+        detail = exc.message_dict if hasattr(exc, 'message_dict') else exc.messages
+        raise serializers.ValidationError(detail) from exc
+    return Response(result)

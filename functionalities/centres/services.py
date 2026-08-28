@@ -7,6 +7,7 @@ from django.db.models import Count, Sum, Q
 from apps.centres.models import Centre
 from apps.finance.models import FinancialRecord
 from apps.alerts.models import Alert
+from functionalities.finance.services import revenue_by_engagement
 
 
 def get_centre_kpis(centre):
@@ -18,9 +19,7 @@ def get_centre_kpis(centre):
     """
     engs = centre.engagements.all()
 
-    revenue = FinancialRecord.objects.filter(
-        engagement__centre=centre, record_type='revenue'
-    ).aggregate(t=Sum('amount'))['t'] or 0
+    revenue = sum((amount for engagement, _client, amount in revenue_by_engagement() if engagement and engagement.centre_id == centre.id), 0)
 
     pipeline = FinancialRecord.objects.filter(
         engagement__centre=centre, record_type='pipeline'

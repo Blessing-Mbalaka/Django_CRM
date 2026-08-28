@@ -44,6 +44,8 @@ class Expense(models.Model):
     engagement = models.ForeignKey('engagements.Engagement', null=True, blank=True, on_delete=models.SET_NULL, related_name='expenses')
     receipt_document = models.ForeignKey('documents.Document', null=True, blank=True, on_delete=models.SET_NULL, related_name='expense_receipts')
     notes = models.TextField(blank=True)
+    paid_on = models.DateField(null=True, blank=True)
+    paid_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.PROTECT, related_name='paid_expenses')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -67,4 +69,3 @@ class ExpenseApproval(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-

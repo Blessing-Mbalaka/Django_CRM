@@ -13,3 +13,8 @@ def dashboard_view(request):
     context = get_dashboard_context(request.user)
     return render(request, 'core/dashboard.html', context)
 
+
+@login_required
+def growth_marketing_view(request):
+    return render(request, 'core/growth_marketing.html')
+

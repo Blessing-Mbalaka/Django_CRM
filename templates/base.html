@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="JBS Institutional CRM — University of Johannesburg Business School" />
-  <title>{% block title %}JBS CRM{% endblock %} | UJ Business School</title>
+  <title>{% block title %}SME Ecosystem{% endblock %} | UJ Business School</title>
 
   <!-- Bootstrap 5 CDN -->
   <link
@@ -34,12 +34,6 @@
   {% if user.is_authenticated %}
   <!-- ── APP SHELL ──────────────────────────────────────── -->
   <div class="app-wrapper">
-
-    <!-- Sidebar overlay (mobile) -->
-    <div id="sidebarOverlay" class="sidebar-overlay d-none" aria-hidden="true"></div>
-
-    <!-- Sidebar navigation -->
-    {% include "partials/_sidebar.html" %}
 
     <!-- Main content column -->
     <div class="main-content" role="main">

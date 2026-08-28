@@ -26,8 +26,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Expense
-        fields = ['id', 'description', 'category', 'category_name', 'amount', 'vat_amount', 'incurred_on', 'payment_method', 'status', 'submitted_by', 'submitted_by_name', 'client', 'engagement', 'receipt_document', 'notes', 'approvals', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'status', 'submitted_by', 'created_at', 'updated_at']
+        fields = ['id', 'description', 'category', 'category_name', 'amount', 'vat_amount', 'incurred_on', 'payment_method', 'status', 'submitted_by', 'submitted_by_name', 'client', 'engagement', 'receipt_document', 'notes', 'paid_on', 'paid_by', 'approvals', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'status', 'submitted_by', 'paid_on', 'paid_by', 'created_at', 'updated_at']
 
     def validate(self, attrs):
         amount = attrs.get('amount', getattr(self.instance, 'amount', None))
@@ -37,4 +37,3 @@ class ExpenseSerializer(serializers.ModelSerializer):
         if self.instance and self.instance.status not in (Expense.Status.DRAFT, Expense.Status.REJECTED):
             raise serializers.ValidationError('Only draft or rejected expenses can be edited.')
         return attrs
-

@@ -22,6 +22,10 @@ class Account(models.Model):
         INPUT_VAT = 'input_vat', 'Input VAT'
         GENERAL_EXPENSE = 'general_expense', 'General Expense'
         INVENTORY = 'inventory', 'Inventory Asset'
+        COST_OF_GOODS_SOLD = 'cost_of_goods_sold', 'Cost of Goods Sold'
+        PAYROLL_EXPENSE = 'payroll_expense', 'Payroll Expense'
+        PAYROLL_PAYABLE = 'payroll_payable', 'Payroll Payable'
+        PAYROLL_TAX_PAYABLE = 'payroll_tax_payable', 'Payroll Tax / Deductions Payable'
 
     code = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=160)
@@ -68,6 +72,13 @@ class JournalEntry(models.Model):
 
     class Meta:
         ordering = ['-date', '-id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['source_type', 'source_id'],
+                condition=~models.Q(source_type='') & models.Q(source_id__isnull=False),
+                name='accounting_unique_source_posting',
+            ),
+        ]
 
     @property
     def total_debit(self):

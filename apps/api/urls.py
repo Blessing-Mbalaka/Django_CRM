@@ -16,7 +16,7 @@ from apps.finance.api_views        import FinancialRecordViewSet
 from apps.alerts.api_views         import AlertViewSet
 from apps.communication.api_views  import CommunicationLogViewSet
 from apps.accounts.api_views       import UserViewSet
-from apps.analytics.api_views      import analytics_report
+from apps.analytics.api_views      import analytics_report, business_activity
 from apps.ai.api_views             import ai_insights, run_pipeline as ai_run_pipeline, training_readiness
 from apps.documents.api_views      import DocumentLibraryViewSet, DocumentViewSet, DocumentVersionViewSet, FolderViewSet
 from apps.tasks.api_views          import BoardColumnViewSet, BoardViewSet, TaskActivityViewSet, TaskCommentViewSet, TaskViewSet
@@ -121,6 +121,7 @@ urlpatterns = [
     path('accounting/reports/income-statement/', income_statement_report, name='income-statement-report'),
     path('accounting/reports/balance-sheet/', balance_sheet_report, name='balance-sheet-report'),
     path('analytics/', analytics_report, name='analytics-report'),
+    path('analytics/business-activity/', business_activity, name='business-activity'),
     path('ai/insights/', ai_insights, name='ai-insights'),
     path('ai/run-pipeline/', ai_run_pipeline, name='ai-run-pipeline'),
     path('ai/readiness/', training_readiness, name='ai-readiness'),

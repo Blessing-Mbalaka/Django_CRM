@@ -58,6 +58,8 @@ def fulfil_sales_order(*, sales_order, fulfilled_on, user, reference='', line_qu
     fully_fulfilled = all(line.fulfilled_quantity == line.quantity for line in sales_order.lines.all())
     sales_order.status = SalesOrder.Status.FULFILLED if fully_fulfilled else SalesOrder.Status.PART_FULFILLED
     sales_order.save(update_fields=['status', 'updated_at'])
+    from functionalities.accounting.posting import post_fulfilment
+    post_fulfilment(fulfilment)
     return fulfilment
 
 

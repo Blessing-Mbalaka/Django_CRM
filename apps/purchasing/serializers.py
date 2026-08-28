@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import GoodsReceipt, GoodsReceiptLine, PurchaseOrder, PurchaseOrderLine, Supplier, SupplierBill
+from .models import GoodsReceipt, GoodsReceiptLine, PurchaseOrder, PurchaseOrderLine, Supplier, SupplierBill, SupplierPayment
 
 
 class SupplierSerializer(serializers.ModelSerializer):
@@ -60,5 +60,12 @@ class SupplierBillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SupplierBill
-        fields = ['id', 'purchase_order', 'supplier_name', 'supplier_invoice_number', 'bill_date', 'due_date', 'subtotal', 'tax_total', 'total', 'status', 'journal_entry', 'created_by', 'created_at']
+        fields = ['id', 'purchase_order', 'supplier_name', 'supplier_invoice_number', 'bill_date', 'due_date', 'subtotal', 'tax_total', 'total', 'amount_paid', 'balance_due', 'status', 'journal_entry', 'created_by', 'created_at']
+        read_only_fields = fields
+
+
+class SupplierPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupplierPayment
+        fields = ['id', 'supplier_bill', 'amount', 'paid_on', 'reference', 'recorded_by', 'created_at']
         read_only_fields = fields

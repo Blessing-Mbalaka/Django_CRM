@@ -23,6 +23,10 @@ class AccountSerializer(serializers.ModelSerializer):
             Account.SystemRole.INPUT_VAT: Account.Type.ASSET,
             Account.SystemRole.GENERAL_EXPENSE: Account.Type.EXPENSE,
             Account.SystemRole.INVENTORY: Account.Type.ASSET,
+            Account.SystemRole.COST_OF_GOODS_SOLD: Account.Type.EXPENSE,
+            Account.SystemRole.PAYROLL_EXPENSE: Account.Type.EXPENSE,
+            Account.SystemRole.PAYROLL_PAYABLE: Account.Type.LIABILITY,
+            Account.SystemRole.PAYROLL_TAX_PAYABLE: Account.Type.LIABILITY,
         }
         if role and expected.get(role) != account_type:
             raise serializers.ValidationError({'account_type': f'{role.replace("_", " ").title()} must use the {expected[role]} account type.'})
@@ -58,6 +62,9 @@ class JournalEntrySerializer(serializers.ModelSerializer):
         model = JournalEntry
         fields = ['id', 'date', 'reference', 'description', 'status', 'source_type', 'source_id', 'reversal_of', 'created_by', 'posted_at', 'created_at', 'total_debit', 'total_credit', 'lines']
         read_only_fields = ['id', 'status', 'reversal_of', 'created_by', 'posted_at', 'created_at']
+        # The conditional source uniqueness rule is enforced by the database.
+        # DRF otherwise incorrectly requires source_id for manual journals.
+        validators = []
 
     def create(self, validated_data):
         lines = validated_data.pop('lines')

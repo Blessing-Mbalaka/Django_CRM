@@ -49,55 +49,6 @@
   document.addEventListener('DOMContentLoaded', initToasts);
 })();
 
-// ── SIDEBAR TOGGLE (mobile) ───────────────────────────────────────
-(function () {
-  'use strict';
-
-  const sidebar = document.getElementById('sidebar');
-  const toggleBtn = document.getElementById('sidebarToggle');
-  const overlay = document.getElementById('sidebarOverlay');
-
-  function openSidebar() {
-    sidebar?.classList.add('open');
-    overlay?.classList.remove('d-none');
-    document.body.style.overflow = 'hidden';
-    toggleBtn?.setAttribute('aria-expanded', 'true');
-  }
-
-  function closeSidebar() {
-    sidebar?.classList.remove('open');
-    overlay?.classList.add('d-none');
-    document.body.style.overflow = '';
-    toggleBtn?.setAttribute('aria-expanded', 'false');
-  }
-
-  toggleBtn?.addEventListener('click', () => {
-    sidebar?.classList.contains('open') ? closeSidebar() : openSidebar();
-  });
-
-  overlay?.addEventListener('click', closeSidebar);
-
-  // Close sidebar on ESC key (accessibility)
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeSidebar();
-  });
-})();
-
-// ── ACTIVE SIDEBAR NAV ────────────────────────────────────────────
-(function () {
-  'use strict';
-
-  const links = document.querySelectorAll('.sidebar-nav a');
-  const currentPath = window.location.pathname;
-
-  links.forEach((link) => {
-    if (link.getAttribute('href') === currentPath) {
-      link.classList.add('active');
-      link.setAttribute('aria-current', 'page');
-    }
-  });
-})();
-
 // ── CONFIRM DIALOGS (affordance for destructive actions) ──────────
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-confirm]').forEach((el) => {

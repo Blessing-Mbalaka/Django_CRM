@@ -31,7 +31,7 @@ def finance_create(request):
 @login_required
 @management_required
 def finance_edit(request, pk):
-    record = get_object_or_404(FinancialRecord, pk=pk)
+    record = get_object_or_404(FinancialRecord, pk=pk, record_type=FinancialRecord.RecordType.PIPELINE)
     form = FinancialRecordForm(request.POST or None, instance=record)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -43,7 +43,7 @@ def finance_edit(request, pk):
 @login_required
 @management_required
 def finance_delete(request, pk):
-    record = get_object_or_404(FinancialRecord, pk=pk)
+    record = get_object_or_404(FinancialRecord, pk=pk, record_type=FinancialRecord.RecordType.PIPELINE)
     if request.method == 'POST':
         record.delete()
         messages.success(request, 'Financial record deleted.')

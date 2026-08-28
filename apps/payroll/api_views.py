@@ -35,7 +35,7 @@ class PayRunViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='mark-paid')
     def mark_paid(self, request, pk=None):
         try:
-            pay_run = mark_pay_run_paid(pay_run=self.get_object())
+            pay_run = mark_pay_run_paid(pay_run=self.get_object(), user=request.user)
         except DjangoValidationError as exc:
             raise serializers.ValidationError(exc.messages) from exc
         return Response(self.get_serializer(pay_run).data)

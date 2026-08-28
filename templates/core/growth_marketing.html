@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Growth & Marketing{% endblock %}
+{% block page_heading %}Growth & Marketing{% endblock %}
+{% block content %}
+<section class="coming-soon-shell workspace-gradient-growth">
+  <div class="coming-soon-hero">
+    <span class="coming-soon-badge"><i class="bi bi-stars"></i>Coming soon</span>
+    <span class="coming-soon-icon"><i class="bi bi-rocket-takeoff"></i></span>
+    <h1>Growth &amp; Marketing</h1>
+    <p>A future workspace for turning CRM relationships and sales activity into measurable growth programmes.</p>
+    <a class="btn btn-light fw-700" href="{% url 'core:dashboard' %}"><i class="bi bi-grid me-2"></i>Return to workspaces</a>
+  </div>
+  <div class="coming-soon-grid" aria-label="Planned marketing capabilities">
+    <article><i class="bi bi-megaphone"></i><h2>Campaigns</h2><p>Plan coordinated outreach and connect responses to CRM records.</p></article>
+    <article><i class="bi bi-person-bounding-box"></i><h2>Audience Segments</h2><p>Build useful segments from sectors, engagement history and customer activity.</p></article>
+    <article><i class="bi bi-funnel"></i><h2>Lead Generation</h2><p>Track acquisition sources and move qualified interest into engagements.</p></article>
+    <article><i class="bi bi-bar-chart"></i><h2>Channel Performance</h2><p>Compare campaign reach, conversion and revenue contribution without duplicate actuals.</p></article>
+  </div>
+</section>
+{% endblock %}

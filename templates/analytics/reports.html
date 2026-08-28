@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% load core_filters %}
 {% block title %}Reports & Analytics{% endblock %}
 {% block page_heading %}Reports & Analytics{% endblock %}
@@ -9,6 +10,26 @@
     <p class="page-subtitle">Institutional intelligence &amp; performance insights</p>
   </div>
 </div>
+
+<section class="uj-card business-activity-card mb-4" aria-labelledby="activityTitle">
+  <div class="activity-gradient-header">
+    <div><span class="eyebrow">Canonical activity</span><h2 id="activityTitle"><i class="bi bi-activity me-2"></i>Combined Business Activity</h2><p>Ledger actuals, purchasing and inventory levels on one filterable timeline.</p></div>
+    <span class="activity-live-badge"><i class="bi bi-database-check"></i>Single source of truth</span>
+  </div>
+  <form id="businessActivityFilters" class="activity-filter-grid" data-endpoint="{% url 'business-activity' %}">
+    <label><span>From</span><input class="form-control" type="date" name="start_date"></label>
+    <label><span>To</span><input class="form-control" type="date" name="end_date"></label>
+    <label><span>Interval</span><select class="form-select" name="granularity"><option value="month">Monthly</option><option value="week">Weekly</option><option value="day">Daily</option></select></label>
+    <label><span>Activity</span><select class="form-select" name="source"><option value="all">All activity</option><option value="sales">Sales</option><option value="purchasing">Purchasing</option><option value="expenses">Expenses</option><option value="payroll">Payroll</option><option value="inventory">Inventory</option></select></label>
+    <label><span>Product</span><select class="form-select" name="product"><option value="">All products</option>{% for product in activity_products %}<option value="{{ product.id }}">{{ product.sku }} · {{ product.name }}</option>{% endfor %}</select></label>
+    <label><span>Location</span><select class="form-select" name="location"><option value="">All locations</option>{% for location in activity_locations %}<option value="{{ location.id }}">{{ location.name }}</option>{% endfor %}</select></label>
+    <label><span>Supplier</span><select class="form-select" name="supplier"><option value="">All suppliers</option>{% for supplier in activity_suppliers %}<option value="{{ supplier.id }}">{{ supplier.name }}</option>{% endfor %}</select></label>
+    <button class="btn-uj activity-apply" type="submit"><i class="bi bi-funnel"></i>Apply filters</button>
+  </form>
+  <div id="activitySummary" class="activity-summary" aria-live="polite"></div>
+  <div id="businessActivityChart" class="business-activity-chart" aria-label="Combined financial, inventory and purchasing activity chart"></div>
+  <div id="activityChartStatus" class="activity-chart-status" role="status">Loading business activity…</div>
+</section>
 
 <!-- Top KPIs -->
 <div class="row g-3 mb-4">
@@ -129,4 +150,9 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" crossorigin="anonymous"></script>
+<script src="{% static 'js/modules/analytics/business-activity.js' %}"></script>
 {% endblock %}

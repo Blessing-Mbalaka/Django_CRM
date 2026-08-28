@@ -85,6 +85,7 @@ class SupplierBill(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         POSTED = 'posted', 'Posted'
+        PART_PAID = 'part_paid', 'Part Paid'
         PAID = 'paid', 'Paid'
 
     purchase_order = models.OneToOneField(PurchaseOrder, on_delete=models.PROTECT, related_name='supplier_bill')
@@ -102,3 +103,23 @@ class SupplierBill(models.Model):
     class Meta:
         ordering = ['-bill_date', '-id']
         constraints = [models.UniqueConstraint(fields=['purchase_order', 'supplier_invoice_number'], name='purchasing_unique_supplier_bill_number')]
+
+    @property
+    def amount_paid(self):
+        return self.payments.aggregate(total=models.Sum('amount'))['total'] or Decimal('0.00')
+
+    @property
+    def balance_due(self):
+        return max(self.total - self.amount_paid, Decimal('0.00'))
+
+
+class SupplierPayment(models.Model):
+    supplier_bill = models.ForeignKey(SupplierBill, on_delete=models.PROTECT, related_name='payments')
+    amount = models.DecimalField(max_digits=16, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    paid_on = models.DateField(default=timezone.localdate)
+    reference = models.CharField(max_length=120, blank=True)
+    recorded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='recorded_supplier_payments')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-paid_on', '-id']

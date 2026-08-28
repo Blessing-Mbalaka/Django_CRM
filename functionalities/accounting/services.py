@@ -2,10 +2,45 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 
-from apps.accounting.models import AccountingPeriod, JournalEntry, JournalLine
+from apps.accounting.models import Account, AccountingPeriod, JournalEntry, JournalLine
 from .validators import validate_line_amounts, validate_period_is_open
+
+
+REPORTABLE_STATUSES = (JournalEntry.Status.POSTED, JournalEntry.Status.REVERSED)
+ZERO = Decimal('0.00')
+
+
+def cash_balance(*, as_of=None, bank_account=None):
+    """Return posted cash available in the canonical bank account."""
+    if bank_account is None:
+        bank_account = Account.objects.filter(system_role=Account.SystemRole.BANK).first()
+    if bank_account is None:
+        return ZERO
+    lines = JournalLine.objects.filter(account=bank_account, entry__status__in=REPORTABLE_STATUSES)
+    if as_of is not None:
+        lines = lines.filter(entry__date__lte=as_of)
+    totals = lines.aggregate(debits=Sum('debit'), credits=Sum('credit'))
+    return (totals['debits'] or ZERO) - (totals['credits'] or ZERO)
+
+
+def validate_cash_available(*, entry):
+    """Block a posting that would overdraw the configured bank/cash account."""
+    bank_account = Account.objects.select_for_update().filter(system_role=Account.SystemRole.BANK).first()
+    if bank_account is None:
+        return
+    bank_lines = [line for line in entry.lines.all() if line.account_id == bank_account.id]
+    cash_required = sum((line.credit - line.debit for line in bank_lines), ZERO)
+    if cash_required <= ZERO:
+        return
+    available = cash_balance(as_of=entry.date, bank_account=bank_account)
+    if cash_required > available:
+        raise ValidationError(
+            f'Insufficient cash in {bank_account.name}. '
+            f'Available: {available:.2f}; required: {cash_required:.2f}.'
+        )
 
 
 @transaction.atomic
@@ -29,6 +64,7 @@ def post_entry(*, entry):
     validate_period_is_open(entry_date=entry.date, periods=AccountingPeriod.objects.all())
     if entry.lines.count() < 2 or entry.total_debit <= 0 or entry.total_debit != entry.total_credit:
         raise ValidationError('Journal entry debits and credits must balance and be greater than zero.')
+    validate_cash_available(entry=entry)
     entry.status = JournalEntry.Status.POSTED
     entry.posted_at = timezone.now()
     entry.save(update_fields=['status', 'posted_at'])

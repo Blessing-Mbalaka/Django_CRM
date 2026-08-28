@@ -74,38 +74,37 @@ def generate_no_contact_alerts(threshold_days=30):
 
 def generate_overdue_payment_alerts():
     """
-    Scan revenue records that are unpaid and past their date.
+    Scan canonical invoices that still have a balance after their due date.
     Returns the number of new alerts created.
     """
-    from apps.finance.models import FinancialRecord
+    from apps.billing.models import Invoice
 
     today = timezone.now().date()
     created = 0
 
-    overdue = FinancialRecord.objects.filter(
-        record_type='revenue',
-        is_paid=False,
-        date__lt=today,
-    ).select_related('engagement__client')
+    overdue = Invoice.objects.filter(
+        status__in=(Invoice.Status.ISSUED, Invoice.Status.PART_PAID),
+        due_date__lt=today,
+    ).select_related('engagement__client', 'client')
 
-    for record in overdue:
+    for invoice in overdue:
         already_exists = Alert.objects.filter(
-            engagement=record.engagement,
+            engagement=invoice.engagement,
             alert_type='payment_due',
             is_resolved=False,
         ).exists()
 
         if not already_exists:
             Alert.objects.create(
-                title=f'Payment overdue: {record.engagement.title}',
+                title=f'Payment overdue: {invoice.number}',
                 description=(
-                    f'R{record.amount} revenue record for '
-                    f'"{record.engagement}" is unpaid (due {record.date}).'
+                    f'R{invoice.balance_due} remains unpaid on invoice '
+                    f'{invoice.number} (due {invoice.due_date}).'
                 ),
                 alert_type='payment_due',
                 severity='high',
-                engagement=record.engagement,
-                client=record.engagement.client,
+                engagement=invoice.engagement,
+                client=invoice.client,
             )
             created += 1
 

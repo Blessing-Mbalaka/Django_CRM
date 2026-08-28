@@ -6,9 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.api.permissions import IsCEODirectorOrAdmin
-from functionalities.purchasing.services import approve_purchase_order, create_supplier_bill, post_supplier_bill, receive_purchase_order
+from functionalities.purchasing.services import approve_purchase_order, create_supplier_bill, post_supplier_bill, receive_purchase_order, record_supplier_payment
 from .models import GoodsReceipt, PurchaseOrder, PurchaseOrderLine, Supplier, SupplierBill
-from .serializers import GoodsReceiptSerializer, PurchaseOrderLineSerializer, PurchaseOrderSerializer, SupplierBillSerializer, SupplierSerializer
+from .serializers import GoodsReceiptSerializer, PurchaseOrderLineSerializer, PurchaseOrderSerializer, SupplierBillSerializer, SupplierPaymentSerializer, SupplierSerializer
 
 
 class ManagementWriteViewSet(viewsets.ModelViewSet):
@@ -98,3 +98,13 @@ class SupplierBillViewSet(viewsets.ReadOnlyModelViewSet):
         except DjangoValidationError as exc:
             raise serializers.ValidationError(exc.messages) from exc
         return Response(self.get_serializer(bill).data)
+
+    @action(detail=True, methods=['post'])
+    def pay(self, request, pk=None):
+        if not request.data.get('amount'):
+            raise serializers.ValidationError({'amount': 'This field is required.'})
+        try:
+            payment = record_supplier_payment(supplier_bill=self.get_object(), amount=request.data['amount'], paid_on=request.data.get('paid_on') or timezone.localdate(), reference=request.data.get('reference', ''), user=request.user)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.messages) from exc
+        return Response(SupplierPaymentSerializer(payment).data)

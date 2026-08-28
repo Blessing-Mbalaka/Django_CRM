@@ -1,19 +1,15 @@
 <!-- ── TOPBAR ──────────────────────────────────────────────── -->
 <header class="topbar" role="banner">
 
-  <!-- Mobile sidebar toggle -->
-  <button
-    id="sidebarToggle"
-    class="btn btn-link d-lg-none p-0 me-3"
-    aria-label="Toggle navigation menu"
-    aria-expanded="false"
-    aria-controls="sidebar"
-  >
-    <i class="bi bi-list fs-4 text-uj" aria-hidden="true"></i>
-  </button>
-
-  <!-- Current page title (injected by child templates) -->
-  <span class="topbar-title">{% block page_heading %}JBS CRM{% endblock %}</span>
+  <div class="topbar-leading">
+    {% if request.resolver_match.view_name != 'core:dashboard' %}
+      <a href="{% url 'core:dashboard' %}" class="dashboard-return-btn" aria-label="Back to dashboard">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        <span>Back to dashboard</span>
+      </a>
+    {% endif %}
+    <span class="topbar-title">{% block page_heading %}JBS CRM{% endblock %}</span>
+  </div>
 
   <!-- Right-side controls -->
   <div class="topbar-right">

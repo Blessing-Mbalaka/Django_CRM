@@ -27,3 +27,17 @@ def decide_expense(*, expense, decision, user, comment=''):
         from functionalities.accounting.posting import post_expense
         post_expense(expense, user)
     return expense
+
+
+@transaction.atomic
+def pay_expense(*, expense, paid_on, user):
+    expense = Expense.objects.select_for_update().get(pk=expense.pk)
+    if expense.status != Expense.Status.APPROVED:
+        raise ValueError('Only approved expenses can be paid.')
+    expense.paid_on = paid_on
+    expense.paid_by = user
+    from functionalities.accounting.posting import post_expense_payment
+    post_expense_payment(expense, user)
+    expense.status = Expense.Status.PAID
+    expense.save(update_fields=['status', 'paid_on', 'paid_by', 'updated_at'])
+    return expense

@@ -6,7 +6,12 @@ from rest_framework.test import APITestCase
 
 from apps.accounts.models import User
 from apps.clients.models import Client
-from apps.expenses.models import ExpenseCategory
+from apps.expenses.models import Expense, ExpenseCategory
+from apps.inventory.models import StockLocation
+from apps.products.models import Product
+from apps.purchasing.models import Supplier
+from functionalities.accounting.services import cash_balance
+from functionalities.finance.services import get_finance_overview, ledger_actuals
 from .models import Account, AccountingPeriod, BankStatement, JournalEntry
 
 
@@ -14,8 +19,9 @@ class AccountingApiTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='accountant', password='test-pass-123', role=User.Role.DIRECTOR)
         self.client.force_authenticate(self.user)
-        self.bank = Account.objects.create(code='1000', name='Bank', account_type=Account.Type.ASSET)
+        self.bank = Account.objects.create(code='1000', name='Bank', account_type=Account.Type.ASSET, system_role=Account.SystemRole.BANK)
         self.sales = Account.objects.create(code='4000', name='Sales', account_type=Account.Type.REVENUE)
+        self.expense = Account.objects.create(code='5000', name='Expenses', account_type=Account.Type.EXPENSE)
 
     def test_balanced_journal_can_be_posted(self):
         response = self.client.post('/api/v1/journals/', {'date': timezone.localdate(), 'description': 'Cash sale', 'lines': [{'account': self.bank.id, 'debit': '115.00', 'credit': '0.00'}, {'account': self.sales.id, 'debit': '0.00', 'credit': '115.00'}]}, format='json')
@@ -29,6 +35,44 @@ class AccountingApiTests(APITestCase):
         response = self.client.post('/api/v1/journals/', {'date': timezone.localdate(), 'description': 'Invalid', 'lines': [{'account': self.bank.id, 'debit': '100.00', 'credit': '0.00'}, {'account': self.sales.id, 'debit': '0.00', 'credit': '90.00'}]}, format='json')
         posted = self.client.post(f"/api/v1/journals/{response.data['id']}/post/", {}, format='json')
         self.assertEqual(posted.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_journal_cannot_overdraw_the_canonical_bank_account(self):
+        today = timezone.localdate()
+        entry = self.client.post('/api/v1/journals/', {
+            'date': today,
+            'description': 'Unaffordable payment',
+            'lines': [
+                {'account': self.expense.id, 'debit': '1.00'},
+                {'account': self.bank.id, 'credit': '1.00'},
+            ],
+        }, format='json').data
+        response = self.client.post(f"/api/v1/journals/{entry['id']}/post/", {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Insufficient cash', str(response.data))
+        self.assertEqual(JournalEntry.objects.get(pk=entry['id']).status, JournalEntry.Status.DRAFT)
+
+    def test_cash_received_funds_a_later_payment(self):
+        today = timezone.localdate()
+        deposit = self.client.post('/api/v1/journals/', {
+            'date': today,
+            'description': 'Cash received',
+            'lines': [
+                {'account': self.bank.id, 'debit': '100.00'},
+                {'account': self.sales.id, 'credit': '100.00'},
+            ],
+        }, format='json').data
+        self.client.post(f"/api/v1/journals/{deposit['id']}/post/", {}, format='json')
+        payment = self.client.post('/api/v1/journals/', {
+            'date': today,
+            'description': 'Affordable payment',
+            'lines': [
+                {'account': self.expense.id, 'debit': '60.00'},
+                {'account': self.bank.id, 'credit': '60.00'},
+            ],
+        }, format='json').data
+        response = self.client.post(f"/api/v1/journals/{payment['id']}/post/", {}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(cash_balance(as_of=today), Decimal('40.00'))
 
     def test_closed_period_prevents_posting(self):
         today = timezone.localdate()
@@ -69,6 +113,7 @@ class AutomaticPostingTests(APITestCase):
             ('1000', 'Bank', Account.Type.ASSET, Account.SystemRole.BANK),
             ('1100', 'Receivables', Account.Type.ASSET, Account.SystemRole.ACCOUNTS_RECEIVABLE),
             ('1200', 'Input VAT', Account.Type.ASSET, Account.SystemRole.INPUT_VAT),
+            ('2000', 'Payables', Account.Type.LIABILITY, Account.SystemRole.ACCOUNTS_PAYABLE),
             ('2100', 'Output VAT', Account.Type.LIABILITY, Account.SystemRole.OUTPUT_VAT),
             ('4000', 'Sales', Account.Type.REVENUE, Account.SystemRole.SALES_REVENUE),
             ('5000', 'Expenses', Account.Type.EXPENSE, Account.SystemRole.GENERAL_EXPENSE),
@@ -91,6 +136,105 @@ class AutomaticPostingTests(APITestCase):
         approved = self.client.post(f"/api/v1/expenses/{expense['id']}/approve/", {}, format='json')
         self.assertEqual(approved.status_code, status.HTTP_200_OK)
         self.assertTrue(JournalEntry.objects.filter(source_type='expense', source_id=expense['id'], status='posted').exists())
+
+    def test_expense_payment_rolls_back_when_cash_is_insufficient(self):
+        today = timezone.localdate()
+        category = ExpenseCategory.objects.create(name='Cash guard expense')
+        expense = self.client.post('/api/v1/expenses/', {
+            'description': 'Unaffordable cost',
+            'category': category.id,
+            'amount': '50.00',
+        }, format='json').data
+        self.client.post(f"/api/v1/expenses/{expense['id']}/submit/", {}, format='json')
+        self.client.post(f"/api/v1/expenses/{expense['id']}/approve/", {}, format='json')
+
+        response = self.client.post(f"/api/v1/expenses/{expense['id']}/pay/", {'paid_on': today}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Insufficient cash', str(response.data))
+        self.assertEqual(Expense.objects.get(pk=expense['id']).status, Expense.Status.APPROVED)
+        self.assertFalse(JournalEntry.objects.filter(source_type='expense_payment', source_id=expense['id']).exists())
+
+
+class CanonicalFinancialIntegrationTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='canonical-ceo', password='test-pass-123', role=User.Role.CEO)
+        self.client.force_authenticate(self.user)
+        self.customer = Client.objects.create(name='Canonical Customer')
+        self.location = StockLocation.objects.create(code='CANON', name='Canonical stock')
+        self.product = Product.objects.create(sku='CANON-1', name='Canonical item', product_type=Product.Type.STOCK, sales_price='100.00', cost_price='60.00')
+        self.supplier = Supplier.objects.create(name='Canonical Supplier')
+        accounts = [
+            ('1000', 'Bank', Account.Type.ASSET, Account.SystemRole.BANK),
+            ('1100', 'Receivables', Account.Type.ASSET, Account.SystemRole.ACCOUNTS_RECEIVABLE),
+            ('1200', 'Input VAT', Account.Type.ASSET, Account.SystemRole.INPUT_VAT),
+            ('1300', 'Inventory', Account.Type.ASSET, Account.SystemRole.INVENTORY),
+            ('2000', 'Payables', Account.Type.LIABILITY, Account.SystemRole.ACCOUNTS_PAYABLE),
+            ('2100', 'Output VAT', Account.Type.LIABILITY, Account.SystemRole.OUTPUT_VAT),
+            ('2200', 'Payroll payable', Account.Type.LIABILITY, Account.SystemRole.PAYROLL_PAYABLE),
+            ('2300', 'Payroll deductions', Account.Type.LIABILITY, Account.SystemRole.PAYROLL_TAX_PAYABLE),
+            ('4000', 'Sales', Account.Type.REVENUE, Account.SystemRole.SALES_REVENUE),
+            ('5000', 'General expenses', Account.Type.EXPENSE, Account.SystemRole.GENERAL_EXPENSE),
+            ('5100', 'Cost of goods sold', Account.Type.EXPENSE, Account.SystemRole.COST_OF_GOODS_SOLD),
+            ('5200', 'Payroll expense', Account.Type.EXPENSE, Account.SystemRole.PAYROLL_EXPENSE),
+        ]
+        for code, name, account_type, role in accounts:
+            Account.objects.create(code=code, name=name, account_type=account_type, system_role=role)
+        self.capital = Account.objects.create(code='3000', name='Opening capital', account_type=Account.Type.EQUITY)
+
+    def test_buy_sell_expense_and_payroll_share_one_ledger(self):
+        today = timezone.localdate()
+
+        opening_cash = self.client.post('/api/v1/journals/', {
+            'date': today,
+            'reference': 'OPENING-CASH',
+            'description': 'Opening cash balance',
+            'lines': [
+                {'account': Account.objects.get(system_role=Account.SystemRole.BANK).id, 'debit': '2000.00'},
+                {'account': self.capital.id, 'credit': '2000.00'},
+            ],
+        }, format='json').data
+        self.client.post(f"/api/v1/journals/{opening_cash['id']}/post/", {}, format='json')
+
+        order = self.client.post('/api/v1/purchase-orders/', {'supplier': self.supplier.id, 'location': self.location.id}, format='json').data
+        self.client.post('/api/v1/purchase-order-lines/', {'purchase_order': order['id'], 'product': self.product.id, 'quantity': '2.000', 'unit_cost': '60.00', 'tax_rate': '15.00'}, format='json')
+        self.client.post(f"/api/v1/purchase-orders/{order['id']}/approve/", {}, format='json')
+        self.client.post(f"/api/v1/purchase-orders/{order['id']}/receive/", {}, format='json')
+        bill = self.client.post(f"/api/v1/purchase-orders/{order['id']}/create-bill/", {'supplier_invoice_number': 'CAN-1', 'bill_date': today, 'due_date': today}, format='json').data
+        self.client.post(f"/api/v1/supplier-bills/{bill['id']}/post/", {}, format='json')
+        supplier_payment = self.client.post(f"/api/v1/supplier-bills/{bill['id']}/pay/", {'amount': '138.00', 'paid_on': today}, format='json')
+        self.assertEqual(supplier_payment.status_code, status.HTTP_200_OK)
+
+        sale = self.client.post('/api/v1/sales-orders/', {'client': self.customer.id, 'location': self.location.id}, format='json').data
+        self.client.post('/api/v1/sales-order-lines/', {'sales_order': sale['id'], 'product': self.product.id, 'quantity': '1.000', 'unit_price': '100.00', 'tax_rate': '15.00'}, format='json')
+        self.client.post(f"/api/v1/sales-orders/{sale['id']}/confirm/", {}, format='json')
+        invoice = self.client.post(f"/api/v1/sales-orders/{sale['id']}/invoice/", {'due_date': today}, format='json').data
+        self.client.post(f"/api/v1/sales-orders/{sale['id']}/fulfil/", {'fulfilled_on': today}, format='json')
+        self.client.post('/api/v1/payments/', {'invoice': invoice['id'], 'amount': '115.00', 'paid_on': today}, format='json')
+
+        category = ExpenseCategory.objects.create(name='Canonical expense')
+        expense = self.client.post('/api/v1/expenses/', {'description': 'Operations', 'category': category.id, 'amount': '23.00', 'vat_amount': '3.00'}, format='json').data
+        self.client.post(f"/api/v1/expenses/{expense['id']}/submit/", {}, format='json')
+        self.client.post(f"/api/v1/expenses/{expense['id']}/approve/", {}, format='json')
+        paid_expense = self.client.post(f"/api/v1/expenses/{expense['id']}/pay/", {'paid_on': today}, format='json')
+        self.assertEqual(paid_expense.data['status'], 'paid')
+
+        staff = User.objects.create_user(username='canonical-staff', role=User.Role.STAFF)
+        employee = self.client.post('/api/v1/payroll-employees/', {'user': staff.id, 'employee_number': 'CAN-E1', 'monthly_basic': '1000.00'}, format='json').data
+        pay_run = self.client.post('/api/v1/pay-runs/', {'period_start': today.replace(day=1), 'period_end': today, 'payment_date': today, 'initial_payslip': {'employee': employee['id'], 'basic_salary': '1000.00', 'paye': '100.00', 'uif_employee': '10.00', 'uif_employer': '10.00'}}, format='json').data
+        self.client.post(f"/api/v1/pay-runs/{pay_run['id']}/approve/", {}, format='json')
+        self.client.post(f"/api/v1/pay-runs/{pay_run['id']}/mark-paid/", {}, format='json')
+
+        actuals = ledger_actuals()
+        self.assertEqual(actuals['revenue'], Decimal('100.00'))
+        self.assertEqual(actuals['expenses'], Decimal('1090.00'))
+        self.assertEqual(actuals['net_profit'], Decimal('-990.00'))
+        overview = get_finance_overview()
+        self.assertEqual(overview['total_revenue'], actuals['revenue'])
+        self.assertEqual(overview['total_expenses'], actuals['expenses'])
+        self.assertEqual(overview['net_profit'], actuals['net_profit'])
+        for source_type in ('supplier_bill', 'supplier_payment', 'invoice', 'customer_payment', 'fulfilment', 'expense', 'expense_payment', 'payroll_accrual', 'payroll_payment'):
+            self.assertTrue(JournalEntry.objects.filter(source_type=source_type, status=JournalEntry.Status.POSTED).exists(), source_type)
 
 
 class FinancialReportingTests(APITestCase):

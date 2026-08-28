@@ -4,7 +4,7 @@ from django.db import transaction
 from apps.products.models import Product
 from decimal import Decimal
 
-from apps.purchasing.models import GoodsReceipt, GoodsReceiptLine, PurchaseOrder, PurchaseSequence, SupplierBill
+from apps.purchasing.models import GoodsReceipt, GoodsReceiptLine, PurchaseOrder, PurchaseSequence, SupplierBill, SupplierPayment
 from functionalities.inventory.services import record_movement
 
 
@@ -81,3 +81,19 @@ def post_supplier_bill(*, supplier_bill):
     supplier_bill.journal_entry = journal
     supplier_bill.save(update_fields=['status', 'journal_entry'])
     return supplier_bill
+
+
+@transaction.atomic
+def record_supplier_payment(*, supplier_bill, amount, paid_on, user, reference=''):
+    supplier_bill = SupplierBill.objects.select_for_update().select_related('purchase_order__supplier').get(pk=supplier_bill.pk)
+    amount = Decimal(str(amount))
+    if supplier_bill.status not in (SupplierBill.Status.POSTED, SupplierBill.Status.PART_PAID):
+        raise ValidationError('Payments require a posted supplier bill.')
+    if amount <= 0 or amount > supplier_bill.balance_due:
+        raise ValidationError('Payment must be positive and cannot exceed the supplier bill balance.')
+    payment = SupplierPayment.objects.create(supplier_bill=supplier_bill, amount=amount, paid_on=paid_on, reference=reference, recorded_by=user)
+    from functionalities.accounting.posting import post_supplier_payment
+    post_supplier_payment(payment)
+    supplier_bill.status = SupplierBill.Status.PAID if supplier_bill.balance_due == 0 else SupplierBill.Status.PART_PAID
+    supplier_bill.save(update_fields=['status'])
+    return payment

@@ -4,7 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.api.permissions import IsCEODirectorOrAdmin
-from functionalities.expenses.services import decide_expense, submit_expense
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils import timezone
+from functionalities.expenses.services import decide_expense, pay_expense, submit_expense
 from .models import Expense, ExpenseCategory
 from .serializers import ExpenseCategorySerializer, ExpenseSerializer
 
@@ -42,7 +44,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     def submit(self, request, pk=None):
         try:
             expense = submit_expense(expense=self.get_object())
-        except ValueError as exc:
+        except (ValueError, DjangoValidationError) as exc:
             raise serializers.ValidationError({'expense': str(exc)})
         return Response(self.get_serializer(expense).data)
 
@@ -62,3 +64,13 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         return self._decide(request, Expense.Status.REJECTED)
+
+    @action(detail=True, methods=['post'])
+    def pay(self, request, pk=None):
+        if not (request.user.is_superuser or request.user.role in ('dean', 'director', 'admin')):
+            return Response({'detail': 'Management payment authority is required.'}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            expense = pay_expense(expense=self.get_object(), paid_on=request.data.get('paid_on') or timezone.localdate(), user=request.user)
+        except (ValueError, DjangoValidationError) as exc:
+            raise serializers.ValidationError({'expense': str(exc)})
+        return Response(self.get_serializer(expense).data)

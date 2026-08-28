@@ -5,9 +5,9 @@
 <div class="page-header">
   <div>
     <h1 class="page-title"><i class="bi bi-currency-dollar me-2 text-uj"></i>Financial Overview</h1>
-    <p class="page-subtitle">Revenue tracking and pipeline valuation</p>
+    <p class="page-subtitle">Ledger-backed actuals and pipeline valuation</p>
   </div>
-  <a href="{% url 'finance:create' %}" class="btn-uj"><i class="bi bi-plus-lg me-1"></i>Add Record</a>
+  <a href="{% url 'finance:create' %}" class="btn-uj"><i class="bi bi-plus-lg me-1"></i>Add Pipeline Forecast</a>
 </div>
 
 <!-- KPI Row -->
@@ -16,30 +16,27 @@
   <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value">R {{ total_pipeline|floatformat:0 }}</div><div class="stat-label">Pipeline Value</div></div></div>
   <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value">R {{ total_expenses|floatformat:0 }}</div><div class="stat-label">Expenses</div></div></div>
   <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value {% if unpaid_count %}text-danger{% endif %}">{{ unpaid_count }}</div><div class="stat-label">Unpaid Invoices</div></div></div>
+  <div class="col-6 col-md-3"><div class="stat-card"><div class="stat-value">R {{ net_profit|floatformat:0 }}</div><div class="stat-label">Net Profit</div></div></div>
 </div>
 
 <div class="row g-4">
   <!-- Recent Records -->
   <div class="col-lg-8">
     <div class="uj-card">
-      <div class="uj-card-header"><span>Recent Financial Records</span></div>
+      <div class="uj-card-header"><span>Recent Posted Ledger Events</span></div>
       <div class="uj-card-body p-0">
-        {% if recent_records %}
+        {% if recent_entries %}
         <div class="table-responsive">
           <table class="table uj-table mb-0" aria-label="Financial records">
-            <thead><tr><th>Engagement</th><th>Type</th><th>Amount (R)</th><th>Date</th><th>Paid</th><th></th></tr></thead>
+            <thead><tr><th>Reference</th><th>Event</th><th>Amount (R)</th><th>Date</th><th>Status</th></tr></thead>
             <tbody>
-              {% for r in recent_records %}
+              {% for r in recent_entries %}
               <tr>
-                <td>{{ r.engagement }}</td>
-                <td><span class="badge bg-secondary">{{ r.get_record_type_display }}</span></td>
-                <td class="fw-700 text-uj">{{ r.amount|floatformat:2 }}</td>
+                <td>{{ r.reference|default:r.description }}</td>
+                <td><span class="badge bg-secondary">{{ r.source_type|default:"manual journal" }}</span></td>
+                <td class="fw-700 text-uj">{{ r.total_debit|floatformat:2 }}</td>
                 <td>{{ r.date|date:"d M Y" }}</td>
-                <td>{% if r.is_paid %}<span class="badge bg-success">Paid</span>{% else %}<span class="badge bg-warning text-dark">Pending</span>{% endif %}</td>
-                <td>
-                  <a href="{% url 'finance:edit' r.pk %}" class="btn-uj-outline" style="font-size:0.72rem;padding:2px 8px;">Edit</a>
-                  <a href="{% url 'finance:delete' r.pk %}" class="btn btn-outline-danger btn-sm" style="font-size:0.72rem;padding:2px 8px;" data-confirm="Delete this record?">Del</a>
-                </td>
+                <td><span class="badge bg-success">{{ r.get_status_display }}</span></td>
               </tr>
               {% endfor %}
             </tbody>
@@ -62,7 +59,7 @@
           <tbody>
             {% for row in centre_breakdown %}
             <tr>
-              <td>{{ row.engagement__centre__name|default:"No Department" }}</td>
+              <td>{{ row.name }}</td>
               <td class="text-end fw-700 text-uj">R {{ row.total|floatformat:0 }}</td>
             </tr>
             {% endfor %}
@@ -80,7 +77,7 @@
           <tbody>
             {% for row in top_clients %}
             <tr>
-              <td>{{ row.engagement__client__name }}</td>
+              <td>{{ row.name }}</td>
               <td class="text-end fw-700 text-uj">R {{ row.total|floatformat:0 }}</td>
             </tr>
             {% endfor %}

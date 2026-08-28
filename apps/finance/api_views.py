@@ -26,7 +26,7 @@ class FinancialRecordViewSet(viewsets.ModelViewSet):
         return [IsCEODirectorOrAdmin()]
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().filter(record_type=FinancialRecord.RecordType.PIPELINE)
         p = self.request.query_params
         if record_type := p.get('record_type'):
             qs = qs.filter(record_type=record_type)

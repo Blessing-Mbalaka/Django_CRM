@@ -1,184 +1,67 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard{% endblock %}
-{% block page_heading %}Institutional Dashboard{% endblock %}
+{% block title %}Business Modules{% endblock %}
+{% block page_heading %}Business Modules{% endblock %}
 
 {% block content %}
-<!-- ── BREADCRUMB ─────────────────────────────────────────── -->
-<nav class="uj-breadcrumb" aria-label="breadcrumb">
-  <span>JBS CRM</span> &rsaquo; <span>Dashboard</span>
-</nav>
+<section class="module-catalogue" aria-labelledby="moduleCatalogueTitle">
+  <header class="module-catalogue-hero">
+    <div class="module-hero-copy">
+      <span class="eyebrow">Your business toolkit</span>
+      <h1 id="moduleCatalogueTitle">Everything your team needs.<br><span>All in one platform.</span></h1>
+      <p>Open any available module below. Your tools stay connected through the same operational records and canonical financial ledger.</p>
+      <div class="module-value-row">
+        <span><i class="bi bi-puzzle"></i><strong>Modular</strong><small>Use the tools you need</small></span>
+        <span><i class="bi bi-graph-up-arrow"></i><strong>Scalable</strong><small>Grow without rebuilding</small></span>
+        <span><i class="bi bi-shield-check"></i><strong>Connected</strong><small>One trusted data flow</small></span>
+      </div>
+    </div>
+    <aside class="module-hero-summary" aria-label="Live business snapshot">
+      <span class="module-hero-quote"><i class="bi bi-quote"></i>One platform.<br>All your tools.<br><strong>Connected operations.</strong></span>
+      <div class="module-hero-metrics">
+        <span><strong>{{ total_clients }}</strong>Clients</span>
+        <span><strong>{{ active_engagements }}</strong>Active engagements</span>
+        <span><strong>R {{ pipeline_value|floatformat:0 }}</strong>Pipeline</span>
+        <span><strong>{{ alert_count }}</strong>Alerts</span>
+      </div>
+    </aside>
+  </header>
 
-<!-- ── PAGE HEADER ───────────────────────────────────────── -->
-<div class="page-header">
-  <div>
-    <h1 class="page-title">
-      <i class="bi bi-speedometer2 text-uj me-2" aria-hidden="true"></i>
-      {{ dashboard_title }}
-    </h1>
-    <p class="page-subtitle">
-      Institutional intelligence snapshot &mdash;
-      <span class="text-uj fw-700">{{ request.user.get_role_display }}</span>
-      {% if my_centre and not is_exec %}&middot; {{ my_centre.name }}{% endif %}
-    </p>
-  </div>
-  <div class="d-flex gap-2 flex-wrap">
-    {% if is_exec or is_director %}
-    <a href="{% url 'clients:create' %}" class="btn-uj">
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i> New Client
-    </a>
+  <header class="module-catalogue-heading">
+    <span class="eyebrow">JBS Business Suite</span>
+    <h2>Our <span>Business Modules</span></h2>
+    <p>Powerful, connected tools to help you run, manage and grow your organisation.</p>
+  </header>
+
+  {% for group in suite_navigation %}
+    {% if group.key != 'developer' %}
+      <section class="module-catalogue-group group-{{ group.gradient }}" aria-labelledby="catalogue-{{ group.key }}">
+        <h3 id="catalogue-{{ group.key }}"><i class="bi {{ group.icon }}"></i>{{ group.label }}</h3>
+        <div class="module-catalogue-grid">
+          {% for item in group.catalogue_items %}
+            <a class="module-catalogue-tile{% if item.coming_soon %} is-coming-soon{% endif %}" href="{{ item.url }}" aria-describedby="module-help-{{ group.key }}-{{ forloop.counter }}"{% if item.external %} target="_blank" rel="noopener"{% endif %}>
+              <span class="module-info-badge" aria-hidden="true"><i class="bi bi-info-lg"></i></span>
+              <span class="module-info-popover" id="module-help-{{ group.key }}-{{ forloop.counter }}" role="note">
+                <strong>What is {{ item.label }}?</strong>
+                <span>{{ item.help_text }}</span>
+              </span>
+              <span class="module-catalogue-icon {% cycle 'tone-orange' 'tone-green' %}"><i class="bi {{ item.icon }}" aria-hidden="true"></i></span>
+              <strong>{{ item.label }}</strong>
+              <p>{{ item.description }}</p>
+              <span class="module-catalogue-status">
+                {% if item.coming_soon %}<i class="bi bi-clock"></i>Coming soon{% else %}<i class="bi bi-check"></i>Available now{% endif %}
+              </span>
+              <span class="module-tile-open"><i class="bi bi-arrow-up-right"></i></span>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
     {% endif %}
-    <a href="{% url 'engagements:create' %}" class="btn-uj-outline">
-      <i class="bi bi-file-earmark-plus me-1" aria-hidden="true"></i> New Engagement
-    </a>
-  </div>
-</div>
+  {% endfor %}
 
-<!-- ── KPI STAT CARDS ────────────────────────────────────── -->
-<div class="row g-3 mb-4">
-
-  <div class="col-6 col-md-4 col-xl-2">
-    <div class="stat-card">
-      <i class="bi bi-briefcase stat-icon" aria-hidden="true"></i>
-      <div class="stat-value">{{ total_clients }}</div>
-      <div class="stat-label">{% if is_exec %}Total{% else %}My{% endif %} Clients</div>
-    </div>
-  </div>
-
-  <div class="col-6 col-md-4 col-xl-2">
-    <div class="stat-card">
-      <i class="bi bi-file-earmark-text stat-icon" aria-hidden="true"></i>
-      <div class="stat-value">{{ active_engagements }}</div>
-      <div class="stat-label">Active Engagements</div>
-    </div>
-  </div>
-
-  <div class="col-6 col-md-4 col-xl-2">
-    <div class="stat-card">
-      <i class="bi bi-currency-dollar stat-icon" aria-hidden="true"></i>
-      <div class="stat-value">R {{ pipeline_value|floatformat:0 }}</div>
-      <div class="stat-label">Pipeline Value</div>
-    </div>
-  </div>
-
-  <div class="col-6 col-md-4 col-xl-2">
-    <div class="stat-card">
-      <i class="bi bi-bell stat-icon" aria-hidden="true"></i>
-      <div class="stat-value {% if alert_count > 0 %}text-danger{% endif %}">
-        {{ alert_count }}
-      </div>
-      <div class="stat-label">Active Alerts</div>
-    </div>
-  </div>
-
-  <div class="col-6 col-md-4 col-xl-2">
-    <div class="stat-card">
-      <i class="bi bi-building stat-icon" aria-hidden="true"></i>
-      <div class="stat-value">{{ centres_count }}</div>
-      <div class="stat-label">Departments</div>
-    </div>
-  </div>
-
-  <div class="col-6 col-md-4 col-xl-2">
-    <div class="stat-card">
-      <i class="bi bi-people stat-icon" aria-hidden="true"></i>
-      <div class="stat-value">{{ staff_count }}</div>
-      <div class="stat-label">Staff</div>
-    </div>
-  </div>
-
-</div><!-- /.row KPI cards -->
-
-<!-- ── MAIN GRID ──────────────────────────────────────────── -->
-<div class="row g-4">
-
-  <!-- Recent Engagements -->
-  <div class="col-lg-7">
-    <div class="uj-card h-100">
-      <div class="uj-card-header">
-        <span>
-          <i class="bi bi-file-earmark-text me-2 text-uj" aria-hidden="true"></i>
-          Recent Engagements
-        </span>
-        <a href="{% url 'engagements:list' %}" class="btn-uj-outline" style="font-size:0.78rem;padding:4px 12px;">
-          View All
-        </a>
-      </div>
-      <div class="uj-card-body p-0">
-        {% if recent_engagements %}
-          <div class="table-responsive">
-            <table class="table uj-table mb-0" aria-label="Recent engagements">
-              <thead>
-                <tr>
-                  <th scope="col">Client</th>
-                  <th scope="col">Stage</th>
-                  <th scope="col">Lead</th>
-                  <th scope="col">Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for eng in recent_engagements %}
-                  <tr onclick="window.location='{% url 'engagements:detail' eng.pk %}'" style="cursor:pointer;">
-                    <td><strong>{{ eng.client.name }}</strong></td>
-                    <td>
-                      <span class="badge status-{{ eng.status }}">
-                        {{ eng.get_status_display }}
-                      </span>
-                    </td>
-                    <td>{{ eng.lead_owner.get_full_name }}</td>
-                    <td>{{ eng.updated_at|date:"d M Y" }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <div class="p-4 text-center text-muted">
-            <i class="bi bi-inbox fs-2 d-block mb-2 text-uj" aria-hidden="true"></i>
-            No engagements yet.
-            <a href="{% url 'engagements:create' %}">Create the first one.</a>
-          </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Active Alerts -->
-  <div class="col-lg-5">
-    <div class="uj-card h-100">
-      <div class="uj-card-header">
-        <span>
-          <i class="bi bi-bell me-2 text-uj" aria-hidden="true"></i>
-          Active Alerts
-        </span>
-        <a href="{% url 'alerts:list' %}" class="btn-uj-outline" style="font-size:0.78rem;padding:4px 12px;">
-          View All
-        </a>
-      </div>
-      <div class="uj-card-body">
-        {% if top_alerts %}
-          <ul class="list-unstyled mb-0">
-            {% for alert in top_alerts %}
-              <li class="d-flex align-items-start gap-2 mb-3">
-                <span class="text-{{ alert.severity_color }} fs-5" aria-hidden="true">
-                  <i class="bi bi-exclamation-circle-fill"></i>
-                </span>
-                <div>
-                  <div class="fw-700 fs-sm">{{ alert.title }}</div>
-                  <div class="text-muted fs-sm">{{ alert.description|truncatechars:80 }}</div>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <div class="text-center text-muted py-3">
-            <i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2" aria-hidden="true"></i>
-            No active alerts. All clear.
-          </div>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-</div><!-- /.row main grid -->
+  <footer class="module-catalogue-footer">
+    <span><i class="bi bi-diagram-3"></i><span><strong>One connected suite.</strong><small>Move between modules without losing context.</small></span></span>
+    <a href="{% url 'analytics:reports' %}" class="btn-uj-outline">View business activity <i class="bi bi-arrow-right"></i></a>
+  </footer>
+</section>
 {% endblock %}
