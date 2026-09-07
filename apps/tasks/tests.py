@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounts.models import User
-from .models import BoardColumn, Task
+from .models import BoardColumn, Project, ProjectNotification, Task
 
 
 class TaskApiTests(APITestCase):
@@ -96,3 +96,94 @@ class TaskApiTests(APITestCase):
         self.assertIn('data-drag-handle', source)
         self.assertIn('data-move-direction', source)
         self.assertIn("await moveTask(taskId, columnId, position)", source)
+
+
+class SharedProjectApiTests(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(username='project-owner', password='test-pass-123')
+        self.employee = User.objects.create_user(
+            username='assigned-employee',
+            first_name='Assigned',
+            last_name='Employee',
+            password='test-pass-123',
+        )
+        self.outsider = User.objects.create_user(username='project-outsider', password='test-pass-123')
+        self.client.force_authenticate(self.owner)
+        response = self.client.post('/api/v1/task-boards/', {'name': 'Shared delivery'}, format='json')
+        self.board_id = response.data['id']
+
+    def create_project(self, subtasks=None):
+        payload = {
+            'board': self.board_id,
+            'name': 'Website launch',
+            'description': 'Launch the new public website.',
+            'assignees': [self.employee.id],
+            'subtasks': subtasks or [],
+        }
+        return self.client.post('/api/v1/projects/', payload, format='json')
+
+    def test_project_creation_adds_shared_kanban_card_subtasks_and_notification(self):
+        response = self.create_project(['Approve design', 'Publish content'])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        project = Project.objects.get(pk=response.data['id'])
+        self.assertEqual(project.kanban_task.title, project.name)
+        self.assertEqual(project.kanban_task.parent_task, None)
+        self.assertEqual(
+            list(project.kanban_task.subtasks.order_by('position').values_list('title', flat=True)),
+            ['Approve design', 'Publish content'],
+        )
+        self.assertTrue(project.assignees.filter(pk=self.employee.pk).exists())
+        self.assertTrue(ProjectNotification.objects.filter(project=project, recipient=self.employee).exists())
+
+    def test_subtasks_are_optional(self):
+        response = self.create_project()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        project = Project.objects.get(pk=response.data['id'])
+        self.assertFalse(project.kanban_task.subtasks.exists())
+
+    def test_assignee_can_open_and_move_the_same_project_card(self):
+        created = self.create_project(['Shared checklist item'])
+        project = Project.objects.get(pk=created.data['id'])
+        done = BoardColumn.objects.get(board_id=self.board_id, name='Done')
+
+        self.client.force_authenticate(self.employee)
+        boards = self.client.get('/api/v1/task-boards/')
+        tasks = self.client.get(f'/api/v1/tasks/?board={self.board_id}')
+        moved = self.client.post(
+            f'/api/v1/tasks/{project.kanban_task_id}/move/',
+            {'column': done.id, 'position': 0},
+            format='json',
+        )
+
+        self.assertEqual(boards.status_code, status.HTTP_200_OK)
+        self.assertEqual(tasks.status_code, status.HTTP_200_OK)
+        self.assertEqual(moved.status_code, status.HTTP_200_OK, moved.data)
+        project.kanban_task.refresh_from_db()
+        self.assertEqual(project.kanban_task.column, done)
+
+    def test_unassigned_user_cannot_see_project_or_card(self):
+        self.create_project()
+        self.client.force_authenticate(self.outsider)
+
+        projects = self.client.get(f'/api/v1/projects/?board={self.board_id}')
+        tasks = self.client.get(f'/api/v1/tasks/?board={self.board_id}')
+        boards = self.client.get('/api/v1/task-boards/')
+
+        self.assertEqual(projects.data['count'], 0)
+        self.assertEqual(tasks.data['count'], 0)
+        self.assertEqual(boards.data['count'], 0)
+
+    def test_opening_assignment_notification_marks_it_read(self):
+        created = self.create_project()
+        notification = ProjectNotification.objects.get(project_id=created.data['id'], recipient=self.employee)
+        self.client.force_authenticate(None)
+        self.client.force_login(self.employee)
+
+        response = self.client.get(f'/tasks/notifications/{notification.id}/open/')
+
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertIn(f'board={self.board_id}', response.url)
+        notification.refresh_from_db()
+        self.assertTrue(notification.is_read)

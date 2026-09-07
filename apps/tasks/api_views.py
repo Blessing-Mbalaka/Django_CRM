@@ -1,11 +1,12 @@
+from django.db import models
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from functionalities.tasks.services import move_task
-from .models import Board, BoardColumn, Task, TaskActivity, TaskComment
-from .serializers import BoardColumnSerializer, BoardSerializer, TaskActivitySerializer, TaskCommentSerializer, TaskSerializer
+from .models import Board, BoardColumn, Project, Task, TaskActivity, TaskComment
+from .serializers import BoardColumnSerializer, BoardSerializer, ProjectSerializer, TaskActivitySerializer, TaskCommentSerializer, TaskSerializer
 
 
 class BoardViewSet(viewsets.ModelViewSet):
@@ -13,7 +14,14 @@ class BoardViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Board.objects.filter(owner=self.request.user).prefetch_related('columns')
+        qs = Board.objects.filter(
+            models.Q(owner=self.request.user) |
+            models.Q(projects__assignees=self.request.user) |
+            models.Q(tasks__assignee=self.request.user)
+        ).distinct()
+        if self.action not in ['list', 'retrieve']:
+            qs = qs.filter(owner=self.request.user)
+        return qs.prefetch_related('columns')
 
     def perform_create(self, serializer):
         board = serializer.save(owner=self.request.user)
@@ -31,7 +39,14 @@ class BoardColumnViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return BoardColumn.objects.filter(board__owner=self.request.user).select_related('board')
+        qs = BoardColumn.objects.filter(
+            models.Q(board__owner=self.request.user) |
+            models.Q(board__projects__assignees=self.request.user) |
+            models.Q(board__tasks__assignee=self.request.user)
+        ).distinct()
+        if self.action not in ['list', 'retrieve']:
+            qs = qs.filter(board__owner=self.request.user)
+        return qs.select_related('board')
 
     def perform_destroy(self, instance):
         if instance.tasks.exists():
@@ -44,7 +59,13 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Task.objects.filter(board__owner=self.request.user).select_related('board', 'column', 'creator', 'assignee', 'client', 'engagement')
+        qs = Task.objects.filter(
+            models.Q(board__owner=self.request.user) |
+            models.Q(assignee=self.request.user) |
+            models.Q(project_card_for__assignees=self.request.user)
+        ).filter(parent_task__isnull=True).distinct().select_related('board', 'column', 'creator', 'assignee', 'client', 'engagement')
+        if self.action in ['update', 'partial_update', 'destroy']:
+            qs = qs.filter(board__owner=self.request.user)
         if board := self.request.query_params.get('board'):
             qs = qs.filter(board_id=board)
         if assignee := self.request.query_params.get('assignee'):
@@ -71,7 +92,11 @@ class TaskCommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return TaskComment.objects.filter(task__board__owner=self.request.user).select_related('task', 'author')
+        return TaskComment.objects.filter(
+            models.Q(task__board__owner=self.request.user) |
+            models.Q(task__assignee=self.request.user) |
+            models.Q(task__project_card_for__assignees=self.request.user)
+        ).distinct().select_related('task', 'author')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -82,4 +107,25 @@ class TaskActivityViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return TaskActivity.objects.filter(task__board__owner=self.request.user).select_related('task', 'actor')
+        return TaskActivity.objects.filter(
+            models.Q(task__board__owner=self.request.user) |
+            models.Q(task__assignee=self.request.user) |
+            models.Q(task__project_card_for__assignees=self.request.user)
+        ).distinct().select_related('task', 'actor')
+
+
+class ProjectViewSet(viewsets.ModelViewSet):
+    serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'head', 'options']
+
+    def get_queryset(self):
+        qs = Project.objects.filter(
+            models.Q(board__owner=self.request.user) |
+            models.Q(assignees=self.request.user)
+        ).distinct().select_related('board', 'kanban_task__column').prefetch_related(
+            'assignees', 'kanban_task__subtasks__column'
+        )
+        if board := self.request.query_params.get('board'):
+            qs = qs.filter(board_id=board)
+        return qs

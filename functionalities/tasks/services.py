@@ -17,6 +17,7 @@ def move_task(*, task, destination, position, actor):
     locked_tasks = list(
         Task.objects.select_for_update()
         .filter(column_id__in=affected_column_ids)
+        .filter(parent_task_id=task.parent_task_id)
         .order_by('position', 'id')
     )
     source_tasks = [item for item in locked_tasks if item.column_id == old_column_id and item.pk != task.pk]

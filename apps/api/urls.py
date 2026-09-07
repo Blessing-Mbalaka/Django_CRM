@@ -19,7 +19,7 @@ from apps.accounts.api_views       import UserViewSet
 from apps.analytics.api_views      import analytics_report, business_activity
 from apps.ai.api_views             import ai_insights, run_pipeline as ai_run_pipeline, training_readiness
 from apps.documents.api_views      import DocumentLibraryViewSet, DocumentViewSet, DocumentVersionViewSet, FolderViewSet
-from apps.tasks.api_views          import BoardColumnViewSet, BoardViewSet, TaskActivityViewSet, TaskCommentViewSet, TaskViewSet
+from apps.tasks.api_views          import BoardColumnViewSet, BoardViewSet, ProjectViewSet, TaskActivityViewSet, TaskCommentViewSet, TaskViewSet
 from apps.billing.api_views        import InvoiceLineViewSet, InvoiceViewSet, PaymentViewSet
 from apps.expenses.api_views       import ExpenseCategoryViewSet, ExpenseViewSet
 from apps.accounting.api_views     import AccountViewSet, AccountingPeriodViewSet, BankStatementLineViewSet, BankStatementViewSet, JournalEntryViewSet, balance_sheet_report, income_statement_report, trial_balance_report
@@ -48,6 +48,7 @@ router.register(r'task-columns', BoardColumnViewSet, basename='task-column')
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'task-comments', TaskCommentViewSet, basename='task-comment')
 router.register(r'task-activity', TaskActivityViewSet, basename='task-activity')
+router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'invoices', InvoiceViewSet, basename='invoice')
 router.register(r'invoice-lines', InvoiceLineViewSet, basename='invoice-line')
 router.register(r'payments', PaymentViewSet, basename='payment')

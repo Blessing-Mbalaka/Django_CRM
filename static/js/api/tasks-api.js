@@ -8,4 +8,5 @@ export const createTask = (body) => apiRequest('/tasks/', { method: 'POST', body
 export const updateTask = (id, body) => apiRequest(`/tasks/${id}/`, { method: 'PATCH', body });
 export const deleteTask = (id) => apiRequest(`/tasks/${id}/`, { method: 'DELETE' });
 export const moveTask = (id, column, position = 0) => apiRequest(`/tasks/${id}/move/`, { method: 'POST', body: { column, position } });
-
+export const listProjects = (boardId) => apiRequest(`/projects/?board=${encodeURIComponent(boardId)}`);
+export const createProject = (body) => apiRequest('/projects/', { method: 'POST', body });

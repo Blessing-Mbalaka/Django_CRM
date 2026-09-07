@@ -14,6 +14,28 @@
   <!-- Right-side controls -->
   <div class="topbar-right">
 
+    <div class="dropdown">
+      <button class="btn btn-link p-0 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Project notifications" title="Project notifications">
+        <i class="bi bi-kanban fs-5 text-uj" aria-hidden="true"></i>
+        {% if project_notification_count %}
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ project_notification_count }}</span>
+        {% endif %}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 320px;">
+        <li><h6 class="dropdown-header">Project assignments</h6></li>
+        {% for notification in project_notifications %}
+          <li>
+            <a class="dropdown-item py-2{% if not notification.is_read %} fw-semibold{% endif %}" href="{% url 'tasks:open_notification' notification.pk %}">
+              <span class="d-block">{{ notification.project.name }}</span>
+              <small class="text-muted text-wrap">{{ notification.message }}</small>
+            </a>
+          </li>
+        {% empty %}
+          <li><span class="dropdown-item-text text-muted small">No project notifications.</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+
     <!-- Alerts quick-access -->
     <a
       href="{% url 'alerts:list' %}"

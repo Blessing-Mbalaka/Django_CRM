@@ -48,6 +48,7 @@ class Task(models.Model):
     assignee = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='assigned_tasks')
     client = models.ForeignKey('clients.Client', null=True, blank=True, on_delete=models.SET_NULL, related_name='tasks')
     engagement = models.ForeignKey('engagements.Engagement', null=True, blank=True, on_delete=models.SET_NULL, related_name='tasks')
+    parent_task = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='subtasks')
     due_date = models.DateField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -86,3 +87,43 @@ class TaskActivity(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+
+class Project(models.Model):
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='projects')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_kanban_projects')
+    assignees = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='kanban_projects')
+    due_date = models.DateField(null=True, blank=True)
+    kanban_task = models.OneToOneField(
+        Task,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='project_card_for',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at', 'name']
+        constraints = [
+            models.UniqueConstraint(fields=['board', 'name'], name='tasks_unique_project_name_per_board'),
+        ]
+
+    def __str__(self):
+        return self.name
+
+
+class ProjectNotification(models.Model):
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='project_notifications')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='notifications')
+    message = models.CharField(max_length=500)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['recipient', 'project'], name='tasks_unique_project_notification'),
+        ]

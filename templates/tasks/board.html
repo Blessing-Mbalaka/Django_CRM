@@ -10,6 +10,8 @@
 <div id="moduleFeedback" class="module-feedback" role="status" aria-live="polite" hidden></div>
 <div id="kanbanBoard" class="kanban-board" aria-label="Kanban board"><div class="module-empty w-100"><span class="spinner-border spinner-border-sm me-2"></span>Loading board…</div></div>
 
+{% include "tasks/partials/_projects.html" %}
+
 <div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered"><form id="taskForm" class="modal-content">
     <div class="modal-header"><div><div class="eyebrow">New work item</div><h2 class="modal-title fs-5" id="taskModalLabel">Create task</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>

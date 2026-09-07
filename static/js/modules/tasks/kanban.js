@@ -1,10 +1,13 @@
 import { collection } from '../../api/client.js';
-import { createBoard, createTask, getBoard, listBoards, listTasks, moveTask } from '../../api/tasks-api.js';
+import { createBoard, createProject, createTask, getBoard, listBoards, listProjects, listTasks, moveTask } from '../../api/tasks-api.js';
 import { escapeHtml, formatDate, setBusy, setFeedback } from '../ui.js';
 
-const state = { boards: [], board: null, tasks: [], draggedTaskId: null, pointerDrag: null };
+const state = { boards: [], board: null, tasks: [], projects: [], draggedTaskId: null, pointerDrag: null };
 const boardElement = document.getElementById('kanbanBoard');
 const boardSelect = document.getElementById('boardSelect');
+const projectsTableBody = document.getElementById('projectsTableBody');
+const sharedProjects = document.getElementById('sharedProjects');
+const currentUserId = Number(sharedProjects?.dataset.currentUser);
 
 function taskCard(task, columnIndex) {
   const maxIndex = state.board.columns.length - 1;
@@ -19,11 +22,39 @@ function render() {
   }).join('');
 }
 
+function renderProjects() {
+  if (!projectsTableBody) return;
+  const toggle = document.getElementById('toggleProjectForm');
+  const ownsBoard = state.board?.owner === currentUserId;
+  if (toggle) toggle.hidden = !ownsBoard;
+  if (!state.projects.length) {
+    projectsTableBody.innerHTML = '<tr><td colspan="5" class="text-muted text-center py-4">No projects on this board yet.</td></tr>';
+    return;
+  }
+  projectsTableBody.innerHTML = state.projects.map((project) => {
+    const detailsId = `project-subtasks-${project.id}`;
+    const assignees = project.assignee_details.map((item) => escapeHtml(item.name)).join(', ');
+    const subtasks = project.subtask_details || [];
+    const subtaskContent = subtasks.length
+      ? `<ul class="mb-0 ps-3">${subtasks.map((task) => `<li>${escapeHtml(task.title)} <span class="text-muted">— ${escapeHtml(task.column_name)}</span></li>`).join('')}</ul>`
+      : '<span class="text-muted">No subtasks were added.</span>';
+    return `<tr class="project-table-row" data-project-expand="${detailsId}" tabindex="0" role="button" aria-expanded="false" aria-controls="${detailsId}">
+      <td><strong>${escapeHtml(project.name)}</strong>${project.description ? `<div class="small text-muted">${escapeHtml(project.description)}</div>` : ''}</td>
+      <td><span class="badge text-bg-light border">${escapeHtml(project.column_name || 'Not placed')}</span></td>
+      <td>${assignees}</td><td>${formatDate(project.due_date)}</td>
+      <td class="text-end"><span class="badge text-bg-secondary">${subtasks.length}</span> <i class="bi bi-chevron-down ms-1"></i></td>
+    </tr><tr id="${detailsId}" class="project-subtasks-row" hidden><td colspan="5"><div class="p-2"><strong class="d-block mb-2">Subtasks</strong>${subtaskContent}</div></td></tr>`;
+  }).join('');
+}
+
 async function selectBoard(id) {
   state.board = await getBoard(id);
-  state.tasks = collection(await listTasks(id));
+  const [tasks, projects] = await Promise.all([listTasks(id), listProjects(id)]);
+  state.tasks = collection(tasks);
+  state.projects = collection(projects);
   boardSelect.value = String(id);
   render();
+  renderProjects();
 }
 
 async function load() {
@@ -31,7 +62,9 @@ async function load() {
     state.boards = collection(await listBoards());
     if (!state.boards.length) state.boards = [await createBoard({ name: 'My Work', description: 'Daily SME operations' })];
     boardSelect.innerHTML = state.boards.map((board) => `<option value="${board.id}">${escapeHtml(board.name)}</option>`).join('');
-    await selectBoard(state.board?.id || state.boards[0].id);
+    const requestedBoard = Number(new URLSearchParams(window.location.search).get('board'));
+    const initialBoard = state.boards.find((board) => board.id === requestedBoard) || state.board || state.boards[0];
+    await selectBoard(initialBoard.id);
   } catch (error) { boardElement.innerHTML = '<div class="module-empty text-danger">Unable to load the board.</div>'; setFeedback(error.message, 'danger'); }
 }
 
@@ -53,6 +86,50 @@ document.getElementById('taskForm').addEventListener('submit', async (event) => 
     await createTask(payload);
     bootstrap.Modal.getOrCreateInstance(document.getElementById('taskModal')).hide(); event.target.reset(); setFeedback('Task created.', 'success'); await selectBoard(state.board.id);
   } catch (error) { setFeedback(error.message, 'danger'); } finally { setBusy(button, false); }
+});
+
+document.getElementById('projectForm')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = document.getElementById('createProjectButton');
+  const assignees = [...document.getElementById('projectAssignees').selectedOptions].map((option) => Number(option.value));
+  const dueDate = document.getElementById('projectDueDate').value;
+  const subtasks = document.getElementById('projectSubtasks').value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const payload = {
+    board: state.board.id,
+    name: document.getElementById('projectName').value.trim(),
+    description: document.getElementById('projectDescription').value.trim(),
+    assignees,
+    subtasks,
+  };
+  if (dueDate) payload.due_date = dueDate;
+  setBusy(button, true, 'Creating…');
+  try {
+    await createProject(payload);
+    event.target.reset();
+    bootstrap.Collapse.getOrCreateInstance(document.getElementById('projectFormPanel')).hide();
+    setFeedback('Project created, assigned and added to the Kanban.', 'success');
+    await selectBoard(state.board.id);
+  } catch (error) {
+    setFeedback(error.message, 'danger');
+  } finally {
+    setBusy(button, false);
+  }
+});
+
+projectsTableBody?.addEventListener('click', (event) => {
+  const row = event.target.closest('[data-project-expand]');
+  if (!row) return;
+  const details = document.getElementById(row.dataset.projectExpand);
+  const expanded = row.getAttribute('aria-expanded') === 'true';
+  row.setAttribute('aria-expanded', String(!expanded));
+  details.hidden = expanded;
+  row.querySelector('.bi-chevron-down')?.classList.toggle('bi-chevron-up', !expanded);
+});
+projectsTableBody?.addEventListener('keydown', (event) => {
+  if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('[data-project-expand]')) {
+    event.preventDefault();
+    event.target.click();
+  }
 });
 
 async function move(taskId, columnId, position = 0) {
