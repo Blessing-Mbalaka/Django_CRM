@@ -28,6 +28,7 @@ from apps.inventory.api_views      import ReorderRuleViewSet, StockLocationViewS
 from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierBillViewSet, SupplierViewSet
 from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewSet, SalesOrderViewSet
 from apps.payroll.api_views        import PayrollEmployeeViewSet, PayRunViewSet, PayslipViewSet
+from apps.academy.api_views        import CourseViewSet, LearningPathViewSet
 
 router = DefaultRouter()
 router.register(r'clients',       ClientViewSet,          basename='client')
@@ -74,6 +75,8 @@ router.register(r'fulfilments', FulfilmentViewSet, basename='fulfilment')
 router.register(r'payroll-employees', PayrollEmployeeViewSet, basename='payroll-employee')
 router.register(r'pay-runs', PayRunViewSet, basename='pay-run')
 router.register(r'payslips', PayslipViewSet, basename='payslip')
+router.register(r'academy/paths', LearningPathViewSet, basename='academy-path')
+router.register(r'academy/courses', CourseViewSet, basename='academy-course')
 
 
 @api_view(['GET'])
@@ -112,6 +115,8 @@ def api_root(request, format=None):
             'purchasing':    reverse('purchase-order-list',  request=request, format=format),
             'sales_orders':  reverse('sales-order-list',     request=request, format=format),
             'payroll':       reverse('pay-run-list',         request=request, format=format),
+            'academy_paths': request.build_absolute_uri('/api/v1/academy/paths/'),
+            'academy_courses': request.build_absolute_uri('/api/v1/academy/courses/'),
         },
     })
 

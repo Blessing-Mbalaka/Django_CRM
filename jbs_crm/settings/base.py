@@ -64,6 +64,7 @@ LOCAL_APPS = [
     'apps.purchasing',    # Suppliers, purchase orders, and goods receipts
     'apps.sales',         # Sales orders, fulfilment, and invoice conversion
     'apps.payroll',       # Restricted employee pay profiles, runs, and payslips
+    'apps.academy',       # Admin-managed SME Academy courses and modules
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

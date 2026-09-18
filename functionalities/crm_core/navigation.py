@@ -29,6 +29,7 @@ MODULE_HELP = {
     'Channel Performance': 'Channel performance shows which marketing channels produce useful results.',
     'Marketing Automation': 'Marketing automation schedules repeatable messages and follow-up steps.',
     'Growth & Marketing': 'Growth and marketing helps attract, understand and retain customers.',
+    'SME Academy': 'The SME Academy provides administrator-managed practical courses for business owners and teams.',
     'API Explorer': 'An API explorer lets developers inspect and test the data endpoints used by the app.',
 }
 
@@ -99,9 +100,11 @@ def get_suite_navigation(user):
             'key': 'growth', 'label': 'Growth & Marketing', 'icon': 'bi-megaphone', 'gradient': 'growth',
             'description': 'Prepare future campaigns, audience segments, lead generation and channel performance.',
             'items': [
+                _item('SME Academy', 'bi-mortarboard', 'academy:index', 'Learn through practical courses managed by Academy administrators.'),
                 _item('Growth & Marketing', 'bi-rocket-takeoff', 'core:growth_marketing', 'Preview the planned growth and marketing workspace.'),
             ],
             'catalogue_items': [
+                _item('SME Academy', 'bi-mortarboard', 'academy:index', 'Learn through practical courses managed by Academy administrators.'),
                 {**_item('Campaigns', 'bi-megaphone', 'core:growth_marketing', 'Plan coordinated email, event and relationship campaigns.'), 'coming_soon': True},
                 {**_item('Audience Segments', 'bi-share', 'core:growth_marketing', 'Build focused audiences from CRM and engagement information.'), 'coming_soon': True},
                 {**_item('Lead Generation', 'bi-funnel', 'core:growth_marketing', 'Capture acquisition sources and qualify interest into engagements.'), 'coming_soon': True},

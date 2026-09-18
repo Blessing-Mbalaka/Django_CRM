@@ -1,0 +1,54 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Practical, administrator-managed courses for South African SMEs.">
+    <title>SME Academy · EIEAAS</title>
+    <link rel="stylesheet" href="{% static 'sme/shared/css/inventory.css' %}">
+    <link rel="stylesheet" href="{% static 'sme/shared/css/knowledge-hub.css' %}">
+    <link rel="stylesheet" href="{% static 'sme/academy/css/style.css' %}">
+    <script defer src="{% static 'sme/academy/js/api.js' %}"></script>
+    <script defer src="{% static 'sme/academy/js/course-page.js' %}"></script>
+  </head>
+  <body class="inventory-sidebar knowledge-module academy-module">
+    <div class="shell">
+      <aside class="sidebar" id="sidebar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Expand sidebar" aria-expanded="false" aria-controls="navigation" title="Expand sidebar">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg>
+        </button>
+        <nav id="navigation" aria-label="Academy navigation">
+          <button type="button" data-href="#courses" class="active" aria-current="page"><span>Courses</span></button>
+          <button type="button" data-href="{% url 'core:dashboard' %}"><span>Business home</span></button>
+        </nav>
+        <form method="post" action="{% url 'accounts:logout' %}">
+          {% csrf_token %}
+          <button class="signout-button" type="submit" title="Sign out" aria-label="Sign out"><span>Sign out</span></button>
+        </form>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div class="topbar-title">
+            <button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            <div><span class="eyebrow">LEARN · APPLY · GROW</span><h1 id="pageTitle">SME Academy</h1></div>
+          </div>
+          <a class="btn secondary" href="{% url 'accounts:profile' %}">My Profile</a>
+        </header>
+        <main
+          id="academyApp"
+          tabindex="-1"
+          data-paths-url="{{ academy_paths_url }}"
+          data-courses-url="{{ academy_courses_url }}"
+        >
+          <section class="panel" aria-live="polite">
+            <h2>Loading courses…</h2>
+            <p>Please wait while the Academy catalogue is loaded.</p>
+          </section>
+        </main>
+        <footer>EIEAAS <span>·</span> SME Academy <span>·</span> Content managed in Django</footer>
+      </div>
+    </div>
+    <div id="toasts" role="status" aria-live="polite"></div>
+  </body>
+</html>

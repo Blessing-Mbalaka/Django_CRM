@@ -50,12 +50,12 @@ class CEOApplicationSmokeTests(TestCase):
         staff = User.objects.create_user(username='tile-staff', password='test-pass-123', role=User.Role.STAFF)
         self.client.force_login(staff)
         response = self.client.get('/')
-        for path in ('/clients/', '/engagements/', '/sales/', '/billing/', '/expenses/', '/finance/', '/accounting/', '/products/', '/inventory/', '/purchasing/', '/tasks/', '/documents/', '/analytics/', '/alerts/', '/communication/', '/ai/', '/staff/', '/departments/', '/growth/'):
+        for path in ('/clients/', '/engagements/', '/sales/', '/billing/', '/expenses/', '/finance/', '/accounting/', '/products/', '/inventory/', '/purchasing/', '/tasks/', '/documents/', '/analytics/', '/alerts/', '/communication/', '/ai/', '/staff/', '/departments/', '/academy/', '/growth/'):
             with self.subTest(path=path):
                 self.assertGreaterEqual(response.content.count(f'href="{path}"'.encode()), 1)
         self.assertNotContains(response, 'id="sidebar"')
         self.assertNotContains(response, 'Back to dashboard')
-        self.assertContains(response, 'module-info-badge', count=24)
+        self.assertContains(response, 'module-info-badge', count=25)
         self.assertContains(response, 'An invoice is a formal request asking a customer to pay')
         self.assertContains(response, 'aria-describedby="module-help-finance-1"')
         self.assertContains(response, 'group-growth')
