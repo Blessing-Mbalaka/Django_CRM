@@ -1,581 +1,482 @@
-# JBS SME Business Suite — Updated Master Plan
+# SME Shell and CRM Integration — Master Plan
 
-**Status:** Approved product direction and implementation roadmap
+**Status:** Approved integration direction
 
-**Updated:** 26 August 2026
+**Updated:** 18 September 2026
 
-**Current product:** Working JBS Institutional CRM
+**Source prototype:** `SMEs (3)/SMEs/`
 
-**Target product:** An integrated, modular SME operating platform for South African small businesses
+**Host application:** Django CRM in this repository
 
----
-
-## 1. Product vision
-
-Evolve the existing CRM into a single SME business suite that helps a small business manage customers, operations, money, growth, documents, tasks, and compliance without switching between unrelated tools.
-
-The CRM remains the system's foundation and source of customer and engagement data. New modules must share the same users, permissions, clients, audit trail, notifications, search, visual language, and reporting layer. They must not be built as separate applications with separate logins or duplicate customer records.
-
-The product should progress from:
-
-> CRM → SME Operations Suite → Financial and Compliance Platform → Intelligent Business Assistant
-
-### Product principles
-
-- One login, one sidebar, one business data model.
-- Modular: a business can enable only the modules it needs.
-- API-first Django architecture with thin views and business logic in `functionalities/`.
-- Mobile-friendly and usable by non-technical small-business owners.
-- South African defaults: ZAR, VAT, SARS-ready records, POPIA-aware document handling, local addresses and tax identifiers.
-- Consistent UJ design system: existing sidebar shell, Bootstrap components, orange accent, dark navigation, typography, forms, tables, cards, toasts, and accessibility conventions.
-- PostgreSQL for production; SQLite remains acceptable for local development only.
-- Every financial event is traceable to its source document and user.
+**Primary decision:** The SME experience becomes the main user-facing shell. Its current CSS and page-specific JavaScript are preserved while pages are brought under Django one at a time. Existing CRM tools remain operational at their current routes and are linked from the SME Tools page; restyling those tools is a later project. Marketing is deliberately implemented last because it requires the largest new schema and API surface.
 
 ---
 
-## 2. Current-state audit
+## 1. Goal
 
-### Existing working modules to preserve
+Turn the supplied SME front-end prototypes into authenticated Django pages backed by the existing CRM database and `/api/v1/` API. Preserve the current prototype presentation while replacing temporary browser-only state with durable, permission-aware data.
 
-| Suite capability | Current implementation | Decision |
+The completed first programme must provide:
+
+- an SME-branded Django home page at the application root;
+- Academy, Knowledge Hub, Inventory, and Tasks pages served by Django;
+- a Business Tools section linking to the existing CRM applications;
+- one authenticated user and profile across the SME shell and CRM tools;
+- API-driven user activity and operational records;
+- safe additive database migrations where existing tables need more fields;
+- automated model, API, route, permission, and integration tests;
+- Marketing preserved as a prototype until the final delivery phase.
+
+## 2. Decisions and boundaries
+
+### 2.1 Approved decisions
+
+1. The SME interface, not the current CRM dashboard, becomes the default landing experience.
+2. Do not use iframes.
+3. Do not rewrite the prototype into a new SPA.
+4. Convert each prototype entry point into a Django template while preserving its CSS and visual behaviour.
+5. Keep each module in its own template/static folder for maintainability.
+6. Use named Django routes in place of relative `.html` links.
+7. Use the existing CRM model and API whenever it already represents the same business concept.
+8. Add nullable fields or new related models through additive migrations; avoid destructive schema replacement.
+9. Curated learning content may remain version-controlled initially. User-generated and operational records must use the database.
+10. Existing CRM pages keep their current styling until a separate visual-unification phase.
+11. Marketing is the final module in this programme.
+
+### 2.2 Out of scope for the initial integration
+
+- Restyling every existing CRM page to match the SME shell.
+- A React, Vue, or other SPA rewrite.
+- Multi-tenant organisation isolation unless separately approved.
+- Real email/SMS delivery, social publishing, payment processing, or external booking providers.
+- Treating sample funding opportunities, mentors, events, certificates, or analytics as live data.
+- Implementing Marketing before the rest of the shell and tool integrations are stable.
+
+## 3. Current-state findings
+
+### 3.1 SME prototype
+
+The imported source currently contains five page groups:
+
+| Prototype | Entry point | Current persistence | Main responsibility |
+|---|---|---|---|
+| Academy | `SMEs (3)/SMEs/academy/index.html` | In-memory JavaScript | Learning paths, courses, diagnostic, tools, mentoring, community, events, profile, settings |
+| Knowledge Hub | `SMEs (3)/SMEs/knowledge-hub/index.html` | In-memory JavaScript | Guides, courses, videos, resources, bookmarks, quizzes, compliance and funding education |
+| Inventory | `SMEs (3)/SMEs/inventory/index.html` | `localStorage` | Products, categories, suppliers, movements, settings and reports |
+| Tasks | `SMEs (3)/SMEs/tasks/index.html` | In-memory JavaScript | Projects, tasks, board, calendar and personal work views |
+| Marketing | `SMEs (3)/SMEs/marketing-app/index.html` | In-memory JavaScript | Campaigns, adverts, content, email drafts, leads, brand kit, calendar and analytics |
+
+There is no usable `SMEs (3)/SMEs/index.html` or `invoicing.html` in the imported source, although several relative links expect them. Django routes must replace these broken assumptions.
+
+### 3.2 Meaning of `data.js`
+
+The prototype `data.js` files are not API clients. They currently provide:
+
+- seeded sample/catalogue content;
+- initial page state;
+- arrays and objects later mutated by `app.js`;
+- helper functions that calculate progress and summary values.
+
+The integration must split these responsibilities:
+
+| Concern | Destination |
+|---|---|
+| Curated course/article/glossary copy | Version-controlled fixtures or static catalogue modules initially |
+| Authenticated user data | Django models and `/api/v1/` |
+| Temporary UI state | Browser-side `store.js` |
+| HTTP, CSRF, pagination, errors | Per-module `api.js` using a shared API client |
+| Rendering | Existing `views.js`/`ui.js`, changed only where data shape requires it |
+| Event orchestration | Existing `app.js`, calling repositories instead of mutating durable data directly |
+
+### 3.3 Existing CRM capabilities to reuse
+
+The CRM already has working Django apps, routes, models, serializers, APIs, and initial API-driven screens for accounts/profiles, clients, engagements, documents, tasks/projects, products, inventory, purchasing, billing, sales, expenses, accounting, payroll, analytics, alerts, communication, and AI insights.
+
+Both `/api/` and `/api/v1/` currently include the same DRF router. New SME code must use `/api/v1/` only.
+
+## 4. Target structure
+
+Use module folders and preserve ownership of styles and scripts:
+
+```text
+apps/
+  core/                       SME home route and shell orchestration
+  accounts/                   existing authentication and User model
+  academy/                    new Academy persistence and API
+  knowledge_hub/              new learning-resource persistence and API
+  products/                   existing catalogue authority
+  inventory/                  existing stock authority
+  purchasing/                 existing supplier authority
+  tasks/                      existing task/project authority
+  marketing/                  new; final phase only
+
+functionalities/
+  academy/                    progress, diagnostic, completion services
+  knowledge_hub/              bookmark and completion services
+  inventory/                  existing domain services
+  tasks/                      existing domain services
+  marketing/                  final phase only
+
+templates/
+  sme/
+    home/index.html
+    academy/index.html
+    knowledge_hub/index.html
+    inventory/index.html
+    tasks/index.html
+    shared/
+
+static/
+  sme/
+    shared/
+      css/
+      js/api-client.js
+      images/
+    home/
+    academy/
+      css/
+      js/data.js
+      js/store.js
+      js/api.js
+      js/ui.js
+      js/views.js
+      js/app.js
+    knowledge-hub/
+    inventory/
+    tasks/
+    marketing/                 retained until final phase
+```
+
+Do not duplicate files that are truly shared. Move the existing Inventory design-system CSS to `static/sme/shared/` only after all importing pages are updated in the same change.
+
+## 5. Route and navigation contract
+
+### 5.1 SME shell routes
+
+| Route | Django name | Purpose |
 |---|---|---|
-| Business dashboard | `apps.core` | Extend into a cross-module business dashboard |
-| CRM and customers | `apps.clients`, `apps.engagements` | Preserve as the customer master and sales relationship layer |
-| People and structure | `apps.staff`, `apps.centres`, `apps.accounts` | Preserve; later extend for employee/payroll profiles |
-| Basic finance | `apps.finance.FinancialRecord` | Preserve during transition; evolve through a controlled finance migration |
-| Alerts | `apps.alerts` | Preserve and generalise for all suite modules |
-| Reports and analytics | `apps.analytics` | Preserve and extend with finance, sales, stock and marketing reporting |
-| Communication health | `apps.communication` | Preserve; connect email/marketing and customer support events |
-| Administration and roles | `apps.admin_panel`, custom `User` | Preserve and expand to module permissions |
-| AI insights | `apps.ai` | Preserve; only use governed, explainable data from enabled modules |
-| REST API | `apps.api` and DRF | Preserve and version before public integrations |
+| `/` | `core:dashboard` | New SME main/home page |
+| `/academy/` | `academy:index` | Academy shell and hash-routed Academy pages |
+| `/academy/#tools` | client-side Academy route | Business Tools launcher |
+| `/knowledge-hub/` | `knowledge_hub:index` | Knowledge Hub shell |
+| `/inventory/` | `inventory:inventory` | Inventory tool; later receives preserved prototype presentation |
+| `/tasks/` | `tasks:board` | Tasks tool; later receives preserved prototype presentation |
+| `/accounts/profile/` | `accounts:profile` | Canonical profile route |
+
+All pages require Django authentication. Login redirects to `core:dashboard`, and logout remains POST-only with CSRF protection.
+
+### 5.2 Business Tools mapping
+
+Replace hardcoded relative links in the Academy Tools view with URLs generated by Django and exposed through template data or a safe JSON route map.
+
+| Tool card | Existing destination |
+|---|---|
+| CRM & Customers | `clients:list` |
+| Invoicing | `billing:invoices` |
+| Inventory | `inventory:inventory` |
+| Projects & Tasks | `tasks:board` |
+| Products & Services | `products:catalogue` |
+| Purchasing | `purchasing:orders` |
+| Sales Orders | `sales:orders` |
+| Accounting | `accounting:ledger` |
+| Payroll | `payroll:payroll`, permission-gated |
+| Reports | `analytics:reports` |
+| Documents | `documents:library` |
+| Knowledge Hub | `knowledge_hub:index` |
+| Marketing | prototype or “coming later” state until the final phase |
 
-### Database audit (26 August 2026)
+The tool registry should live in Python, not in several templates or JavaScript files. It must support permission filtering and a disabled/coming-later state.
 
-- Active database: SQLite (`db.sqlite3`), 19 tables.
-- Django system check: no issues.
-- Current domain models: `User`, `StaffProfile`, `Centre`, `Client`, `Engagement`, `FinancialRecord`, `Alert`, and `CommunicationLog`.
-- The database does **not** yet contain document management, Kanban tasks, invoices, payments, expenses, chart of accounts, journals, inventory, purchasing, sales orders, e-commerce, marketing, payroll, tax, support, workflow, or integration entities.
-- Existing `FinancialRecord` tracks revenue, pipeline, and expenses against engagements. It is useful for CRM reporting but is not a double-entry accounting ledger and must not be presented as full bookkeeping.
+## 6. Page-by-page integration method
 
-### ProjectManagementAPP_FinalBoss decision
+Every page follows the same gated workflow:
 
-`ProjectManagementAPP_FinalBoss` is a separate, older Django project with its own settings, users, models, templates, static files, migrations, and project-management concepts. A second copy also exists under `apps/ProjectManagementAPP_FinalBoss/`. Directly mounting either project would create duplicate authentication, inconsistent styling, migration risk, and conflicting business concepts.
+1. Inventory visible fields, actions, filters, calculated values, and current sample state.
+2. Map each item to an existing model/field/API action.
+3. Classify unmatched items as a nullable addition, a new related model, static content, or out of scope.
+4. Write failing model/API tests.
+5. Add the smallest safe migration and service/API change.
+6. Add `api.js` and replace durable local mutations with API calls.
+7. Preserve CSS classes and markup wherever possible.
+8. Verify permissions, validation, empty/loading/error states, and refresh persistence.
+9. Run targeted tests and the full regression suite.
+10. Complete an authenticated browser journey before declaring that page finished.
 
-Decision:
+Do not migrate a whole module merely because one screen needs persistence. Each page should become independently usable before the next page starts.
 
-1. Do not integrate it as a runtime application.
-2. Build a small native `apps.tasks` Kanban module in the main CRM database.
-3. Reuse only proven concepts where useful: board states, assignment, due dates, comments, attachments, and activity history. Do not copy its user system or unrelated academic/project features.
-4. Keep both legacy folders read-only during the migration audit.
-5. After the new Kanban is accepted and any required data is migrated, archive the legacy project outside the production application. Deletion requires an explicit backup and approval.
+## 7. Profile integration — first vertical slice
 
----
+### 7.1 Field mapping
 
-## 3. Target module catalogue
+| Academy field | Current source | Decision |
+|---|---|---|
+| `name` | `User.first_name` + `User.last_name` | Reuse; render as full name and edit as two fields or parse explicitly |
+| `email` | `User.email` | Reuse |
+| `phone` | `User.phone` | Reuse and expose in the SME profile |
+| avatar | `User.avatar` | Reuse |
+| job title | `User.job_title` | Reuse |
+| business name | Missing | Add to new one-to-one `SMEProfile` |
+| location | Missing | Add to `SMEProfile` |
+| industry | Missing | Add to `SMEProfile` |
+| business stage | Missing | Add controlled choice to `SMEProfile` |
+| reminder preference | Missing | Add to `SMEProfile` or dedicated preferences model |
+| community digest | Missing | Add to `SMEProfile` or dedicated preferences model |
+| compact cards | Browser presentation setting | Keep client-side unless cross-device persistence is approved |
 
-The sidebar and app launcher will follow the four groups in the supplied SME module reference. Existing capabilities are reused instead of duplicated.
+### 7.2 New model
 
-### A. Finance & Accounting
+`apps.academy.models.SMEProfile`:
 
-#### 1. Invoicing & Billing — new, Priority 1
+- `user`: one-to-one, cascade with the user;
+- `business_name`: string, initially blank to support existing users;
+- `location`: string, blank;
+- `industry`: string or controlled vocabulary, blank initially;
+- `business_stage`: choices `foundations`, `validate`, `build`, `grow`, `scale`, `investment_ready`;
+- `learning_reminders`: boolean;
+- `community_digest`: boolean;
+- timestamps.
 
-Create quotes, recurring or once-off invoices, credit notes, customer statements, payment receipts, reminders, and PDF/email delivery.
+Create profiles lazily or with a data migration for existing users. Do not require a business name during the migration itself; require it only in the relevant form/API validation once users edit the SME profile.
 
-Core entities: `Quote`, `QuoteLine`, `Invoice`, `InvoiceLine`, `CreditNote`, `Payment`, `PaymentAllocation`, `BillingProfile`, `NumberSequence`.
+### 7.3 Profile API
 
-Integration:
+Provide an authenticated singleton endpoint such as `/api/v1/me/profile/` with `GET` and `PATCH`. It returns the User fields and nested SME profile fields needed by the page. Users may update only their own record. Role, department, staff status, and permissions remain read-only.
 
-- Customer comes from CRM `Client`.
-- An accepted quote may create/update an `Engagement` and optionally a `SalesOrder`.
-- Posted invoices create accounting journal entries; payment allocations update receivables.
-- Documents are stored in Document Management, not as disconnected file paths.
-- Defaults: ZAR, South African date/address formats, configurable VAT rate, tax invoice fields, company registration and VAT numbers.
+Both the existing Django profile form and the Academy profile page must update the same records. Add tests proving changes made through either surface are visible through the other.
 
-#### 2. Expense Tracking — new, Priority 1
+## 8. Academy integration
 
-Capture supplier expenses, receipts, mileage, categories, payment method, VAT portions, approval status, cost centre, client/engagement, and reimbursable status.
+### 8.1 Static-first catalogue
 
-Core entities: `Expense`, `ExpenseCategory`, `ExpenseReceipt`, `MileageClaim`, `ExpenseApproval`.
+The 8 learning paths, 72 sample course records, module labels, resource descriptions, diagnostic questions, and educational copy may remain version-controlled during the first release. Before production content management, give every item a stable slug and validate references at startup or in tests.
 
-Integration: receipt files use Document Management; approved expenses post to bookkeeping; engagement-linked expenses contribute to profitability.
+### 8.2 Durable Academy records
 
-#### 3. Accounting & Bookkeeping — new, Priority 2
+Add only records representing user activity:
 
-Provide a proper double-entry ledger, chart of accounts, journals, bank/cash accounts, customer and supplier balances, trial balance, profit and loss, balance sheet, cash-flow view, and period closing.
+- `CourseEnrollment` — user, course slug, started/completed timestamps;
+- `ModuleProgress` — enrollment, module index, status, completed timestamp;
+- `PracticalOutput` — enrollment/module, response and timestamps;
+- `QuizAttempt` — enrollment/module, answer, correctness, attempt timestamp;
+- `DiagnosticAttempt` — user, version, answers JSON, computed result and timestamp;
+- `MentorBooking` — user, mentor slug, requested date/time/topic and status;
+- `EventRegistration` — user, event slug and status;
+- `Certificate` — user, course slug, issued timestamp and immutable identifier;
+- `AcademyActivity` — safe user-facing learning event summary.
 
-Core entities: `Account`, `JournalEntry`, `JournalLine`, `AccountingPeriod`, `BankAccount`, `BankTransaction`, `Reconciliation`, `TaxCode`.
+Community posts and replies should be a separate task and may remain disabled until moderation, reporting, and permission rules are approved.
 
-Rules:
+### 8.3 Academy APIs
 
-- Every posted journal must balance debits and credits.
-- Posted entries are immutable; corrections use reversal entries.
-- Invoice, payment, expense, payroll, stock, and tax modules post through accounting services, never by writing journal rows in views.
-- Existing `FinancialRecord` remains a CRM metric during migration; ledger-derived reporting becomes the authoritative finance source after reconciliation.
+Provide authenticated endpoints for current-user Academy summary, course progress, module completion, quiz attempts, practical outputs/reflections, diagnostics, bookings/registrations, certificates, and activity.
 
-#### 4. Payroll Management — planned, Priority 3
+Completion operations must be idempotent. The backend, not JavaScript, enforces quiz and practical-output prerequisites.
 
-Employee payroll profiles, earnings, deductions, benefits, leave inputs, payslips, payroll runs, payment files, and accounting postings.
+## 9. Knowledge Hub integration
 
-South African scope: PAYE, UIF, SDL, tax-year configuration and exportable reconciliation data. Statutory calculations must be versioned by effective date and verified against current SARS rules before production release.
+Keep articles, guides, courses, videos, templates, glossary terms, and official source links as curated catalogue content initially. Persist only user-specific activity:
 
-#### 5. Tax & Compliance — planned, Priority 3
+- bookmarks;
+- guide completion;
+- course/lesson progress;
+- quiz attempts and scores;
+- video-preview completion;
+- readiness checklist state;
+- certificates where applicable.
 
-VAT periods and reports, tax-code mapping, provisional tax support, payroll compliance outputs, compliance calendar, filing reminders, evidence packs, and audit exports.
+Where Academy and Knowledge Hub share the same learning concept, use shared Academy progress services instead of duplicate tables. Use a content-source/type discriminator so progress can refer to an Academy course or a Knowledge Hub item without copying content into user-state rows.
 
-This module assists record preparation; it must clearly avoid claiming that a draft calculation has been filed with SARS. Filing integrations require explicit supported providers and audit receipts.
+Official compliance and funding links must remain clearly educational, open safely in a new tab, and be reviewed for currency before production releases.
 
-### B. Operations & Management
+## 10. Inventory integration
 
-#### 6. Inventory Management — new, Priority 2
+### 10.1 Reuse
 
-Products, variants, units, warehouses/locations, stock movements, stock counts, reorder levels, reservations, valuation, batches/serials where enabled, and low-stock alerts.
+Use the existing authorities:
 
-Core entities: `Product`, `ProductVariant`, `Location`, `StockMovement`, `StockLevel`, `StockCount`, `ReorderRule`.
+- `products.Product` for SKU, name, type, description, sales price, cost price, tax rate, and active state;
+- `inventory.StockLocation` for storage locations;
+- `inventory.StockMovement` for receipts, issues, and adjustments;
+- `inventory.ReorderRule` for minimum and reorder quantities;
+- `purchasing.Supplier` for suppliers.
 
-#### 7. Purchase Management — new, Priority 2
+### 10.2 Expected schema gaps
 
-Supplier register, purchase requisitions, purchase orders, goods receipts, supplier bills, returns, and approval flow.
+Validate page fields before migration. Likely additions are product category, unit of measure, preferred supplier, barcode/image, movement reason/notes, supplier contact fields, and business-level inventory display settings.
 
-Core entities: `Supplier`, `PurchaseOrder`, `PurchaseOrderLine`, `GoodsReceipt`, `SupplierBill`.
+Add fields as nullable/blank first. Preserve existing APIs for current screens while extending serializers for the SME inventory adapter.
 
-Integration: receipts increase stock; supplier bills post payables; supplier documents use Document Management.
+### 10.3 Behavioural rules
 
-#### 8. Sales Orders — new, Priority 2
+- Product quantity is derived from stock movements, never directly edited.
+- Archived products retain their movement history and SKU uniqueness.
+- Stock writes go through domain services and database transactions.
+- The API must enforce the agreed negative-stock policy.
+- Reports use server-authoritative values.
+- Remove the localStorage database only after API parity tests pass.
 
-Convert accepted quotes into sales orders, manage fulfilment, delivery notes, backorders, returns, and invoicing.
+## 11. Tasks integration
 
-Core entities: `SalesOrder`, `SalesOrderLine`, `Fulfilment`, `DeliveryNote`, `Return`.
+### 11.1 Reuse
 
-#### 9. CRM & Customers — existing
+Use the existing `Board`, `BoardColumn`, `Task`, `TaskComment`, `TaskActivity`, `Project`, and `ProjectNotification` models and their `/api/v1/` endpoints.
 
-Keep clients, relationship owners, engagements, contact history, stages, health scoring, visibility, and department ownership. Extend carefully with contact persons, billing/shipping addresses, consent/preferences, customer tags, and a single customer timeline containing sales, invoice, support, marketing, task, and document events.
+### 11.2 Expected schema/API gaps
 
-#### 10. Projects & Tasks — replace legacy app, Priority 1
+The prototype additionally expects project start date, owner, status, team display, and full editing. Validate and add only what remains necessary:
 
-Create a lightweight persistent Kanban in `apps.tasks`.
+- `Project.start_date`, nullable;
+- `Project.status`, controlled choices with a safe default;
+- explicit owner if `created_by` is not sufficient;
+- optional task-to-project relationship if the current project-card/subtask design cannot represent prototype tasks cleanly;
+- API update support because the current `ProjectViewSet` allows only GET and POST;
+- filters for personal, today, week, overdue, project, and calendar views.
 
-MVP capabilities:
+Preserve server-authoritative board permissions. Drag/drop and status changes must use existing services so activity remains auditable.
 
-- Boards and configurable columns (`Backlog`, `To Do`, `In Progress`, `Blocked`, `Done`).
-- Task cards with title, description, priority, assignee, creator, due date, labels, checklist, and sort order.
-- Link tasks to a client, engagement, invoice, document, or other supported business record through controlled references.
-- Drag-and-drop status/order updates saved to the database through a transactional service/API.
-- Comments, attachments via Document Management, watchers, reminders, and an append-only activity history.
-- List/My Tasks view and overdue task alerts.
-- Permission scopes: private, team/department, and organisation.
+## 12. Existing CRM tools
 
-Out of MVP scope: Gantt charts, complex resource planning, academic papers, conferences, learning content, student/supervisor workflows, and a separate project authentication system.
+The initial integration changes navigation, not presentation, for Billing, Clients, Products, Purchasing, Sales, Accounting, Payroll, Documents, Analytics, Alerts, and other existing modules.
 
-### C. Growth & Marketing
+Each existing tool must receive:
 
-#### 11. Marketing Tools — new, Priority 2
+- a working link from the SME Tools registry;
+- a consistent route back to the SME home or Academy Tools page;
+- existing authentication and permission enforcement;
+- route and smoke tests;
+- no CSS rewrite unless a broken layout prevents use.
 
-Audience segments, email/SMS campaign drafts, templates, scheduling, consent enforcement, delivery events, unsubscribes, lead source tracking, and campaign performance.
+A later visual-unification plan can migrate those templates to the SME design system after functional integration is complete.
 
-Core entities: `Campaign`, `Segment`, `MessageTemplate`, `CampaignRecipient`, `DeliveryEvent`, `ConsentRecord`.
+## 13. Marketing — final phase
 
-POPIA rule: marketing sends require a recorded lawful basis/consent configuration, suppression lists, and auditable opt-out handling.
+Do not implement Marketing while the preceding modules are incomplete. Preserve the prototype source and expose it as disabled, preview-only, or feature-flagged according to the product owner's choice.
 
-#### 12. Social Media Manager — planned, Priority 4
+Marketing ultimately needs models and APIs for brand profiles, campaigns/channels, adverts, content/assets, email drafts/templates, calendar activities, marketing leads and CRM conversion, performance snapshots, and consent/suppression/opt-out audit records.
 
-Content calendar, post drafts, approvals, scheduled publishing, channel connections, and performance snapshots. Provider tokens must be encrypted and isolated in the Integrations module.
+Before implementation, decide whether marketing leads extend `clients.Client`, use a separate `Lead`, or use staged conversion. POPIA consent and suppression handling are release blockers for real message sending. Actual sending and social publishing remain separate integration projects.
 
-#### 13. Website & Landing Pages — pending, Priority 4
+## 14. API conventions
 
-This is the requested site builder. Keep it explicitly pending until core commerce, finance, permissions, document storage, and deployment isolation are stable.
+All new SME calls use `/api/v1/` and the shared client. The client must send same-origin cookies, attach CSRF to unsafe requests, support JSON/file uploads and DRF pagination, normalise errors, avoid unsafe automatic retries, and preserve `next` on authentication redirects.
 
-Proposed first release: theme-based landing pages, reusable sections, forms connected to CRM leads, custom domains, SEO metadata, preview/publish workflow, and version history. Do not begin with an unrestricted page builder or arbitrary server-side code execution.
+New endpoints follow DRF serializers, viewsets/actions, and existing permission patterns. Business rules stay in `functionalities/<domain>/`, not templates or JavaScript.
 
-#### 14. E-commerce — new, Priority 3
+## 15. Migration rules
 
-Storefront catalogue, pricing, cart, checkout, orders, payment status, shipping/collection, refunds, customer account, and stock synchronisation.
+1. Add nullable fields and new tables first.
+2. Separate material data backfills from schema changes.
+3. Backfill existing records deterministically.
+4. Deploy tolerant readers before enforcing required values.
+5. Add constraints only after data validation.
+6. Never edit applied migration files.
+7. Keep route/API compatibility during transition.
+8. Back up production data and document rollback.
+9. Test migrations against representative data, not only an empty SQLite database.
 
-Core entities: `Store`, `Catalogue`, `Cart`, `CartItem`, `WebOrder`, `WebOrderLine`, `CheckoutSession`, `Refund`.
+## 16. Security and permissions
 
-Integration: uses Inventory products, CRM customers, Sales Orders, Invoice/Billing, payment gateway adapters, accounting postings, and Document Management for generated records. Card details must never be stored in this application.
+- Require authentication on every SME page and user-state endpoint.
+- Keep role and department read-only to ordinary users.
+- Filter user-specific records by `request.user` server-side.
+- Reuse existing object permissions for CRM tools.
+- Validate files and ownership server-side.
+- Escape user content rendered by JavaScript templates.
+- Keep CSRF enabled.
+- Retain educational disclaimers for learning, compliance, and funding content.
+- Add moderation before public community posting.
+- Never expose prototype sample people or analytics as real records.
 
-#### 15. Customer Support — new, Priority 3
+## 17. Test strategy
 
-Shared support inbox, ticket number, customer/requester, category, priority, SLA, assignee, status, comments, attachments, canned responses, and knowledge base.
+Each vertical slice requires model/constraint tests, migration tests where existing data changes, service/idempotency tests, serializer/API validation tests, authentication/permission tests, route tests, focused JavaScript tests, an authenticated browser journey, and a full Django regression run.
 
-Tickets appear in the unified CRM customer timeline and may create Kanban tasks.
+Critical acceptance journeys:
 
-### D. Insights & Control
+1. Login lands on the SME home page.
+2. Home opens Academy, Knowledge Hub, and available tools without broken relative links.
+3. An Academy profile update appears in the current Django profile and survives refresh/login.
+4. Course progress survives refresh and cannot bypass prerequisites.
+5. Knowledge Hub bookmarks and progress survive refresh.
+6. Inventory uses canonical product/stock/supplier records and preserves history.
+7. Tasks uses canonical task APIs and stays visible on the current task screen.
+8. Every Tools card resolves to an authorised route or clear unavailable state.
+9. Marketing remains unavailable or preview-only until final-phase acceptance.
 
-#### 16. Business Dashboard — existing, extend continuously
+## 18. Delivery phases
 
-Provide role-aware, cross-module KPIs: cash position, overdue invoices, revenue, expenses, profit, pipeline, sales, stock risk, tasks, support SLAs, campaign performance, and compliance deadlines. Every KPI links to its underlying records.
+### Phase 0 — Baseline and contract
 
-#### 17. Reports & Analytics — existing, extend continuously
+Capture tests/migrations/routes/APIs, establish folders and asset conventions, define the Tools registry/flags, and protect reused routes with regression tests.
 
-Add receivables ageing, sales by customer/product, expense breakdown, P&L, balance sheet, cash flow, VAT report, stock movement/valuation, campaign funnel, task throughput, and support SLA reports. Include CSV/PDF export and saved filters with permission-aware data.
+**Exit:** Existing behaviour is protected and integration contracts are testable.
 
-#### 18. Document Management — new, Priority 1
+### Phase 1 — SME main page and shell
 
-Build a SharePoint-inspired document workspace, adapted to SME needs and the existing UJ styling.
+Convert the SME main experience into the root Django page, move shared assets without changing appearance, add authenticated navigation/logout, implement the Tools registry, and add a return path from CRM pages.
 
-MVP interface:
+**Exit:** Users land in the SME shell and can open every available tool.
 
-- Left navigation for `My Files`, `Shared`, `Recent`, `Favourites`, and `Trash`.
-- Main library view with breadcrumbs, folder navigation, list/grid toggle, search, filters, sort, upload, new folder, and metadata columns.
-- Details panel with preview/download, owner, size/type, version, tags, related client/engagement, sharing information, and activity.
-- Drag-and-drop upload with progress and clear validation errors.
-- Responsive layout and the existing base shell/sidebar, buttons, tables, cards, toasts, focus states, and colour tokens.
+### Phase 2 — Profile vertical slice
 
-Core entities:
+Add `apps.academy`, `SMEProfile`, safe migrations, `/api/v1/me/profile/`, the Academy Profile adapter, and bidirectional consistency with the existing Django form.
 
-- `DocumentLibrary`: organisation/team/personal library and permission boundary.
-- `Folder`: hierarchical folders with protected move/delete rules.
-- `Document`: stable logical record, title, owner, classification, tags, related business object, and current version.
-- `DocumentVersion`: immutable file version, storage key, original name, MIME type, size, checksum, uploader, and timestamp.
-- `DocumentPermission`: user/team access (`view`, `edit`, `manage`, `share`).
-- `DocumentShare`: internal share or expiring public link, disabled by default for sensitive classes.
-- `DocumentActivity`: upload, view, download, rename, move, share, restore, and delete audit events.
-- `DocumentFavourite` and `DocumentTag`.
+**Exit:** One canonical profile works through both interfaces.
 
-Security and storage rules:
+### Phase 3 — Academy
 
-- Store file metadata in PostgreSQL and file bytes in private object storage; local media storage is development-only.
-- Never trust file extensions. Validate size, MIME signature, permitted types, and filename; add malware scanning before production.
-- Authorise every list, preview, download, update, and share request at object level.
-- Use time-limited signed download links; do not expose raw storage paths.
-- Soft-delete to Trash with retention, restore, then authorised purge.
-- Version rather than overwrite; retain checksums and audit events.
-- Classifications: `Public`, `Internal`, `Confidential`, `Restricted` with sharing rules.
-- POPIA support: least privilege, access logs, retention policy, subject-data search/export workflow, and breach/audit evidence. Final policies require legal review.
+Convert Academy to Django, separate catalogue data from user state, then add progress, outputs, quizzes, diagnostics, bookings, registrations, activity, and certificates incrementally. Leave community posting disabled until separately approved.
 
-Integrations:
+**Exit:** Core Academy learning journeys are durable and API-driven.
 
-- Attach documents to clients, engagements, tasks, invoices, expenses, suppliers, products, marketing campaigns, and support tickets.
-- Generated invoices, statements, receipts, purchase orders, delivery notes, payslips, and reports are registered as documents.
-- Document events can trigger notifications and workflows.
+### Phase 4 — Knowledge Hub
 
-#### 19. Automation & Workflows — planned, Priority 3
+Convert the page, reuse learning-state foundations, persist bookmarks/completion/quiz/readiness state, and validate curated links/disclaimers.
 
-Event/condition/action automation with templates, approvals, scheduled jobs, retries, execution logs, and a kill switch.
+**Exit:** Personalised Knowledge Hub state is durable without duplicating Academy concepts.
 
-Example workflows: invoice overdue → reminder + task; expense over threshold → manager approval; stock below reorder level → draft purchase order; new website lead → CRM client/lead + follow-up task.
+### Phase 5 — Inventory
 
-#### 20. Integrations — foundation in Priority 2, connectors added incrementally
+Map prototype fields, add approved nullable gaps, replace localStorage with adapters, and preserve stock history/current CRM behaviour.
 
-Provide a controlled adapter layer for banks, payment gateways, email/SMS, cloud storage, social providers, shipping, and accounting/tax services.
+**Exit:** The preserved Inventory frontend uses canonical CRM inventory data.
 
-Core entities: `IntegrationConnection`, `CredentialReference`, `WebhookEndpoint`, `WebhookEvent`, `SyncRun`, `ExternalMapping`.
+### Phase 6 — Tasks and projects
 
-Rules: encrypt secrets outside normal model fields, verify webhook signatures, use idempotency keys, log sync outcomes without sensitive payloads, and allow administrators to disconnect/revoke providers.
+Map prototype screens, add approved project fields and API filters/update support, replace in-memory mutations, and verify assignments/moves/completion/activity/calendar.
 
----
+**Exit:** The preserved Tasks frontend uses canonical CRM task data.
 
-## 4. Navigation and information architecture
+### Phase 7 — Existing-tool hardening
 
-The permanent sidebar should remain compact. Use collapsible groups and show only modules the current user may access.
+Verify all tool links and permissions, fix integration defects without broad restyling, run complete regression/browser suites, and document later visual work separately.
 
-```text
-Overview
-  Dashboard
+**Exit:** The SME shell and existing tools form one reliable authenticated application.
 
-Sales & Customers
-  CRM & Customers
-  Engagements
-  Sales Orders
-  Customer Support
+### Phase 8 — Marketing, last
 
-Finance & Accounting
-  Invoicing & Billing
-  Expenses
-  Accounting & Bookkeeping
-  Payroll
-  Tax & Compliance
+Finalise lead/client and consent architecture, add models/services/APIs, convert the preserved page to API adapters, and keep external sending/publishing disabled pending integrations.
 
-Operations
-  Inventory
-  Purchases
-  Tasks & Kanban
-  Documents
+**Exit:** Marketing is database-backed, auditable, CRM-connected, and feature-flagged.
 
-Growth & Commerce
-  Marketing
-  Social Media
-  E-commerce
-  Website Builder (Pending)
+## 19. Definition of done
 
-Insights & Control
-  Reports & Analytics
-  Alerts
-  Automation
-  Integrations
+A page is complete only when Django serves it through an authenticated named route; its approved CSS remains intact; durable actions use `/api/v1/`; existing models are reused; migrations are additive/tested; backend permissions and validation are enforced; loading/empty/error states work; data survives refresh/login; targeted/full tests and the main browser journey pass; demo-only behaviour is documented; and unrelated CRM styling remains unchanged.
 
-Administration
-  Staff & Teams
-  Organisation Settings
-  Users & Permissions
-```
+## 20. Immediate implementation order
 
-Navigation rules:
+1. Record the baseline: tests, migrations, URL names, APIs, and prototype assets.
+2. Add the shared SME template/static folder structure.
+3. Make the SME home page the authenticated root route.
+4. Add the Python-owned Tools registry and CRM destinations.
+5. Add shared navigation, logout, and return-to-SME behaviour.
+6. Add `apps.academy`, `SMEProfile`, and profile API tests.
+7. Connect the Academy Profile page end to end.
+8. Convert the rest of Academy one vertical slice at a time.
+9. Convert Knowledge Hub using shared learning-state services.
+10. Convert Inventory to existing operational APIs.
+11. Convert Tasks to existing task/project APIs.
+12. Harden all existing-tool links and regression journeys.
+13. Plan and implement Marketing only after steps 1–12 are accepted.
 
-- Keep Dashboard first and Administration last.
-- Use route-aware active states and remember collapsed groups.
-- Add a module launcher and global search rather than letting the sidebar grow indefinitely.
-- On mobile, use the existing off-canvas pattern.
-- Feature flags hide incomplete modules; do not ship dead links.
-- Preserve existing CRM URLs where possible to avoid breaking bookmarks.
-
----
-
-## 5. Shared platform architecture
-
-### Recommended Django apps
-
-```text
-Existing
-  accounts, core, admin_panel, staff, centres, clients, engagements,
-  finance, alerts, analytics, communication, ai, api
-
-Priority 1
-  documents, tasks, billing, expenses
-
-Priority 2
-  accounting, products, inventory, purchasing, sales,
-  marketing, integrations
-
-Priority 3
-  commerce, payroll, compliance, support, workflows
-
-Priority 4
-  social, sites
-```
-
-Each new domain follows the existing convention:
-
-```text
-apps/<domain>/
-  models.py, forms.py, views.py, urls.py, api_views.py,
-  serializers.py, permissions.py, admin.py, tests/, migrations/
-
-functionalities/<domain>/
-  services.py, validators.py, handlers.py
-
-templates/<domain>/
-static/ (shared theme; domain-specific JS only where required)
-```
-
-### Shared entities to introduce before module sprawl
-
-- `Organisation`: tenant/business identity, locale, currency, registration and tax settings.
-- `Team` / organisation membership: do not rely only on global Django `is_staff`.
-- Module entitlements and role permissions.
-- `Address`, `ContactPerson`, `Money`/currency conventions, and number sequences.
-- `AuditEvent`: actor, action, target, timestamp, request/source and safe change summary.
-- `Notification`: reusable in-app/email/SMS notification state.
-- Tags, notes, comments, attachments and activity timeline primitives.
-- Feature flags and organisation settings.
-
-### Multi-tenancy direction
-
-Before offering the system to unrelated businesses, add an `Organisation` ownership boundary to every business record and enforce it in query services, forms, APIs, jobs, exports, and object permissions. Use shared-schema tenancy initially, with database constraints and automated cross-tenant access tests. The current single-institution data must be migrated into the first organisation.
-
-### API direction
-
-- Introduce `/api/v1/` while preserving current endpoints through a deprecation period.
-- Use consistent pagination, filtering, error payloads and idempotency for financial/commerce writes.
-- Require object-level permissions and organisation scoping in every viewset.
-- Publish webhook events through an outbox pattern after database commit.
-
----
-
-## 6. Critical cross-module workflows
-
-### Quote to cash
-
-```text
-CRM Client → Quote → Acceptance → Sales Order/Fulfilment → Invoice
-→ Payment → Bank Reconciliation → Accounting Journal → Dashboard/Reports
-```
-
-### Procure to pay
-
-```text
-Supplier → Purchase Order → Goods Receipt → Stock Increase
-→ Supplier Bill/Expense → Approval → Payment → Accounting Journal
-```
-
-### Document collaboration
-
-```text
-Upload → Validate/Scan → Create Immutable Version → Apply Permissions
-→ Link to Business Record → Notify Collaborators → Audit Every Action
-```
-
-### Lead to customer
-
-```text
-Website/Marketing Lead → Consent and Source → CRM Record
-→ Follow-up Kanban Task → Engagement/Quote → Customer Timeline
-```
-
-### E-commerce order
-
-```text
-Catalogue → Cart → Hosted Payment → Webhook Verification → Sales Order
-→ Reserve/Reduce Stock → Invoice/Receipt → CRM Timeline → Accounting
-```
-
----
-
-## 7. Security, governance and South African readiness
-
-- Enforce organisation and object-level access on HTML views, APIs, files, exports, background jobs, and search.
-- Apply least privilege, MFA-ready authentication, secure sessions, rate limits, CSRF protection, and auditable administration.
-- Encrypt secrets and sensitive data appropriately; keep credentials out of source code and database logs.
-- Maintain append-only audit history for financial posting, permissions, sharing, exports and compliance actions.
-- POPIA: purpose limitation, consent/lawful-basis records, data minimisation, retention, access/correction/export workflows, processor register, and incident evidence.
-- Financial controls: sequential document numbers, period locks, approval thresholds, reversals, reconciliations, and segregation of duties.
-- Payment controls: use hosted/tokenised gateways; never store CVV or raw card data.
-- Backup policy: encrypted automated backups, restore tests, retention schedule, and recovery objectives.
-- Accessibility: retain WCAG 2.1 AA patterns and keyboard-accessible Kanban alternatives.
-- SARS, CIPC, payroll and banking rules change. Version statutory configuration by effective date and verify it against current official guidance before each production release.
-
----
-
-## 8. Delivery roadmap
-
-### Phase 0 — Platform hardening and design (2–3 weeks)
-
-- Create Architecture Decision Records for tenancy, storage, accounting and legacy project retirement.
-- Add `Organisation`, membership, module permissions, audit events and feature flags.
-- Establish PostgreSQL migration plan, private object-storage strategy and test environments.
-- Produce UI wireframes for the grouped sidebar, document library and Kanban.
-- Inventory/backup both legacy `ProjectManagementAPP_FinalBoss` directories; identify any data that must be migrated.
-- Add CI checks for migrations, tests, linting, security and cross-tenant isolation.
-
-**Exit:** existing CRM passes regression tests inside the organisation boundary and no current URL/data is lost.
-
-### Phase 1 — SME essentials (6–8 weeks)
-
-1. Document Management MVP.
-2. Native Tasks & Kanban MVP with persistent storage.
-3. Invoicing & Billing MVP.
-4. Expense Tracking MVP.
-5. Updated grouped/sidebar navigation and module launcher.
-6. Cross-module activity timeline, alerts and dashboard widgets.
-
-**Exit:** a business can manage customers, files, tasks, quotes/invoices, payments and expenses in one application with audit history.
-
-### Phase 2 — Operations and bookkeeping (8–12 weeks)
-
-1. Double-entry accounting, chart of accounts and financial statements.
-2. Product catalogue and Inventory.
-3. Purchase Management.
-4. Sales Orders and fulfilment.
-5. Marketing campaigns and consent/suppression handling.
-6. Integration framework plus first payment, messaging and banking adapters.
-7. Reconcile and migrate authoritative data from `FinancialRecord`.
-
-**Exit:** quote-to-cash and procure-to-pay work end-to-end and reconcile to the ledger.
-
-### Phase 3 — Growth, service and compliance (8–12 weeks)
-
-1. E-commerce storefront and payment workflow.
-2. Customer Support and knowledge base.
-3. Automation & Workflows.
-4. Payroll Management.
-5. Tax & Compliance workspace.
-6. Expanded reports, exports and executive insights.
-
-**Exit:** operational, payroll, tax-support and commerce workflows use the shared accounting and audit foundation.
-
-### Phase 4 — Expansion (after core stability)
-
-1. Social Media Manager.
-2. Website & Landing Page Builder.
-3. Advanced integrations and partner marketplace.
-4. Governed AI assistance: document extraction, cash-flow warnings, collections suggestions and natural-language reporting with human approval.
-
-**Exit:** optional growth tools are production-isolated, observable and do not weaken core-suite security.
-
----
-
-## 9. Testing and acceptance strategy
-
-Every module requires:
-
-- Model constraints and migration tests.
-- Service/validator unit tests; no business rules hidden in views.
-- Permission and organisation-isolation tests for every CRUD action and download/export.
-- API tests, including duplicate submissions and idempotency for payments/posting.
-- Workflow integration tests across module boundaries.
-- Browser tests for key paths and responsive/accessibility checks.
-- Audit-event assertions for sensitive actions.
-- Backup/restore and failed-job recovery exercises before production.
-
-Priority 1 acceptance journeys:
-
-1. Upload, version, share, revoke, restore and securely download a document.
-2. Create a Kanban task, assign it, drag it between columns, reload, and retain state/history.
-3. Create a CRM quote, convert it to an invoice, record a partial/full payment, and produce a statement.
-4. Capture an expense receipt, approve it, link it to an engagement, and include it in profitability reporting.
-5. Prove a user from one organisation cannot see another organisation's records, files, search results, IDs or exports.
-
----
-
-## 10. Definition of done
-
-A module is complete only when:
-
-- It is integrated into shared authentication, organisation scoping, roles, sidebar, search, notifications, audit, documents and reporting where applicable.
-- Its data model and cross-module contracts are documented and migrated safely.
-- All material business logic lives in `functionalities/<domain>/`.
-- HTML and `/api/v1/` endpoints enforce the same permissions.
-- Empty, loading, validation, error and permission-denied states are designed.
-- Automated tests pass and the principal browser journey has been verified.
-- Operational documentation covers configuration, backup, monitoring and rollback.
-- Feature flags permit safe rollout and rollback.
-- No unfinished sidebar links are exposed to users.
-
----
-
-## 11. Immediate implementation backlog
-
-The next execution cycle should implement these items in order:
-
-1. ADRs and schema design for `Organisation`, permissions, audit, file storage and accounting boundaries.
-2. Grouped sidebar/module registry behind feature flags, with existing routes unchanged.
-3. `apps.documents` MVP plus secure download service and object permissions.
-4. `apps.tasks` persistent Kanban, deliberately independent of the legacy project app.
-5. `apps.billing` quotes, invoices, payments and document generation.
-6. `apps.expenses` receipts and approval flow.
-7. Cross-module dashboard widgets and customer activity timeline.
-8. PostgreSQL staging migration and production-readiness validation.
-
-No legacy folder should be deleted, no financial source of truth should be switched, and no compliance calculation should be released until its migration/reconciliation and acceptance gates have passed.
-
-### Implementation progress — 26 August 2026
-
-- Completed: Document Management, Tasks & Kanban, Invoicing & Billing, and Expense Tracking backend/API foundations and initial API-driven screens.
-- Completed: Phase 2 backend foundations for chart of accounts/journals, products, stock movements, purchasing, sales orders, goods receipts, fulfilment, and sales-order-to-invoice conversion.
-- Completed: Phase 2 API-driven screens for products/services, inventory, purchasing, sales orders, and accounting.
-- Completed: Phase 2 workflow completion for partial goods receipts and fulfilments, supplier bills, accounting reversals, and automatic invoice, payment, expense and supplier-bill ledger postings using configured system accounts.
-- Completed: Phase 2 financial controls for API-driven trial balance, income statement, balance sheet, bank-statement import, exact ledger matching, reconciliation and reversal of matches.
-- Completed: Product terminology alignment from Dean to CEO and Centres to Departments, with compatibility aliases for stored role values, legacy URLs and API clients.
-- Completed: Restricted Payroll MVP with employee profiles, draft pay runs, payslips, approval/paid controls, and explicit manual PAYE/UIF review boundaries.
-- Completed: Bank-statement CSV upload/preview with a downloadable template and guided bank-ledger-account setup state.
-- Release candidate gate: full automated regression, production settings checks, migrated database, and authenticated module smoke tests must pass. Browser interaction must be rechecked when the in-app browser connection is available.
-- Next: Purchase and sales returns, marketing, integration adapters, organisation isolation, report exports, authoritative `FinancialRecord` reconciliation, and versioned SARS payroll rules before any statutory automation.
-
----
-
-## 12. Success measures
-
-- A new SME user can reach any daily function in no more than three navigation actions.
-- At least 90% of invoices, expenses, documents and tasks are linked to the correct customer, engagement or business record.
-- Zero cross-organisation data leaks in automated isolation tests.
-- All posted journal entries balance and every posting traces to a source event/document.
-- Document permission changes and downloads are fully auditable.
-- Kanban state persists reliably across reloads and concurrent updates.
-- Overdue invoices, low stock, overdue tasks and compliance dates surface on the dashboard before they become business failures.
-- Existing CRM regression journeys remain intact throughout the expansion.
-
----
-
-*This plan supersedes the earlier CRM-only master prompt. The existing CRM is the base product; the listed modules extend it into a cohesive SME suite rather than replacing it.*
+Do not begin with Marketing, do not restyle existing CRM tools during these phases, and do not remove the imported prototype until every converted page has passed its persistence and browser acceptance journey.
