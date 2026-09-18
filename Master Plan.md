@@ -482,3 +482,64 @@ A page is complete only when Django serves it through an authenticated named rou
 13. Plan and implement Marketing only after steps 1–12 are accepted.
 
 Do not begin with Marketing, do not restyle existing CRM tools during these phases, and do not remove the imported prototype until every converted page has passed its persistence and browser acceptance journey.
+
+## 21. Full Academy functional scope — approved 18 September 2026
+
+The Academy is implemented as six connected, admin-configurable subsystems. No public catalogue, category, opportunity, event, diagnostic, mentor, resource, or forum taxonomy is embedded in frontend JavaScript.
+
+1. **Learning and certification:** administrators configure course category, path, level, duration, required modules, quizzes, passing grade, and certificate eligibility. Learner status is derived from enrolment, required-module completion, and quiz results. Passing creates one immutable certificate with a verification identifier.
+2. **Resources and templates:** administrators configure categories and published resources with uploaded files or HTTPS links. Empty categories remain empty until configured. Authenticated users search/filter and download authorised resources through the API.
+3. **Business diagnostics:** administrators publish versioned diagnostics, categories, questions, answer scores, and course recommendations. Submitted attempts retain the exact version and computed results used at submission time.
+4. **Funding and events:** administrators create funding opportunities manually or use an atomic CSV preview/import workflow with a downloadable template. Events and webinars are configured with dates, capacity, venue/meeting/application URLs, and persisted user registrations.
+5. **Mentorship:** mentors are authenticated users with mentor profiles. Learners request sessions; accepted bookings own private conversations. Only participants and authorised administrators can access stored messages.
+6. **Community forum:** administrators configure categories and moderation state. Authenticated authors create posts/replies; author identity always comes from `request.user`; filtering, locking, pinning, hiding, and ownership rules are enforced server-side.
+
+Marketing remains the final programme phase and is not part of this Academy implementation.
+
+## 22. Academy execution status — 18 September 2026
+
+The approved Academy scope in section 21 is implemented in `apps.academy` and exposed through authenticated `/api/v1/academy/` routes.
+
+- Learning paths, course categories, levels, durations, modules, quizzes, required-module progress, pass marks, enrolments, calculated status, and certificates are database-backed and administrator-controlled.
+- Certificates are issued once for passed enrolments, retain an immutable verification identifier and snapshot, and have an owner-only printable page.
+- Templates/resources, diagnostics and scored course recommendations are admin-configured and API-driven; empty catalogues remain empty until administrators publish records.
+- Funding opportunities support manual Django-admin entry plus an atomic UTF-8 CSV importer and downloadable template. Invalid rows prevent the entire file from being written.
+- Events/webinars and registrations, mentor profiles/requests/acceptance/private conversations, and authenticated participant messages are persisted.
+- The community forum uses admin-created categories, authenticated post/reply identity, category filtering, author editing rules, and administrator-controlled moderation, pinning and locking.
+- The preserved Academy CSS now fronts API-driven Courses, Templates, Diagnostics, Funding, Events, Mentorship and Community screens. Live pages do not load `data.js` or use localStorage as a database.
+- Demo course seeding is idempotent, assigns database-managed course categories/levels, and does not overwrite administrator edits.
+
+## 23. SME icon, navigation and tool routing integration — 18 September 2026
+
+The SME visual navigation contract is now integrated without introducing host- or port-specific links.
+
+- The authenticated root landing page renders the SME SVG icon language for every role-visible tool from the canonical Python navigation registry.
+- Business Diagnostic is a first-class Growth & Marketing tool and routes to `/academy/#diagnostics`; its questions, scoring and recommendations remain Django-admin configured.
+- The Academy sidebar includes Dashboard, My Learning, Learning Paths, Courses, Business Diagnostic, Templates & Resources, Business Tools, Mentorship, Community, Funding, Events, Growth, Certificates, My Profile, Settings and Business home.
+- Academy Dashboard, My Learning, Learning Paths, Growth and Certificates are derived from Academy APIs and authenticated enrolment data.
+- Academy Business Tools receives the same role-filtered registry used by the root landing page as safely encoded JSON, preserving one source of truth for labels, icons, permissions and named Django URLs.
+- The imported SME prototype remains a visual reference only. Runtime pages contain no `127.0.0.1`, fixed port or `data.js` routing dependency.
+
+## 24. Shared SME branding and tool return contract — 18 September 2026
+
+- Django CRM tools retain their existing functional templates, forms and tables while inheriting a shared SME branding layer: sage workspace, forest-green controls, orange accents, patterned banner, rounded cards and responsive spacing.
+- Every CRM tool shell returns to `/academy/#tools` through the labelled **Back to Business Tools** action; Growth & Marketing uses the same destination.
+- The Academy Business Tools page uses the SME welcome banner and continues to render role-aware tools from the canonical navigation registry.
+- Local CSS fallbacks preserve responsive grids, forms, tables and hidden modal/dropdown states when the optional Bootstrap CDN is unavailable.
+- An always-visible, CSRF-protected sign-out control keeps the shared shell operable without depending on a dropdown library.
+
+## 25. In-Academy management workspace — implemented 18 September 2026
+
+- Academy management is available inside `/academy/#manage`; Django Admin remains available as a secondary operational interface.
+- Access is enforced server-side for superusers, Django staff, role `admin`, and role `dean`. Ordinary authenticated users neither receive the management assets nor have access to `/api/v1/academy/manage/`.
+- The workspace provides modal create/edit and safe remove/archive flows for learning paths, course categories and levels, courses, modules, resource categories and resources, diagnostic categories/questions/options/recommendations, funding categories/opportunities, event categories/events, mentors, forum categories, and forum moderation.
+- Contextual Add/Manage actions are present on learning paths, courses, diagnostics, resources, funding, events, mentorship, and community pages.
+- Funding managers can download the canonical CSV template, preview an upload without writes, and atomically import only a valid file.
+- Removal preserves learner history: referenced courses/modules/diagnostics/events/mentors/categories are unpublished or made inactive, and forum posts are hidden. Only unreferenced content is deleted.
+- Diagnostic questions, options, and recommendation rules now carry archive state; learner APIs and scoring exclude inactive records.
+- Learner-owned enrolments, progress, attempts, certificates, diagnostic submissions, registrations, mentorship bookings, conversations, and messages have no management write endpoints.
+- Browser acceptance covers manager CRUD, safe removal, funding entry points, manager-only navigation, ordinary-user denial, all Academy sections, canonical tool links, and the shared Back to Business Tools contract.
+
+The next implementation audit is Tasks & Kanban (Phase 6): reconcile the preserved SME task screens with the existing task/project APIs before making any schema changes.
+
+Marketing remains deferred to Phase 8. The later CRM-wide shell/profile/Knowledge Hub/Inventory/Tasks work remains governed by sections 18–20 and is not silently folded into this Academy delivery.
