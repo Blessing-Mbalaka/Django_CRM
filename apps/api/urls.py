@@ -28,7 +28,27 @@ from apps.inventory.api_views      import ReorderRuleViewSet, StockLocationViewS
 from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierBillViewSet, SupplierViewSet
 from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewSet, SalesOrderViewSet
 from apps.payroll.api_views        import PayrollEmployeeViewSet, PayRunViewSet, PayslipViewSet
-from apps.academy.api_views        import CourseViewSet, LearningPathViewSet
+from apps.academy.api_views import (
+    AcademyEventViewSet, AcademyResourceViewSet, ChatMessageViewSet,
+    ConversationViewSet, CourseCategoryViewSet, CourseEnrollmentViewSet,
+    CourseLevelViewSet, CourseViewSet, DiagnosticCategoryViewSet,
+    DiagnosticViewSet, EventCategoryViewSet, ForumCategoryViewSet,
+    ForumPostViewSet, ForumReplyViewSet, FundingOpportunityViewSet,
+    LearningPathViewSet, MentorProfileViewSet, MentorshipBookingViewSet,
+    OpportunityCategoryViewSet, ResourceCategoryViewSet,
+)
+from apps.academy.management_views import (
+    AcademyEventManagementViewSet, AcademyResourceManagementViewSet,
+    CourseCategoryManagementViewSet, CourseLevelManagementViewSet,
+    CourseManagementViewSet, CourseModuleManagementViewSet,
+    DiagnosticCategoryManagementViewSet, DiagnosticManagementViewSet,
+    DiagnosticOptionManagementViewSet, DiagnosticQuestionManagementViewSet,
+    DiagnosticRecommendationManagementViewSet, EventCategoryManagementViewSet,
+    ForumCategoryManagementViewSet, ForumPostManagementViewSet,
+    FundingOpportunityManagementViewSet, LearningPathManagementViewSet,
+    MentorProfileManagementViewSet, OpportunityCategoryManagementViewSet,
+    ResourceCategoryManagementViewSet,
+)
 
 router = DefaultRouter()
 router.register(r'clients',       ClientViewSet,          basename='client')
@@ -77,6 +97,43 @@ router.register(r'pay-runs', PayRunViewSet, basename='pay-run')
 router.register(r'payslips', PayslipViewSet, basename='payslip')
 router.register(r'academy/paths', LearningPathViewSet, basename='academy-path')
 router.register(r'academy/courses', CourseViewSet, basename='academy-course')
+router.register(r'academy/course-categories', CourseCategoryViewSet, basename='academy-course-category')
+router.register(r'academy/course-levels', CourseLevelViewSet, basename='academy-course-level')
+router.register(r'academy/enrollments', CourseEnrollmentViewSet, basename='academy-enrollment')
+router.register(r'academy/resources', AcademyResourceViewSet, basename='academy-resource')
+router.register(r'academy/resource-categories', ResourceCategoryViewSet, basename='academy-resource-category')
+router.register(r'academy/diagnostics', DiagnosticViewSet, basename='academy-diagnostic')
+router.register(r'academy/diagnostic-categories', DiagnosticCategoryViewSet, basename='academy-diagnostic-category')
+router.register(r'academy/funding', FundingOpportunityViewSet, basename='academy-funding')
+router.register(r'academy/opportunity-categories', OpportunityCategoryViewSet, basename='academy-opportunity-category')
+router.register(r'academy/events', AcademyEventViewSet, basename='academy-event')
+router.register(r'academy/event-categories', EventCategoryViewSet, basename='academy-event-category')
+router.register(r'academy/mentors', MentorProfileViewSet, basename='academy-mentor')
+router.register(r'academy/mentorship-bookings', MentorshipBookingViewSet, basename='academy-mentorship-booking')
+router.register(r'academy/conversations', ConversationViewSet, basename='academy-conversation')
+router.register(r'academy/messages', ChatMessageViewSet, basename='academy-message')
+router.register(r'academy/forum/categories', ForumCategoryViewSet, basename='academy-forum-category')
+router.register(r'academy/forum/posts', ForumPostViewSet, basename='academy-forum-post')
+router.register(r'academy/forum/replies', ForumReplyViewSet, basename='academy-forum-reply')
+router.register(r'academy/manage/course-categories', CourseCategoryManagementViewSet, basename='academy-manage-course-category')
+router.register(r'academy/manage/course-levels', CourseLevelManagementViewSet, basename='academy-manage-course-level')
+router.register(r'academy/manage/paths', LearningPathManagementViewSet, basename='academy-manage-path')
+router.register(r'academy/manage/courses', CourseManagementViewSet, basename='academy-manage-course')
+router.register(r'academy/manage/modules', CourseModuleManagementViewSet, basename='academy-manage-module')
+router.register(r'academy/manage/resource-categories', ResourceCategoryManagementViewSet, basename='academy-manage-resource-category')
+router.register(r'academy/manage/resources', AcademyResourceManagementViewSet, basename='academy-manage-resource')
+router.register(r'academy/manage/diagnostic-categories', DiagnosticCategoryManagementViewSet, basename='academy-manage-diagnostic-category')
+router.register(r'academy/manage/diagnostics', DiagnosticManagementViewSet, basename='academy-manage-diagnostic')
+router.register(r'academy/manage/diagnostic-questions', DiagnosticQuestionManagementViewSet, basename='academy-manage-diagnostic-question')
+router.register(r'academy/manage/diagnostic-options', DiagnosticOptionManagementViewSet, basename='academy-manage-diagnostic-option')
+router.register(r'academy/manage/diagnostic-recommendations', DiagnosticRecommendationManagementViewSet, basename='academy-manage-diagnostic-recommendation')
+router.register(r'academy/manage/opportunity-categories', OpportunityCategoryManagementViewSet, basename='academy-manage-opportunity-category')
+router.register(r'academy/manage/funding', FundingOpportunityManagementViewSet, basename='academy-manage-funding')
+router.register(r'academy/manage/event-categories', EventCategoryManagementViewSet, basename='academy-manage-event-category')
+router.register(r'academy/manage/events', AcademyEventManagementViewSet, basename='academy-manage-event')
+router.register(r'academy/manage/mentors', MentorProfileManagementViewSet, basename='academy-manage-mentor')
+router.register(r'academy/manage/forum-categories', ForumCategoryManagementViewSet, basename='academy-manage-forum-category')
+router.register(r'academy/manage/forum-posts', ForumPostManagementViewSet, basename='academy-manage-forum-post')
 
 
 @api_view(['GET'])
@@ -117,6 +174,12 @@ def api_root(request, format=None):
             'payroll':       reverse('pay-run-list',         request=request, format=format),
             'academy_paths': request.build_absolute_uri('/api/v1/academy/paths/'),
             'academy_courses': request.build_absolute_uri('/api/v1/academy/courses/'),
+            'academy_resources': request.build_absolute_uri('/api/v1/academy/resources/'),
+            'academy_diagnostics': request.build_absolute_uri('/api/v1/academy/diagnostics/'),
+            'academy_funding': request.build_absolute_uri('/api/v1/academy/funding/'),
+            'academy_events': request.build_absolute_uri('/api/v1/academy/events/'),
+            'academy_mentors': request.build_absolute_uri('/api/v1/academy/mentors/'),
+            'academy_forum': request.build_absolute_uri('/api/v1/academy/forum/posts/'),
         },
     })
 

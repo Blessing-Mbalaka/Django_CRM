@@ -1507,8 +1507,13 @@ footer span {
 }
 
 .inventory-sidebar .sidebar .nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 20px;
   height: 20px;
+  font-size: 18px;
+  line-height: 1;
   color: #ef8d55;
   flex-shrink: 0
 }

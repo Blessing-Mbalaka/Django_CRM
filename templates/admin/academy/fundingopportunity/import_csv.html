@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Home</a> &rsaquo;
+    <a href="{% url 'admin:academy_fundingopportunity_changelist' %}">Funding opportunities</a> &rsaquo;
+    Import CSV
+  </div>
+{% endblock %}
+
+{% block content %}
+  <p><a class="button" href="{{ template_url }}">Download CSV template</a></p>
+  <p>Keep the template headers unchanged. Category values must match an active opportunity-category slug.</p>
+  {% if result and result.errors %}
+    <p class="errornote">Nothing was imported. Fix every error and upload the file again.</p>
+    <ul class="errorlist">
+      {% for error in result.errors %}<li>Row {{ error.row }}: {{ error.error }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="submit-row"><input type="submit" value="Validate and import"></div>
+  </form>
+{% endblock %}

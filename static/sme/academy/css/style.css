@@ -437,3 +437,28 @@
   height: 100%;
   border: 0;
 }
+
+.academy-tools-grid .academy-tool-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.academy-tools-grid .academy-tool-card p {
+  flex: 1;
+}
+
+.academy-module .tool-card-icon {
+  width: 34px;
+  height: 34px;
+  padding: 7px;
+  border-radius: 10px;
+  color: var(--green);
+  background: #dfead8;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

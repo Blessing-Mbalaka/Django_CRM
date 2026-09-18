@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.academy.models import Course, CourseModule, LearningPath
+from apps.academy.models import Course, CourseCategory, CourseLevel, CourseModule, LearningPath
 
 
 PATHS = [
@@ -141,8 +141,18 @@ class Command(BaseCommand):
         created_courses = 0
         created_modules = 0
 
+        beginner, _ = CourseLevel.objects.get_or_create(
+            slug='beginner', defaults={'name': 'Beginner', 'position': 0, 'is_active': True}
+        )
+        intermediate, _ = CourseLevel.objects.get_or_create(
+            slug='intermediate', defaults={'name': 'Intermediate', 'position': 1, 'is_active': True}
+        )
+
         path_records = {}
         for path_position, (slug, title, stage, course_titles) in enumerate(PATHS):
+            category, _ = CourseCategory.objects.get_or_create(
+                slug=slug, defaults={'name': title, 'position': path_position, 'is_active': True}
+            )
             path, created = LearningPath.objects.get_or_create(
                 slug=slug,
                 defaults={
@@ -167,12 +177,23 @@ class Command(BaseCommand):
                         'learning_outcome': outcome,
                         'instructor_name': 'Academy facilitator',
                         'level': Course.Level.INTERMEDIATE if slug == 'growth' else Course.Level.BEGINNER,
+                        'level_config': intermediate if slug == 'growth' else beginner,
+                        'category': category,
                         'duration_minutes': 45 + course_position % 4 * 15,
                         'position': course_position,
                         'is_published': True,
                     },
                 )
                 created_courses += int(course_created)
+                missing = []
+                if course.category_id is None:
+                    course.category = category
+                    missing.append('category')
+                if course.level_config_id is None:
+                    course.level_config = intermediate if slug == 'growth' else beginner
+                    missing.append('level_config')
+                if missing:
+                    course.save(update_fields=missing)
                 for module_position in range(len(MODULE_TITLES)):
                     _, module_created = CourseModule.objects.get_or_create(
                         course=course,
@@ -190,6 +211,8 @@ class Command(BaseCommand):
                 'learning_outcome': 'Evaluate a business idea',
                 'instructor_name': 'Academy facilitator',
                 'level': Course.Level.BEGINNER,
+                'level_config': beginner,
+                'category': CourseCategory.objects.get(slug='foundations'),
                 'duration_minutes': 75,
                 'position': len(PATHS[0][3]),
                 'is_published': True,
@@ -202,6 +225,8 @@ class Command(BaseCommand):
                 'learning_outcome': 'Complete customer interviews',
                 'instructor_name': 'Academy facilitator',
                 'level': Course.Level.BEGINNER,
+                'level_config': beginner,
+                'category': CourseCategory.objects.get(slug='validation'),
                 'duration_minutes': 75,
                 'position': len(PATHS[1][3]),
                 'is_published': True,
@@ -211,6 +236,15 @@ class Command(BaseCommand):
             slug = defaults.pop('slug')
             course, course_created = Course.objects.get_or_create(slug=slug, defaults=defaults)
             created_courses += int(course_created)
+            missing = []
+            if course.category_id is None:
+                course.category = defaults['category']
+                missing.append('category')
+            if course.level_config_id is None:
+                course.level_config = defaults['level_config']
+                missing.append('level_config')
+            if missing:
+                course.save(update_fields=missing)
             path_slug = course.path.slug
             outcome, action = OUTCOMES[path_slug]
             for module_position in range(len(MODULE_TITLES)):

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Certificate · {{ certificate.course_title }}</title>
+    <style>
+      body{font-family:Georgia,serif;background:#f3f5ef;color:#173b2a;margin:0;padding:4rem 1rem}.certificate{max-width:900px;margin:auto;background:white;border:12px double #315f42;padding:5rem 3rem;text-align:center}.certificate h1{font-size:3rem;margin:.5rem}.certificate h2{font-size:2rem}.meta{margin-top:3rem;font:14px system-ui;color:#53645a}.actions{max-width:900px;margin:1rem auto;text-align:right}.actions a,.actions button{padding:.7rem 1rem}@media print{body{background:white;padding:0}.actions{display:none}.certificate{border-color:#315f42}}
+    </style>
+  </head>
+  <body>
+    <div class="actions"><a href="{% url 'academy:index' %}#courses">Back to Academy</a> <button type="button" onclick="window.print()">Print / save PDF</button></div>
+    <main class="certificate">
+      <p>SME Academy</p><h1>Certificate of Completion</h1><p>This certifies that</p>
+      <h2>{{ certificate.learner_name }}</h2><p>successfully completed</p><h2>{{ certificate.course_title }}</h2>
+      {% if certificate.grade is not None %}<p>Final grade: {{ certificate.grade }}%</p>{% endif %}
+      <div class="meta">Issued {{ certificate.issued_at|date:"j F Y" }} · Verification ID {{ certificate.verification_id }}</div>
+    </main>
+  </body>
+</html>

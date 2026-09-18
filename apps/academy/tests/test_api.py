@@ -3,7 +3,13 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounts.models import User
-from apps.academy.models import Course, CourseModule, LearningPath
+from apps.academy.models import (
+    AcademyEvent, AcademyResource, Certificate, Conversation, Course,
+    CourseEnrollment, CourseModule, Diagnostic, DiagnosticCategory,
+    DiagnosticOption, DiagnosticQuestion, EventRegistration, ForumCategory,
+    ForumPost, FundingOpportunity, LearningPath, MentorProfile,
+    MentorshipBooking, OpportunityCategory,
+)
 
 
 class AcademyCatalogueApiTests(APITestCase):
@@ -119,3 +125,121 @@ class AcademyCatalogueApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['endpoints']['academy_paths'].endswith('/api/v1/academy/paths/'))
         self.assertTrue(response.data['endpoints']['academy_courses'].endswith('/api/v1/academy/courses/'))
+
+
+class AcademyFunctionalApiTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='member', password='test-pass-123')
+        self.other = User.objects.create_user(username='other', password='test-pass-123')
+        self.mentor_user = User.objects.create_user(username='mentor', password='test-pass-123')
+        self.client.force_authenticate(self.user)
+        path = LearningPath.objects.create(
+            slug='build', title='Build', business_stage='build', is_published=True,
+        )
+        self.course = Course.objects.create(
+            path=path, slug='cash-flow', title='Cash flow', description='Learn cash flow.',
+            instructor_name='Coach', duration_minutes=45, passing_grade=70,
+            certificate_enabled=True, is_published=True,
+        )
+        self.article = CourseModule.objects.create(
+            course=self.course, title='Read', module_type='article', position=1,
+            is_required=True, is_published=True,
+        )
+
+    def test_learner_can_enrol_complete_and_receive_certificate(self):
+        enrolled = self.client.post(f'/api/v1/academy/courses/{self.course.slug}/enrol/')
+        enrollment_id = enrolled.data['id']
+        completed = self.client.post(
+            f'/api/v1/academy/enrollments/{enrollment_id}/complete-module/',
+            {'module': self.article.id}, format='json',
+        )
+
+        self.assertEqual(enrolled.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(completed.status_code, status.HTTP_200_OK)
+        self.assertEqual(completed.data['status'], CourseEnrollment.Status.PASSED)
+        self.assertEqual(Certificate.objects.get(enrollment_id=enrollment_id).enrollment.user, self.user)
+
+    def test_user_cannot_access_another_learners_enrollment(self):
+        enrollment = CourseEnrollment.objects.create(user=self.other, course=self.course)
+
+        response = self.client.get(f'/api/v1/academy/enrollments/{enrollment.id}/')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_diagnostic_submission_uses_authenticated_user(self):
+        diagnostic = Diagnostic.objects.create(slug='readiness', title='Readiness', is_published=True)
+        category = DiagnosticCategory.objects.create(name='Finance', slug='finance')
+        question = DiagnosticQuestion.objects.create(diagnostic=diagnostic, category=category, prompt='Ready?')
+        option = DiagnosticOption.objects.create(question=question, label='Yes', score=100)
+
+        response = self.client.post(
+            f'/api/v1/academy/diagnostics/{diagnostic.slug}/submit/',
+            {'answers': {str(question.id): option.id}, 'user': self.other.id}, format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data['user'], self.user.id)
+
+    def test_event_registration_is_idempotent(self):
+        event = AcademyEvent.objects.create(
+            slug='webinar', title='Webinar', starts_at='2026-10-01T08:00:00Z', is_published=True,
+        )
+        first = self.client.post(f'/api/v1/academy/events/{event.slug}/register/')
+        second = self.client.post(f'/api/v1/academy/events/{event.slug}/register/')
+
+        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second.status_code, status.HTTP_200_OK)
+        self.assertEqual(EventRegistration.objects.filter(event=event, user=self.user).count(), 1)
+
+    def test_forum_author_is_always_authenticated_user_and_category_filter_works(self):
+        finance = ForumCategory.objects.create(name='Finance', slug='finance')
+        ForumCategory.objects.create(name='Sales', slug='sales')
+        response = self.client.post('/api/v1/academy/forum/posts/', {
+            'category': finance.id, 'title': 'Help', 'body': 'A question', 'author': self.other.id,
+        }, format='json')
+        listing = self.client.get('/api/v1/academy/forum/posts/?category=finance')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ForumPost.objects.get().author, self.user)
+        self.assertEqual(listing.data['count'], 1)
+
+    def test_only_conversation_participants_can_read_or_send_messages(self):
+        mentor = MentorProfile.objects.create(user=self.mentor_user, expertise='Finance', is_active=True)
+        booking = MentorshipBooking.objects.create(learner=self.user, mentor=mentor, topic='Cash flow')
+        conversation = Conversation.objects.create(booking=booking)
+        sent = self.client.post('/api/v1/academy/messages/', {
+            'conversation': conversation.id, 'body': 'Hello', 'sender': self.other.id,
+        }, format='json')
+        self.assertEqual(sent.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(sent.data['sender'], self.user.id)
+
+        self.client.force_authenticate(self.other)
+        denied = self.client.get(f'/api/v1/academy/conversations/{conversation.id}/')
+        self.assertEqual(denied.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_only_mentor_can_accept_booking_and_open_conversation(self):
+        mentor = MentorProfile.objects.create(user=self.mentor_user, expertise='Finance', is_active=True)
+        booking = MentorshipBooking.objects.create(learner=self.user, mentor=mentor, topic='Cash flow')
+
+        denied = self.client.post(f'/api/v1/academy/mentorship-bookings/{booking.id}/accept/')
+        self.client.force_authenticate(self.mentor_user)
+        accepted = self.client.post(f'/api/v1/academy/mentorship-bookings/{booking.id}/accept/')
+
+        self.assertEqual(denied.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(accepted.status_code, status.HTTP_200_OK)
+        booking.refresh_from_db()
+        self.assertEqual(booking.status, MentorshipBooking.Status.ACCEPTED)
+        self.assertTrue(Conversation.objects.filter(booking=booking).exists())
+
+    def test_published_funding_and_resources_are_api_driven(self):
+        category = OpportunityCategory.objects.create(name='Grant', slug='grant')
+        FundingOpportunity.objects.create(
+            category=category, slug='growth-grant', title='Growth Grant', provider='Fund', is_published=True,
+        )
+        AcademyResource.objects.create(slug='cash-flow-template', title='Cash flow template', is_published=True)
+
+        funding = self.client.get('/api/v1/academy/funding/?category=grant')
+        resources = self.client.get('/api/v1/academy/resources/')
+
+        self.assertEqual(funding.data['results'][0]['slug'], 'growth-grant')
+        self.assertEqual(resources.data['results'][0]['slug'], 'cash-flow-template')

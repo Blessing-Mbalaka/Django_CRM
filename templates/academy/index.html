@@ -9,7 +9,13 @@
     <link rel="stylesheet" href="{% static 'sme/shared/css/inventory.css' %}">
     <link rel="stylesheet" href="{% static 'sme/shared/css/knowledge-hub.css' %}">
     <link rel="stylesheet" href="{% static 'sme/academy/css/style.css' %}">
+    {% if can_manage_academy %}<link rel="stylesheet" href="{% static 'sme/academy/css/admin.css' %}">{% endif %}
     <script defer src="{% static 'sme/academy/js/api.js' %}"></script>
+    {% if can_manage_academy %}
+    <script defer src="{% static 'sme/academy/js/academy-admin-api.js' %}"></script>
+    <script defer src="{% static 'sme/academy/js/academy-admin-schema.js' %}"></script>
+    <script defer src="{% static 'sme/academy/js/academy-admin.js' %}"></script>
+    {% endif %}
     <script defer src="{% static 'sme/academy/js/course-page.js' %}"></script>
   </head>
   <body class="inventory-sidebar knowledge-module academy-module">
@@ -19,12 +25,27 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg>
         </button>
         <nav id="navigation" aria-label="Academy navigation">
-          <button type="button" data-href="#courses" class="active" aria-current="page"><span>Courses</span></button>
-          <button type="button" data-href="{% url 'core:dashboard' %}"><span>Business home</span></button>
+          <button type="button" data-route="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg><span>Dashboard</span></button>
+          <button type="button" data-route="learning"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l6 6L21 5"/></svg><span>My Learning</span></button>
+          <button type="button" data-route="paths"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v18M5 5h10l-2 3 2 3H5M5 15h15"/></svg><span>Learning Paths</span></button>
+          <button type="button" data-route="courses" class="active" aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16"/></svg><span>Courses</span></button>
+          <button type="button" data-route="diagnostics"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4zM8 8h8M8 12h8M8 16h4"/></svg><span>Business Diagnostic</span></button>
+          <button type="button" data-route="resources"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4zM4 9h16M10 9v12"/></svg><span>Templates &amp; Resources</span></button>
+          <button type="button" data-route="tools"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg><span>Business Tools</span></button>
+          <button type="button" data-route="mentorship"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M2 21v-4a6 4 0 0 1 12 0v4M17 6h5v8h-3l-2 3z"/></svg><span>Mentorship</span></button>
+          <button type="button" data-route="community"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v13H9l-5 4v-4H3zM7 8h10M7 12h7"/></svg><span>Community</span></button>
+          <button type="button" data-route="funding"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l9-5 9 5H3zM5 10v8M12 10v8M19 10v8M3 21h18"/></svg><span>Funding</span></button>
+          <button type="button" data-route="events"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 10h16M8 3v4M16 3v4"/></svg><span>Events</span></button>
+          <button type="button" data-route="growth"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18h17M8 16v-5M13 16V6M18 16V9"/></svg><span>Growth</span></button>
+          <button type="button" data-route="certificates"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12M8 14l-2 7 6-3 6 3-2-7"/></svg><span>Certificates</span></button>
+          {% if can_manage_academy %}<button type="button" data-route="manage"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM8 9h8M8 13h5M16 16l2 2 3-4"/></svg><span>Manage Academy</span></button>{% endif %}
+          <button type="button" data-href="{% url 'accounts:profile' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21v-3a8 5 0 0 1 16 0v3"/></svg><span>My Profile</span></button>
+          <button type="button" data-href="{% url 'accounts:change_password' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg><span>Settings</span></button>
+          <button type="button" data-href="{% url 'core:dashboard' %}"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-8h6v8"/></svg><span>Business home</span></button>
         </nav>
         <form method="post" action="{% url 'accounts:logout' %}">
           {% csrf_token %}
-          <button class="signout-button" type="submit" title="Sign out" aria-label="Sign out"><span>Sign out</span></button>
+          <button class="signout-button" type="submit" title="Sign out" aria-label="Sign out"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg><span>Sign out</span></button>
         </form>
       </aside>
       <div class="main">
@@ -40,12 +61,38 @@
           tabindex="-1"
           data-paths-url="{{ academy_paths_url }}"
           data-courses-url="{{ academy_courses_url }}"
+          data-enrollments-url="{{ academy_enrollments_url }}"
+          data-resources-url="{{ academy_resources_url }}"
+          data-diagnostics-url="{{ academy_diagnostics_url }}"
+          data-funding-url="{{ academy_funding_url }}"
+          data-events-url="{{ academy_events_url }}"
+          data-mentors-url="{{ academy_mentors_url }}"
+          data-bookings-url="{{ academy_bookings_url }}"
+          data-conversations-url="{{ academy_conversations_url }}"
+          data-messages-url="{{ academy_messages_url }}"
+          data-forum-categories-url="{{ academy_forum_categories_url }}"
+          data-forum-posts-url="{{ academy_forum_posts_url }}"
+          data-forum-replies-url="{{ academy_forum_replies_url }}"
+          data-tools-banner-url="{% static 'sme/assets/welcome-banner-bg.png' %}"
         >
           <section class="panel" aria-live="polite">
             <h2>Loading courses…</h2>
             <p>Please wait while the Academy catalogue is loaded.</p>
           </section>
         </main>
+        {{ academy_tools|json_script:"academy-tools-data" }}
+        {% if can_manage_academy %}
+        {{ academy_management_data|json_script:"academy-management-data" }}
+        <dialog id="academyManageDialog" class="academy-manage-dialog" aria-labelledby="academyManageDialogTitle">
+          <form id="academyManageForm">
+            <div class="manage-dialog-head"><div><span class="eyebrow">ACADEMY MANAGEMENT</span><h2 id="academyManageDialogTitle">Add item</h2></div><button type="button" class="icon-button" data-dialog-close aria-label="Close">&times;</button></div>
+            <div id="academyManageErrors" class="manage-errors" role="alert" aria-live="assertive" hidden></div>
+            <div id="academyManageFields" class="manage-form-grid"></div>
+            <div class="manage-dialog-actions"><button type="button" class="btn secondary" data-dialog-close>Cancel</button><button type="submit" class="btn" id="academyManageSave">Save</button></div>
+          </form>
+        </dialog>
+        <button type="button" data-manage-context="course" hidden aria-hidden="true">Manage course</button>
+        {% endif %}
         <footer>EIEAAS <span>·</span> SME Academy <span>·</span> Content managed in Django</footer>
       </div>
     </div>

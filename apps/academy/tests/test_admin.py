@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import User
-from apps.academy.models import Course, CourseModule, LearningPath
+from apps.academy.models import Course, CourseModule, FundingOpportunity, LearningPath
 
 
 class AcademyAdminTests(TestCase):
@@ -29,3 +29,15 @@ class AcademyAdminTests(TestCase):
 
     def test_module_admin_is_not_a_separate_top_level_screen(self):
         self.assertNotIn(CourseModule, admin.site._registry)
+
+    def test_funding_admin_exposes_csv_template_and_import(self):
+        changelist = self.client.get(reverse('admin:academy_fundingopportunity_changelist'))
+        template = self.client.get(reverse('admin:academy_fundingopportunity_csv_template'))
+        importer = self.client.get(reverse('admin:academy_fundingopportunity_import_csv'))
+
+        self.assertEqual(changelist.status_code, 200)
+        self.assertContains(changelist, 'Import CSV')
+        self.assertEqual(template.status_code, 200)
+        self.assertIn('text/csv', template['Content-Type'])
+        self.assertEqual(importer.status_code, 200)
+        self.assertIn(FundingOpportunity, admin.site._registry)
