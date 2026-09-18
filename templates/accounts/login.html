@@ -7,14 +7,7 @@
 <div class="login-wrapper">
   <div class="login-card">
 
-    <!-- UJ Logo -->
-    <img
-      src="{% static 'images/uj_logo.png' %}"
-      alt="University of Johannesburg"
-      class="login-logo"
-      width="80"
-      height="80"
-    />
+   
 
     <h1 class="login-title">JBS SME Ecosystem</h1>
     <p class="login-subtitle">University of Johannesburg &mdash; Business School</p>
@@ -58,13 +51,53 @@
 
     </form>
 
+    {% if demo_accounts %}
+      <section class="demo-logins" aria-labelledby="demo-logins-title">
+        <div class="demo-logins-heading">
+          <div>
+            <span class="demo-kicker">Development access</span>
+            <h2 id="demo-logins-title">Demo accounts</h2>
+          </div>
+          <code>{{ demo_password }}</code>
+        </div>
+        <p>Choose a role to fill the sign-in form. All demo accounts use the password shown above.</p>
+        <div class="demo-account-list">
+          {% for account in demo_accounts %}
+            <button
+              type="button"
+              class="demo-account"
+              data-demo-username="{{ account.username }}"
+              data-demo-password="{{ demo_password }}"
+            >
+              <span><strong>{{ account.label }}</strong><small>{{ account.name }}</small></span>
+              <code>{{ account.username }}</code>
+            </button>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
     <p class="text-center mt-3 mb-0" style="font-size:0.82rem;">
       <a href="{% url 'accounts:password_reset' %}">Forgot your password?</a>
     </p>
 
     <p class="text-center mt-4 mb-0" style="font-size:0.75rem; color:#aaa;">
-      &copy; {% now "Y" %} University of Johannesburg &middot; JBS System v1.0
+      &copy; {% now "Y" %} BM &middot; System v1.0
     </p>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+  {% if demo_accounts %}
+    <script>
+      document.querySelectorAll('[data-demo-username]').forEach((button) => {
+        button.addEventListener('click', () => {
+          document.querySelector('#id_username').value = button.dataset.demoUsername;
+          document.querySelector('#id_password').value = button.dataset.demoPassword;
+          document.querySelector('#id_password').focus();
+        });
+      });
+    </script>
+  {% endif %}
 {% endblock %}

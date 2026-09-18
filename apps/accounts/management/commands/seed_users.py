@@ -9,6 +9,7 @@ from django.db import transaction
 
 from apps.accounts.models import User
 from apps.centres.models import Centre
+from apps.accounts.demo import DEFAULT_DEMO_PASSWORD
 
 CENTRES = [
     {'name': 'Centre for Entrepreneurship & Innovation',        'code': 'CEI'},
@@ -49,9 +50,6 @@ USERS = [
     ('Mpho',     'Radebe',   'm.radebe@uj.ac.za',    'mradebe',   User.Role.ADMIN,    'CRM System Administrator',         '+27 11 559 3501', None),
 ]
 
-DEFAULT_PASSWORD = 'JBS@2026!'
-
-
 class Command(BaseCommand):
     help = 'Seed dummy departments and users for development'
 
@@ -60,6 +58,11 @@ class Command(BaseCommand):
             '--clear',
             action='store_true',
             help='Delete all non-superuser accounts before seeding',
+        )
+        parser.add_argument(
+            '--reset-demo-passwords',
+            action='store_true',
+            help='Restore the documented development password on seeded demo accounts.',
         )
 
     @transaction.atomic
@@ -82,8 +85,15 @@ class Command(BaseCommand):
 
         # ── Create users ────────────────────────────────────────────────────
         created_count = 0
+        reset_count = 0
         for first, last, email, uname, role, title, phone, centre_code in USERS:
-            if User.objects.filter(username=uname).exists():
+            existing = User.objects.filter(username=uname).first()
+            if existing:
+                if options['reset_demo_passwords']:
+                    existing.set_password(DEFAULT_DEMO_PASSWORD)
+                    existing.is_active = True
+                    existing.save(update_fields=['password', 'is_active'])
+                    reset_count += 1
                 self.stdout.write(f'  [exists ] User: {uname}')
                 continue
 
@@ -91,7 +101,7 @@ class Command(BaseCommand):
             user = User.objects.create_user(
                 username=uname,
                 email=email,
-                password=DEFAULT_PASSWORD,
+                password=DEFAULT_DEMO_PASSWORD,
                 first_name=first,
                 last_name=last,
                 role=role,
@@ -100,8 +110,9 @@ class Command(BaseCommand):
                 centre=centre,
             )
             created_count += 1
-            self.stdout.write(f'  [created] User: {user.get_full_name():<25} role={role:<10} → {uname}')
+            self.stdout.write(f'  [created] User: {user.get_full_name():<25} role={role:<10} -> {uname}')
 
         self.stdout.write(self.style.SUCCESS(
-            f'\nDone. {created_count} user(s) created. Password for all: {DEFAULT_PASSWORD}'
+            f'\nDone. {created_count} user(s) created, {reset_count} password(s) reset. '
+            f'Password for all: {DEFAULT_DEMO_PASSWORD}'
         ))

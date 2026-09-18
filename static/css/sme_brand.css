@@ -1,0 +1,341 @@
+/* Shared SME branding layer for the Django business tools.
+   Functional page layouts remain owned by their existing modules. */
+.sme-branded-app {
+  --uj-orange: #ef6a32;
+  --uj-orange-dark: #d85524;
+  --uj-orange-tint: #fff3eb;
+  --uj-text: #172b20;
+  --uj-text-muted: #728076;
+  --uj-border: #dfe8dc;
+  --uj-card-shadow: 0 8px 26px rgba(41, 77, 71, 0.06);
+  --uj-radius: 16px;
+  background: #f1f7ef;
+  color: #172b20;
+}
+
+.sme-branded-app .app-wrapper,
+.sme-branded-app .main-content {
+  background: #f1f7ef;
+}
+
+.sme-branded-app .topbar {
+  min-height: 82px;
+  height: auto;
+  margin: 18px 22px 0;
+  padding: 13px 22px;
+  border: 1px solid #e3c28d;
+  border-radius: 22px;
+  background: #fbfdf7 url('../sme/assets/welcome-banner-bg.png') center / cover no-repeat;
+  box-shadow: 0 8px 26px rgba(41, 77, 71, 0.06);
+}
+
+.sme-branded-app .topbar-leading {
+  gap: 18px;
+}
+
+.sme-shell-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  color: #0f3727;
+}
+
+.sme-shell-brand svg {
+  width: 38px;
+  height: 38px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #0f3727;
+  color: #ef8d55;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.sme-shell-brand span {
+  display: flex;
+  flex-direction: column;
+}
+
+.sme-shell-brand small {
+  color: #728076;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.sme-shell-brand strong {
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.sme-branded-app .dashboard-return-btn {
+  background: linear-gradient(135deg, #0f3727, #1e5a41);
+  box-shadow: 0 5px 16px rgba(15, 55, 39, 0.2);
+}
+
+.sme-branded-app .dashboard-return-btn:hover {
+  background: linear-gradient(135deg, #153f2e, #267052);
+  box-shadow: 0 8px 20px rgba(15, 55, 39, 0.28);
+}
+
+.sme-branded-app .topbar-user,
+.sme-branded-app .topbar .btn-link {
+  color: #0f3727;
+}
+
+.sme-branded-app .topbar-user .avatar {
+  background: #0f3727;
+  border: 2px solid #ef8d55;
+}
+
+.sme-quick-logout {
+  display: flex;
+  margin: 0;
+}
+
+.sme-quick-logout button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid #cbdacb;
+  border-radius: 50%;
+  background: #fff;
+  color: #0f3727;
+}
+
+.sme-quick-logout button:hover {
+  border-color: #ef6a32;
+  background: #fff3eb;
+  color: #d85524;
+}
+
+.sme-quick-logout svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sme-branded-app .page-content {
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 30px 26px 42px;
+}
+
+.sme-branded-app .page-title {
+  color: #0f3727;
+  letter-spacing: -0.03em;
+}
+
+.sme-branded-app .page-title .text-uj,
+.sme-branded-app .text-uj {
+  color: #ef6a32 !important;
+}
+
+.sme-branded-app .page-subtitle,
+.sme-branded-app .text-muted {
+  color: #728076 !important;
+}
+
+.sme-branded-app .uj-card,
+.sme-branded-app .card,
+.sme-branded-app .stat-card,
+.sme-branded-app .kpi-card {
+  border: 1px solid #dfe8dc;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 26px rgba(41, 77, 71, 0.06);
+}
+
+.sme-branded-app .uj-card-header,
+.sme-branded-app .card-header {
+  border-bottom-color: #e2e9df;
+  background: #f8fbf6;
+  color: #0f3727;
+}
+
+.sme-branded-app .btn-uj,
+.sme-branded-app .btn-primary {
+  border-color: #0f3727;
+  background: #0f3727;
+  color: #fff;
+}
+
+.sme-branded-app .btn-uj:hover,
+.sme-branded-app .btn-primary:hover {
+  border-color: #1e5a41;
+  background: #1e5a41;
+  color: #fff;
+}
+
+.sme-branded-app .btn-uj-outline,
+.sme-branded-app .btn-outline-primary {
+  border-color: #0f3727;
+  color: #0f3727;
+}
+
+.sme-branded-app .btn-uj-outline:hover,
+.sme-branded-app .btn-outline-primary:hover {
+  background: #0f3727;
+  color: #fff;
+}
+
+.sme-branded-app .form-control:focus,
+.sme-branded-app .form-select:focus {
+  border-color: #6d9a78;
+  box-shadow: 0 0 0 0.2rem rgba(15, 55, 39, 0.12);
+}
+
+.sme-branded-app .table thead th {
+  border-bottom-color: #dfe8dc;
+  background: #e6f0e2;
+  color: #0f3727;
+}
+
+.sme-branded-app .table > :not(caption) > * > * {
+  border-bottom-color: #e7eee4;
+}
+
+.sme-branded-app .badge.bg-primary,
+.sme-branded-app .status-badge {
+  background-color: #0f3727 !important;
+}
+
+.sme-branded-app .dropdown-menu,
+.sme-branded-app .modal-content {
+  border-color: #dfe8dc;
+  border-radius: 16px;
+  box-shadow: 0 16px 42px rgba(15, 55, 39, 0.14);
+}
+
+/* Local layout fallbacks keep the branded shell coherent when the optional
+   Bootstrap CDN is unavailable during local/offline use. Bootstrap applies
+   the same contracts when it is present. */
+.sme-branded-app .dropdown-menu:not(.show),
+.sme-branded-app .modal:not(.show),
+.sme-branded-app .collapse:not(.show) {
+  display: none;
+}
+
+.sme-branded-app .row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -0.5rem;
+}
+
+.sme-branded-app .row > [class*='col-'] {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 0.5rem;
+}
+
+.sme-branded-app .row > .col-6 { width: 50%; }
+.sme-branded-app .row > .col-12 { width: 100%; }
+
+.sme-branded-app .form-control,
+.sme-branded-app .form-select {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  padding: 0.48rem 0.7rem;
+  border: 1px solid #cad6c8;
+  border-radius: 9px;
+  background: #fff;
+  color: #172b20;
+}
+
+.sme-branded-app .form-label {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  color: #294437;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.sme-branded-app .table-responsive {
+  overflow-x: auto;
+}
+
+.sme-branded-app .table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sme-branded-app .btn,
+.sme-branded-app .btn-uj,
+.sme-branded-app .btn-uj-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (min-width: 576px) {
+  .sme-branded-app .row > .col-sm-3 { width: 25%; }
+  .sme-branded-app .row > .col-sm-4 { width: 33.333%; }
+  .sme-branded-app .row > .col-sm-6 { width: 50%; }
+  .sme-branded-app .row > .col-sm-8 { width: 66.667%; }
+  .sme-branded-app .row > .col-sm-12 { width: 100%; }
+}
+
+@media (min-width: 768px) {
+  .sme-branded-app .row > .col-md-2 { width: 16.667%; }
+  .sme-branded-app .row > .col-md-3 { width: 25%; }
+  .sme-branded-app .row > .col-md-4 { width: 33.333%; }
+  .sme-branded-app .row > .col-md-5 { width: 41.667%; }
+  .sme-branded-app .row > .col-md-6 { width: 50%; }
+  .sme-branded-app .row > .col-md-7 { width: 58.333%; }
+  .sme-branded-app .row > .col-md-8 { width: 66.667%; }
+  .sme-branded-app .row > .col-md-9 { width: 75%; }
+  .sme-branded-app .row > .col-md-12 { width: 100%; }
+}
+
+@media (min-width: 992px) {
+  .sme-branded-app .row > .col-lg-3 { width: 25%; }
+  .sme-branded-app .row > .col-lg-4 { width: 33.333%; }
+  .sme-branded-app .row > .col-lg-6 { width: 50%; }
+  .sme-branded-app .row > .col-lg-8 { width: 66.667%; }
+  .sme-branded-app .row > .col-lg-9 { width: 75%; }
+  .sme-branded-app .row > .col-lg-12 { width: 100%; }
+}
+
+@media (min-width: 1200px) {
+  .sme-branded-app .row > .col-xl-3 { width: 25%; }
+  .sme-branded-app .row > .col-xl-4 { width: 33.333%; }
+  .sme-branded-app .row > .col-xl-6 { width: 50%; }
+  .sme-branded-app .row > .col-xl-8 { width: 66.667%; }
+}
+
+@media (max-width: 767px) {
+  .sme-branded-app .topbar {
+    margin: 10px 10px 0;
+    padding: 10px 13px;
+    border-radius: 16px;
+  }
+
+  .sme-shell-brand small,
+  .sme-shell-brand strong {
+    display: none;
+  }
+
+  .sme-shell-brand svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sme-branded-app .page-content {
+    padding: 22px 14px 34px;
+  }
+}

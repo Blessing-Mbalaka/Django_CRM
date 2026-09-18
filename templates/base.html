@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="JBS Institutional CRM — University of Johannesburg Business School" />
-  <title>{% block title %}SME Ecosystem{% endblock %} | UJ Business School</title>
+  <title>{% block title %}SME Ecosystem{% endblock %} | </title>
 
   <!-- Bootstrap 5 CDN -->
   <link
@@ -22,11 +22,12 @@
 
   <!-- UJ Design System -->
   <link rel="stylesheet" href="{% static 'css/uj_theme.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/sme_brand.css' %}" />
 
   {% block extra_css %}{% endblock %}
 </head>
 
-<body>
+<body{% if user.is_authenticated %} class="sme-branded-app"{% endif %}>
 
   <!-- Accessibility: skip navigation link -->
   <a href="#main-content" class="skip-link">Skip to main content</a>

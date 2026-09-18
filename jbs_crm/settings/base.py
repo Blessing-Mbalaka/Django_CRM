@@ -134,7 +134,7 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_REDIRECT_URL = '/academy/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 # ---------------------------------------------------------------------------

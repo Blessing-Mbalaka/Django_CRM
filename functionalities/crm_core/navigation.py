@@ -1,6 +1,44 @@
 from django.urls import reverse
 
 
+# Inline paths adapted from the original SME prototype icon set. Keeping the
+# geometry in the server-owned registry makes every launcher independent of an
+# icon CDN and lets Academy reuse the exact same icon and URL contract.
+SME_ICON_PATHS = {
+    'bi-people': 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M2 21v-4a6 4 0 0 1 12 0v4M17 11a3 3 0 1 0 0-6M15 21v-4a6 4 0 0 1 7-4',
+    'bi-briefcase': 'M4 7h16v13H4zM9 7V4h6v3M4 12h16M10 12v2h4v-2',
+    'bi-bag-check': 'M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2M9 14l2 2 4-4',
+    'bi-receipt': 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4',
+    'bi-wallet2': 'M3 6h16v14H3zM3 9h18v8h-5a4 4 0 0 1 0-8h5M16 12h.01',
+    'bi-cash-coin': 'M3 6h14v10H3zM6 9a2 2 0 0 1-2 2M14 9a2 2 0 0 0 2 2M10 9v4M19 12a3 3 0 1 1 0 6',
+    'bi-journal-text': 'M5 3h14v18H5zM8 3v18M11 8h5M11 12h5M11 16h3',
+    'bi-activity': 'M3 12h4l2-7 4 14 2-7h6',
+    'bi-people-fill': 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M2 21v-4a6 4 0 0 1 12 0v4M17 6h5v8h-3l-2 3z',
+    'bi-box-seam': 'm3 7 9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10',
+    'bi-boxes': 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+    'bi-cart-check': 'M3 4h2l2 11h10l3-7H6M9 19h.01M17 19h.01M10 11l2 2 4-4',
+    'bi-kanban': 'M4 4h5v16H4zM11 4h5v10h-5zM18 4h3v7h-3z',
+    'bi-folder2-open': 'M3 6h7l2 2h9l-2 11H4zM3 6v13',
+    'bi-bar-chart-line': 'M4 20V10M10 20V4M16 20v-7M22 20H2M3 8l6-5 6 7 6-5',
+    'bi-bell': 'M6 17h12l-2-3V9a4 4 0 0 0-8 0v5zM10 20h4',
+    'bi-chat-dots': 'M3 4h18v13H9l-5 4v-4H3zM7 10h.01M12 10h.01M17 10h.01',
+    'bi-cpu': 'M8 8h8v8H8zM9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M20 9h3M1 15h3M20 15h3',
+    'bi-person-badge': 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21v-3a8 5 0 0 1 16 0v3M17 3h5v6h-5z',
+    'bi-building': 'M4 21V3h11v18M15 9h5v12M8 7h3M8 11h3M8 15h3M18 13h.01M18 17h.01',
+    'bi-shield-check': 'M12 3l8 3v6c0 5-3 8-8 10-5-2-8-5-8-10V6zM8 12l3 3 5-6',
+    'bi-mortarboard': 'M2 9l10-5 10 5-10 5zM6 11v5c3 3 9 3 12 0v-5M22 9v7',
+    'bi-clipboard-data': 'M7 4h10v17H5V6h4M9 3h6v4H9zM9 17v-4M13 17V9M17 17v-6',
+    'bi-megaphone': 'M3 10v4h4l9 4V6l-9 4zM7 14l2 6h3l-2-5M19 9l3-2M19 15l3 2',
+    'bi-share': 'M18 5a3 3 0 1 0 0 .01M6 12a3 3 0 1 0 0 .01M18 19a3 3 0 1 0 0 .01M9 11l6-4M9 13l6 4',
+    'bi-funnel': 'M3 4h18l-7 8v7l-4 2v-9z',
+    'bi-globe2': 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
+    'bi-bezier2': 'M5 4h4v4H5zM15 16h4v4h-4zM9 6h6a4 4 0 0 1 4 4v6M7 8v6a4 4 0 0 0 4 4h4',
+    'bi-rocket-takeoff': 'M7 15l-3 1 4-7 7-5 5 0 0 5-5 7-7 4 1-3M13 11l-2 2M6 18l-2 3 3-1',
+    'bi-braces': 'M8 3H6a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2M16 3h2a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-2',
+}
+DEFAULT_SME_ICON = 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z'
+
+
 MODULE_HELP = {
     'CRM & Customers': 'A CRM is one shared place for customer details, ownership and relationship history.',
     'Engagements': 'An engagement is a piece of work or a business opportunity linked to a customer.',
@@ -41,6 +79,19 @@ def _item(label, icon, url_name, description):
         'url': reverse(url_name),
         'description': description,
         'help_text': MODULE_HELP.get(label, description),
+        'svg_path': SME_ICON_PATHS.get(icon, DEFAULT_SME_ICON),
+    }
+
+
+def _direct_item(label, icon, url, description, **extra):
+    return {
+        'label': label,
+        'icon': icon,
+        'svg_path': SME_ICON_PATHS.get(icon, DEFAULT_SME_ICON),
+        'url': url,
+        'description': description,
+        'help_text': MODULE_HELP.get(label, description),
+        **extra,
     }
 
 
@@ -105,6 +156,7 @@ def get_suite_navigation(user):
             ],
             'catalogue_items': [
                 _item('SME Academy', 'bi-mortarboard', 'academy:index', 'Learn through practical courses managed by Academy administrators.'),
+                _direct_item('Business Diagnostic', 'bi-clipboard-data', f"{reverse('academy:index')}#diagnostics", 'Assess your business using administrator-configured questions, scoring and course recommendations.'),
                 {**_item('Campaigns', 'bi-megaphone', 'core:growth_marketing', 'Plan coordinated email, event and relationship campaigns.'), 'coming_soon': True},
                 {**_item('Audience Segments', 'bi-share', 'core:growth_marketing', 'Build focused audiences from CRM and engagement information.'), 'coming_soon': True},
                 {**_item('Lead Generation', 'bi-funnel', 'core:growth_marketing', 'Capture acquisition sources and qualify interest into engagements.'), 'coming_soon': True},
@@ -124,8 +176,9 @@ def get_suite_navigation(user):
     groups.append({
         'key': 'developer', 'label': 'Developer', 'icon': 'bi-code-slash', 'gradient': 'developer',
         'description': 'Inspect and test the suite’s authenticated REST API endpoints.',
-        'items': [{'label': 'API Explorer', 'icon': 'bi-braces', 'url': '/api/v1/', 'description': 'Open the browsable REST API.', 'help_text': MODULE_HELP['API Explorer'], 'external': True}],
+        'items': [_direct_item('API Explorer', 'bi-braces', '/api/v1/', 'Open the browsable REST API.', external=True)],
     })
     for group in groups:
+        group['svg_path'] = SME_ICON_PATHS.get(group['icon'], DEFAULT_SME_ICON)
         group.setdefault('catalogue_items', group['items'])
     return groups

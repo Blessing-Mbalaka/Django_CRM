@@ -3,12 +3,15 @@
 
   <div class="topbar-leading">
     {% if request.resolver_match.view_name != 'core:dashboard' %}
-      <a href="{% url 'core:dashboard' %}" class="dashboard-return-btn" aria-label="Back to dashboard">
+      <a href="{% url 'academy:index' %}#tools" class="dashboard-return-btn" aria-label="Back to Business Tools">
         <i class="bi bi-arrow-left" aria-hidden="true"></i>
-        <span>Back to dashboard</span>
+        <span>Back to Business Tools</span>
       </a>
     {% endif %}
-    <span class="topbar-title">{% block page_heading %}JBS CRM{% endblock %}</span>
+    <span class="sme-shell-brand" aria-label="EIEAAS SME workspace">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+      <span><small>Your business, organised</small><strong>SME Workspace</strong></span>
+    </span>
   </div>
 
   <!-- Right-side controls -->
@@ -99,6 +102,13 @@
         </li>
       </ul>
     </div><!-- /.dropdown -->
+
+    <form class="sme-quick-logout" method="post" action="{% url 'accounts:logout' %}">
+      {% csrf_token %}
+      <button type="submit" aria-label="Sign out" title="Sign out">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg>
+      </button>
+    </form>
 
   </div><!-- /.topbar-right -->
 </header>

@@ -36,7 +36,7 @@
   {% for group in suite_navigation %}
     {% if group.key != 'developer' %}
       <section class="module-catalogue-group group-{{ group.gradient }}" aria-labelledby="catalogue-{{ group.key }}">
-        <h3 id="catalogue-{{ group.key }}"><i class="bi {{ group.icon }}"></i>{{ group.label }}</h3>
+        <h3 id="catalogue-{{ group.key }}"><svg class="sme-group-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ group.svg_path }}"/></svg>{{ group.label }}</h3>
         <div class="module-catalogue-grid">
           {% for item in group.catalogue_items %}
             <a class="module-catalogue-tile{% if item.coming_soon %} is-coming-soon{% endif %}" href="{{ item.url }}" aria-describedby="module-help-{{ group.key }}-{{ forloop.counter }}"{% if item.external %} target="_blank" rel="noopener"{% endif %}>
@@ -45,7 +45,7 @@
                 <strong>What is {{ item.label }}?</strong>
                 <span>{{ item.help_text }}</span>
               </span>
-              <span class="module-catalogue-icon {% cycle 'tone-orange' 'tone-green' %}"><i class="bi {{ item.icon }}" aria-hidden="true"></i></span>
+              <span class="module-catalogue-icon {% cycle 'tone-orange' 'tone-green' %}"><svg class="sme-tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ item.svg_path }}"/></svg></span>
               <strong>{{ item.label }}</strong>
               <p>{{ item.description }}</p>
               <span class="module-catalogue-status">

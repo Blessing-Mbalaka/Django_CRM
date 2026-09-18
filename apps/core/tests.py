@@ -22,7 +22,7 @@ class CEOApplicationSmokeTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertNotContains(response, 'id="sidebar"')
                 if path == '/':
-                    self.assertNotContains(response, 'Back to dashboard')
+                    self.assertNotContains(response, 'Back to Business Tools')
                     self.assertContains(response, 'CEO (Executive)')
                     self.assertContains(response, '/departments/')
                     self.assertContains(response, 'module-catalogue-grid')
@@ -30,7 +30,10 @@ class CEOApplicationSmokeTests(TestCase):
                     self.assertContains(response, 'Operations')
                     self.assertContains(response, 'Available now')
                 else:
-                    self.assertContains(response, 'Back to dashboard')
+                    self.assertContains(response, 'Back to Business Tools')
+                    self.assertContains(response, 'href="/academy/#tools"')
+                    self.assertContains(response, 'class="sme-branded-app"')
+                    self.assertContains(response, '/static/css/sme_brand.css')
 
     def test_base_uses_matching_bootstrap_bundle_and_runtime_toasts(self):
         ceo = User.objects.create_user(username='asset-smoke', password='test-pass-123', role=User.Role.CEO)
@@ -54,8 +57,11 @@ class CEOApplicationSmokeTests(TestCase):
             with self.subTest(path=path):
                 self.assertGreaterEqual(response.content.count(f'href="{path}"'.encode()), 1)
         self.assertNotContains(response, 'id="sidebar"')
-        self.assertNotContains(response, 'Back to dashboard')
-        self.assertContains(response, 'module-info-badge', count=25)
+        self.assertNotContains(response, 'Back to Business Tools')
+        self.assertContains(response, 'module-info-badge', count=26)
+        self.assertContains(response, 'class="sme-tool-icon"', count=26)
+        self.assertContains(response, 'href="/academy/#diagnostics"')
+        self.assertContains(response, 'Business Diagnostic')
         self.assertContains(response, 'An invoice is a formal request asking a customer to pay')
         self.assertContains(response, 'aria-describedby="module-help-finance-1"')
         self.assertContains(response, 'group-growth')
@@ -64,8 +70,8 @@ class CEOApplicationSmokeTests(TestCase):
         self.assertNotContains(response, '/system-admin/')
 
         finance = self.client.get('/finance/')
-        self.assertContains(finance, 'Back to dashboard')
-        self.assertContains(finance, 'href="/"')
+        self.assertContains(finance, 'Back to Business Tools')
+        self.assertContains(finance, 'href="/academy/#tools"')
         self.assertNotContains(finance, 'id="sidebar"')
 
     def test_growth_marketing_placeholder_renders(self):
@@ -75,5 +81,7 @@ class CEOApplicationSmokeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Growth &amp; Marketing')
         self.assertContains(response, 'Coming soon')
-        self.assertContains(response, 'Back to dashboard')
+        self.assertContains(response, 'Back to Business Tools')
+        self.assertContains(response, 'href="/academy/#tools"')
+        self.assertContains(response, 'Return to Business Tools')
         self.assertNotContains(response, 'id="sidebar"')

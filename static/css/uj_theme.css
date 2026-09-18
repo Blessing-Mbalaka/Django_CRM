@@ -542,8 +542,65 @@ a:focus-visible { outline: 2px solid var(--uj-orange); outline-offset: 2px; bord
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   padding: 40px 36px;
   width: 100%;
-  max-width: 420px;
+  max-width: 480px;
 }
+
+.login-card .form-label { display: block; margin-bottom: 6px; }
+.login-card .form-control {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--uj-border);
+  border-radius: var(--uj-radius);
+  background: #fff;
+  color: var(--uj-text);
+  font: inherit;
+}
+.login-card .mb-3 { margin-bottom: 16px; }
+.login-card .mb-4 { margin-bottom: 24px; }
+.login-card .w-100 { width: 100%; }
+.login-card .text-center { text-align: center; }
+.login-card .mt-3 { margin-top: 16px; }
+.login-card .mt-4 { margin-top: 24px; }
+.login-card .mb-0 { margin-bottom: 0; }
+
+.demo-logins {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--uj-border);
+}
+.demo-logins-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.demo-logins h2 { margin: 2px 0 0; font-size: 1rem; }
+.demo-logins p { margin: 8px 0 12px; color: var(--uj-text-muted); font-size: .78rem; line-height: 1.45; }
+.demo-kicker { color: var(--uj-orange-dark); font-size: .67rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.demo-logins code { padding: 4px 7px; border-radius: 5px; background: var(--uj-orange-tint); color: var(--uj-orange-dark); font-size: .72rem; }
+.demo-account-list { display: grid; gap: 8px; }
+.demo-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--uj-border);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--uj-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--uj-transition), background var(--uj-transition);
+}
+.demo-account:hover, .demo-account:focus-visible { border-color: var(--uj-orange); background: var(--uj-orange-tint); outline: none; }
+.demo-account span, .demo-account small { display: block; }
+.demo-account strong { font-size: .8rem; }
+.demo-account small { margin-top: 2px; color: var(--uj-text-muted); font-size: .7rem; }
 
 .login-logo {
   width: 80px;
@@ -768,6 +825,9 @@ a:focus-visible { outline: 2px solid var(--uj-orange); outline-offset: 2px; bord
 .module-catalogue-group { margin-top: 1.3rem; }
 .module-catalogue-group h3 { align-items: center; color: #3f6212; display: flex; font-size: .72rem; font-weight: 850; gap: .5rem; letter-spacing: .04em; margin: 0 0 .65rem .1rem; text-transform: uppercase; }
 .module-catalogue-group h3 i { font-size: 1rem; }
+.sme-group-icon, .sme-tool-icon { fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.sme-group-icon { height: 18px; width: 18px; }
+.sme-tool-icon { height: 29px; width: 29px; }
 .group-finance h3 { color: #365314; }.group-operations h3 { color: #1d4ed8; }.group-crm h3 { color: #c2410c; }.group-growth h3 { color: #be185d; }.group-insights h3 { color: #6d28d9; }.group-people h3 { color: #9a3412; }
 .module-catalogue-grid { display: grid; gap: .8rem; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .module-catalogue-tile { align-items: center; background: #fff; border: 1px solid #e7e4de; border-radius: 9px; color: var(--uj-text); display: flex; flex-direction: column; min-height: 230px; padding: 1.15rem .9rem .9rem; position: relative; text-align: center; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
