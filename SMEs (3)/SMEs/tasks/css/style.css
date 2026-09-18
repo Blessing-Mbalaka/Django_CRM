@@ -1,0 +1,603 @@
+/* Module additions only. Base components come from inventory/css/style.css. */
+.task-module .signout-button {
+  text-decoration: none;
+}
+
+.task-module .intro {
+  color: var(--muted);
+  margin: 0 0 24px;
+  line-height: 1.6;
+}
+
+.task-module .task-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.task-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 20px;
+}
+
+.task-module .task-name {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: var(--green);
+  font-weight: 650;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.task-name:hover {
+  text-decoration: underline;
+}
+
+.project-progress {
+  height: 8px;
+  background: #edf3e9;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.project-progress>span {
+  display: block;
+  height: 100%;
+  background: #71a483;
+  border-radius: inherit;
+  transition: width .25s ease;
+}
+
+.progress-project {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 17px 0;
+  color: var(--ink);
+}
+
+.progress-project:last-child {
+  border-bottom: 0;
+}
+
+.progress-project strong {
+  font-size: 12px;
+}
+
+.progress-project small {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.progress-project b {
+  color: var(--green);
+  font-size: 13px;
+}
+
+.progress-project .project-progress {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.task-chart {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.task-chart svg {
+  width: 220px;
+  max-width: 100%;
+  flex: 0 1 220px;
+}
+
+.task-chart text {
+  font: 700 14px 'Segoe UI', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.task-chart .legend {
+  gap: 16px;
+}
+
+.task-chart .legend strong {
+  margin-left: auto;
+}
+
+.task-chart .legend>div {
+  gap: 10px;
+}
+
+.task-module .badge {
+  white-space: nowrap;
+}
+
+.task-module .status-to-do,
+.task-module .status-planning,
+.task-module .status-low {
+  background: #edf3e9;
+  color: #607862;
+}
+
+.task-module .status-in-progress,
+.task-module .status-active,
+.task-module .status-medium {
+  background: #dceee2;
+  color: #356f55;
+}
+
+.task-module .status-completed {
+  background: #1d5943;
+  color: white;
+}
+
+.task-module .status-overdue,
+.task-module .status-high,
+.task-module .status-on-hold {
+  background: #edf1e3;
+  color: #35513d;
+  border: 1px solid #b9c9af;
+}
+
+.overdue-date {
+  color: #365c3c;
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+  font-weight: 650;
+}
+
+.person {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mini-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #e7efe2;
+  color: #4d7051;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.project-grid,
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.project-card {
+  margin: 0;
+}
+
+.project-card>p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  min-height: 60px;
+}
+
+.project-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin: 22px 0;
+}
+
+.project-meta dt {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.project-meta dd {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.detail-meta {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.progress-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+
+.progress-caption strong {
+  color: var(--green);
+}
+
+.card-bottom {
+  margin-top: 20px;
+}
+
+.back-link {
+  margin-bottom: 18px;
+}
+
+.task-module .page-heading p {
+  line-height: 1.7;
+  max-width: 720px;
+}
+
+.tasks-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.tasks-toolbar input {
+  max-width: 380px;
+}
+
+.view-switch {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.view-switch .selected {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+
+.task-menu {
+  position: relative;
+}
+
+.task-menu summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 8px;
+  color: var(--green);
+}
+
+.task-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.task-menu>div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  min-width: 120px;
+}
+
+.task-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.board-column {
+  background: #f3f7ef;
+  padding: 15px;
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.board-column>h2 {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding-bottom: 14px;
+}
+
+.board-column h2 span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.board-card {
+  padding: 16px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  margin-bottom: 12px;
+}
+
+.board-card p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.board-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  margin: 15px 0;
+}
+
+.board-card>small {
+  font-size: 10px;
+}
+
+.board-card select {
+  margin-top: 12px;
+  font-size: 11px;
+  padding: 8px;
+}
+
+.column-empty {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 20px 0;
+}
+
+.personal-task {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.personal-task>div {
+  flex: 1;
+}
+
+.personal-task input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.personal-task p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 5px 0 0;
+}
+
+.calendar-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  min-width: 640px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.weekday {
+  background: #f3f7ef;
+  padding: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  border-right: 1px solid var(--line);
+}
+
+.calendar-day {
+  min-height: 116px;
+  padding: 8px;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.calendar-day time {
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.calendar-day.today time {
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+}
+
+.outside-month {
+  background: #fafbf8;
+  color: #9ca699;
+}
+
+.calendar-event {
+  display: block;
+  border: 0;
+  border-radius: 5px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 6px;
+  background: #e2eee0;
+  color: #375c42;
+  margin-bottom: 4px;
+  font-size: 9px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.calendar-event.project-event {
+  background: #286249;
+  color: white;
+}
+
+.calendar-event.late {
+  background: #eef0e6;
+  border-left: 2px solid #597d53;
+}
+
+.team-card {
+  text-align: center;
+}
+
+.team-avatar {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: #dfeedd;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.team-card>p {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.team-counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 22px;
+}
+
+.team-counts dd {
+  margin: 0 0 6px;
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.team-counts dt {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.team-picker {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.team-picker legend,
+.team-picker label {
+  font-size: 12px;
+}
+
+.task-module input[type=file] {
+  font-size: 11px;
+}
+
+@media (max-width: 1200px) {
+
+  .project-grid,
+  .team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-chart {
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 850px) {
+  .task-module .task-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .detail-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .task-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .task-module .stats .stat:last-child {
+    grid-column: auto;
+  }
+
+  .task-module h1 {
+    font-size: 18px;
+  }
+
+  .task-module .topbar-title {
+    min-width: 0;
+  }
+
+  .task-module .topbar {
+    align-items: center;
+  }
+
+  .project-grid,
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .task-chart {
+    flex-wrap: wrap;
+  }
+
+  .tasks-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .tasks-toolbar input {
+    max-width: none;
+  }
+
+  .view-switch {
+    margin-left: 0;
+  }
+
+  .personal-task {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .personal-task>div {
+    flex-basis: calc(100% - 36px);
+  }
+
+  .project-card>p {
+    min-height: 0;
+  }
+}

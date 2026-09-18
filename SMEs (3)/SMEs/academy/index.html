@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Practical learning, business tools and growth support for South African SMEs.">
+    <title>SME Academy · EIEAAS</title>
+    <link rel="stylesheet" href="../inventory/css/style.css">
+    <link rel="stylesheet" href="../knowledge-hub/css/style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script defer src="js/data.js"></script>
+    <script defer src="js/ui.js"></script>
+    <script defer src="js/views.js"></script>
+    <script defer src="js/app.js"></script>
+  </head>
+  <body class="inventory-sidebar knowledge-module academy-module dashboard-page">
+    <div class="shell">
+      <aside class="sidebar" id="sidebar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Expand sidebar" aria-expanded="false" aria-controls="navigation" title="Expand sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg></button>
+        <nav id="navigation" aria-label="Academy navigation"></nav>
+        <button class="signout-button" data-action="help" title="Help & Support" aria-label="Help & Support"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18M9 9a3 3 0 1 1 4 3c-1 0-1 1-1 2M12 17h.01"/></svg><span>Help & Support</span></button>
+      </aside>
+      <div class="main">
+        <header class="topbar"><div class="topbar-title"><button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">SME Academy</h1></div></div><button class="btn secondary" data-action="navigate" data-id="profile">My Profile</button></header>
+        <main id="content" tabindex="-1"></main>
+        <footer>EIEAAS <span>·</span> SME Academy · Sample workspace · Edits reset on refresh</footer>
+      </div>
+    </div>
+    <dialog id="modal" aria-labelledby="modalTitle"><div class="modal-header"><h2 id="modalTitle"></h2><button class="icon-button" data-action="close" aria-label="Close dialog">✕</button></div><div id="modalBody"></div></dialog>
+    <div id="toasts" role="status" aria-live="polite"></div>
+  </body>
+</html>

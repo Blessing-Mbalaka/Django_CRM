@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EIEAAS Inventory</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/storage.js"></script>
+  <script defer src="js/inventory.js"></script>
+  <script defer src="js/ui.js"></script>
+  <script defer src="js/reports.js"></script>
+  <script defer src="js/app.js"></script>
+</head>
+<body class="inventory-sidebar">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Expand sidebar" aria-expanded="false" aria-controls="navigation" title="Expand sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg></button>
+      <div class="business"><div class="avatar" id="businessInitials">MB</div><strong id="businessName">My Business</strong><span>Inventory workspace</span></div>
+      <nav id="navigation" aria-label="Main navigation"></nav>
+      <a class="workspace-link" href="../invoicing.html">↗ Invoicing workspace</a>
+      <button class="signout-button" data-action="sign-out" aria-label="Sign out" title="Sign out"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg><span>Sign out</span></button>
+    </aside>
+    <div class="main">
+      <header class="topbar"><div class="topbar-title"><button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">Dashboard</h1></div></div><button class="btn" data-action="add-product">＋ Add Product</button></header>
+      <main id="content" tabindex="-1"></main>
+      <footer> EIEAAS <span>·</span> A little more clarity. A lot more control.</footer>
+    </div>
+  </div>
+  <dialog id="modal" aria-labelledby="modalTitle"><div class="modal-header"><h2 id="modalTitle"></h2><button class="icon-button" data-action="close-modal" aria-label="Close dialog">✕</button></div><div id="modalBody"></div></dialog>
+  <div id="toasts" role="status" aria-live="polite"></div>
+</body>
+</html>

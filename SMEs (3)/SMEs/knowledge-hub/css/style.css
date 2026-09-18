@@ -1,0 +1,423 @@
+/* Inventory supplies the design tokens and shared controls. */
+.knowledge-module .signout-button {
+  text-decoration: none;
+}
+
+.knowledge-module .intro {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.knowledge-module .hub-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.knowledge-search {
+  margin-bottom: 26px;
+}
+
+.knowledge-search label {
+  display: block;
+  font-size: 17px;
+  font-weight: 650;
+  margin-bottom: 12px;
+}
+
+.knowledge-search>div {
+  display: flex;
+  gap: 10px;
+}
+
+.knowledge-search input {
+  padding: 15px;
+}
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.knowledge-card {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.knowledge-card h2 {
+  line-height: 1.5;
+  margin-top: 14px;
+}
+
+.knowledge-card p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  flex: 1;
+}
+
+.card-top,
+.resource-meta,
+.progress-label,
+.card-actions,
+.back-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-top,
+.progress-label,
+.back-row {
+  justify-content: space-between;
+}
+
+.resource-meta {
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: var(--muted);
+  margin: 8px 0 16px;
+}
+
+.resource-meta svg {
+  width: 15px;
+  height: 15px;
+}
+
+.card-actions {
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.progress-label {
+  font-size: 11px;
+  margin-bottom: 9px;
+}
+
+.learning-progress {
+  height: 8px;
+  border-radius: 8px;
+  background: #eaf1e5;
+  overflow: hidden;
+}
+
+.learning-progress>span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #79a66a;
+}
+
+.save-button.saved {
+  background: #dcebd6;
+}
+
+.save-button .nav-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+.topic-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+  margin-bottom: 0;
+  color: var(--green);
+}
+
+.topic-card span {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.topic-card strong {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.topic-links {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.video-thumb,
+.video-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  background: #dcebd6;
+  color: var(--green);
+  border: 0;
+  border-radius: 10px;
+  min-height: 140px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.video-thumb span,
+.video-placeholder>span {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+}
+
+.video-placeholder {
+  min-height: 250px;
+  text-align: center;
+}
+
+.video-thumb small,
+.video-placeholder small {
+  font-size: 10px;
+}
+
+.glossary-item {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.glossary-item summary {
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.glossary-item p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.back-row {
+  margin-bottom: 20px;
+}
+
+.guide-article {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px 40px;
+}
+
+.guide-article .article-title {
+  font-size: 28px;
+  margin: 20px 0;
+}
+
+.guide-article section {
+  margin: 26px 0;
+}
+
+.guide-article p,
+.guide-article li,
+.lesson-content p,
+.lesson-content li {
+  line-height: 1.9;
+  font-size: 14px;
+}
+
+.guide-article li {
+  margin-bottom: 8px;
+}
+
+.learning-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  line-height: 1.6;
+}
+
+.learning-check input {
+  flex-shrink: 0;
+}
+
+.course-layout {
+  display: grid;
+  grid-template-columns: 235px minmax(0, 1fr);
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.lesson-list {
+  padding: 12px;
+  align-self: start;
+}
+
+.lesson-button {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  padding: 14px 10px;
+  text-align: left;
+  color: var(--green);
+}
+
+.lesson-button.selected {
+  background: var(--page);
+  font-weight: 700;
+}
+
+.lesson-button span {
+  color: #6d9062;
+}
+
+.quiz-options {
+  border: 0;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.quiz-options legend {
+  font-weight: 650;
+  line-height: 1.7;
+  margin-bottom: 15px;
+}
+
+.quiz-options label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  margin-bottom: 8px;
+}
+
+.quiz-options input {
+  width: auto;
+}
+
+.readiness-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.readiness-row select {
+  width: 155px;
+}
+
+.resource-sheet {
+  border: 1px solid var(--line);
+  margin: 20px 0;
+}
+
+.resource-sheet>div {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 15px;
+  border-bottom: 1px solid var(--line);
+  padding: 18px;
+  font-size: 12px;
+}
+
+.resource-sheet span {
+  color: var(--muted);
+}
+
+.activity-list {
+  padding-left: 20px;
+  line-height: 2.2;
+  font-size: 12px;
+}
+
+.certificate {
+  text-align: center;
+  border: 8px solid #d6e8ce;
+  padding: 40px 25px;
+  color: var(--green);
+}
+
+.certificate h2 {
+  font: 32px Georgia, serif;
+  margin: 30px 0;
+}
+
+.certificate small {
+  display: block;
+  color: var(--muted);
+  margin-top: 35px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+@media(max-width:1200px) {
+
+  .knowledge-grid,
+  .topic-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media(max-width:850px) {
+  .knowledge-module .hub-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .course-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width:620px) {
+
+  .knowledge-grid,
+  .topic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .knowledge-module .stats .stat:last-child {
+    grid-column: auto;
+  }
+
+  .knowledge-module h1 {
+    font-size: 18px;
+  }
+
+  .guide-article {
+    padding: 22px 18px;
+  }
+
+  .knowledge-search input {
+    min-width: 0;
+  }
+
+  .knowledge-search label {
+    font-size: 16px;
+  }
+
+  .knowledge-module .btn {
+    min-height: 40px;
+  }
+
+  .readiness-row select {
+    width: 135px;
+  }
+}

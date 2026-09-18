@@ -1,0 +1,679 @@
+/* Base styles are loaded from Inventory. Only Marketing-specific layouts follow. */
+.marketing-module .signout-button {
+  text-decoration: none;
+}
+
+.marketing-module [hidden] {
+  display: none !important;
+}
+
+.module-intro, .section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.module-intro p, .muted {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.module-intro p {
+  margin: 0;
+}
+
+.section-heading h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.marketing-module .marketing-stats {
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+}
+
+.marketing-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+
+.three-grid, .content-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.marketing-module .badge.deep {
+  color: white;
+  background: #286247;
+}
+
+.marketing-module .badge {
+  white-space: nowrap;
+}
+
+.small-copy {
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.campaign-card h2, .opportunity-card h2 {
+  line-height: 1.5;
+}
+
+.campaign-card > p, .opportunity-card p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.card-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.card-metrics strong {
+  display: block;
+  font-size: 16px;
+  color: var(--green);
+}
+
+.card-metrics small {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.performance-bars > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin: 22px 0;
+  font-size: 12px;
+}
+
+.performance-bars strong {
+  color: var(--green);
+  font-size: 17px;
+}
+
+.performance-track {
+  height: 10px;
+  background: #eef4ea;
+  border-radius: 7px;
+  overflow: hidden;
+  grid-column: 1 / -1;
+}
+
+.performance-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.upcoming-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-align: left;
+  width: 100%;
+  padding: 17px 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--green);
+}
+
+.upcoming-row:last-child {
+  border-bottom: 0;
+}
+
+.upcoming-row > span {
+  background: var(--page);
+  border-radius: 9px;
+  padding: 10px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.upcoming-row strong {
+  font-size: 12px;
+}
+
+.upcoming-row small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+.upcoming-row b {
+  margin-left: auto;
+}
+
+.opportunity-card > h2 {
+  margin-top: 20px;
+}
+
+.opportunity-card dl {
+  font-size: 11px;
+  margin: 20px 0;
+}
+
+.opportunity-card dt {
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+.opportunity-card dd {
+  margin: 5px 0 0;
+  line-height: 1.6;
+}
+
+.inline-select {
+  min-width: 125px;
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+/* Branded content uses scoped colours, never changes the platform palette. */
+.poster {
+  min-height: 390px;
+  padding: 28px;
+  background: var(--brand-secondary);
+  color: var(--brand-primary);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  overflow-wrap: anywhere;
+}
+
+.poster-brand, .brand-lockup, .email-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.poster-brand {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.brand-monogram {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  background: var(--brand-primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.poster-brand img, .brand-lockup img, .email-brand img, .document-preview > img {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.poster-main {
+  flex: 1;
+}
+
+.poster-main h2 {
+  font-family: var(--brand-heading), serif;
+  font-size: 34px;
+  line-height: 1.12;
+  margin: 16px 0;
+  letter-spacing: -.04em;
+}
+
+.poster-main p {
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.poster-kicker {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+}
+
+.poster-main img, .email-copy img {
+  display: block;
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  margin: 16px 0;
+  border-radius: 8px;
+}
+
+.poster-price {
+  display: block;
+  font-size: 24px;
+  margin: 12px 0;
+}
+
+.poster-offer {
+  display: inline-block;
+  border-bottom: 3px solid var(--brand-accent);
+  padding: 8px 0;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.poster-contact {
+  display: grid;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  border-top: 1px solid currentColor;
+  padding-top: 14px;
+}
+
+.template-2 {
+  background: var(--brand-primary);
+  color: white;
+}
+
+.template-2 .brand-monogram {
+  background: var(--brand-secondary);
+  color: var(--brand-primary);
+}
+
+.template-3 {
+  background: #fffdf7;
+  border: 10px solid var(--brand-secondary);
+  text-align: center;
+}
+
+.template-3 .poster-brand {
+  justify-content: center;
+}
+
+.template-4 {
+  background: white;
+  border-top: 9px solid var(--brand-primary);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.library-card {
+  padding: 12px;
+}
+
+.library-preview .poster {
+  min-height: 350px;
+  padding: 22px;
+}
+
+.library-preview .poster-main h2 {
+  font-size: 26px;
+}
+
+.library-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 17px 4px 4px;
+}
+
+.library-caption strong {
+  font-size: 12px;
+}
+
+.library-caption small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.email-preview, .document-preview {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  color: var(--brand-primary);
+}
+
+.email-brand {
+  padding: 22px 28px;
+  background: var(--brand-secondary);
+}
+
+.email-copy, .document-preview {
+  padding: 30px;
+}
+
+.email-copy h2 {
+  font-family: var(--brand-heading), serif;
+  font-size: 28px;
+  margin: 18px 0;
+}
+
+.email-copy p {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+.preview-cta {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: 8px;
+  color: white;
+  background: var(--brand-primary);
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.email-copy small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.email-contact {
+  background: #f6f8f3;
+  color: var(--muted);
+  padding: 20px 28px;
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+.brand-preview {
+  color: var(--brand-primary);
+  line-height: 1.7;
+}
+
+.brand-lockup h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.brand-lockup p {
+  font-size: 12px;
+  margin: 2px 0;
+}
+
+.brand-swatches {
+  display: flex;
+  gap: 16px;
+  margin: 26px 0;
+}
+
+.brand-swatches span {
+  display: block;
+  width: 58px;
+  height: 50px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.brand-swatches small {
+  font-size: 10px;
+}
+
+.brand-contact, .brand-mini {
+  font-size: 12px;
+  line-height: 1.9;
+}
+
+.brand-mini {
+  color: var(--green);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+}
+
+.brand-uses {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* Charts and scheduling. */
+.source-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.source-chart svg {
+  width: 250px;
+  max-width: 100%;
+  flex: 0 1 250px;
+}
+
+.source-chart .legend {
+  gap: 13px;
+}
+
+.source-chart .legend strong {
+  margin-left: auto;
+}
+
+.marketing-funnel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.marketing-funnel > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 18px;
+  border-radius: 7px;
+  background: #e5efdf;
+  color: var(--green);
+  font-size: 12px;
+}
+
+.marketing-funnel > div:last-child {
+  background: var(--green);
+  color: white;
+}
+
+.marketing-funnel > span {
+  color: #779370;
+}
+
+.calendar-scroll {
+  overflow-x: auto;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  min-width: 680px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+
+.weekday, .calendar-day {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.weekday {
+  background: var(--page);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 12px;
+}
+
+.calendar-day {
+  min-height: 125px;
+  padding: 7px;
+}
+
+.calendar-day.outside {
+  background: #f9fbf6;
+  color: #a5b09e;
+}
+
+.calendar-day time {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.calendar-day .is-today {
+  border-radius: 50%;
+  background: var(--green);
+  color: white;
+}
+
+.calendar-event {
+  display: block;
+  width: 100%;
+  border: 0;
+  text-align: left;
+  border-radius: 5px;
+  padding: 5px;
+  margin-bottom: 5px;
+  font-size: 9px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+.calendar-legend span {
+  font-size: 10px;
+  padding: 6px 10px;
+  border-radius: 5px;
+}
+
+.tone-0 { background: #1c5941; color: white; }
+.tone-1 { background: #d6e9d1; color: #21583d; }
+.tone-2 { background: #e9f0df; color: #48623b; }
+.tone-3 { background: #a5cdb2; color: #214c36; }
+.tone-4 { background: #f4eadb; color: #6f593b; }
+.tone-5 { background: #eef4e8; color: #566b48; }
+
+/* Simple template and form controls. */
+.choice-group, .template-picker {
+  border: 1px solid var(--line);
+  padding: 16px;
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12px;
+}
+
+.choice-group legend, .template-picker legend {
+  font-weight: 650;
+  padding: 0 5px;
+}
+
+.template-picker {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0 0 24px;
+  gap: 10px;
+}
+
+.template-picker label {
+  cursor: pointer;
+}
+
+.template-picker input {
+  width: auto;
+  margin-bottom: 8px;
+}
+
+.template-thumb {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  height: 100px;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #e3efdd;
+  color: #175b46;
+}
+
+.template-thumb b { font-size: 15px; }
+.template-thumb small { font-size: 9px; }
+.template-thumb.style-2 { background: #175b46; color: white; }
+.template-thumb.style-3 { background: #fffdf8; border: 6px solid #d6e9d1; }
+.template-thumb.style-4 { background: white; border-top: 6px solid #175b46; }
+.template-picker input:checked + .template-thumb { outline: 2px solid var(--green); outline-offset: 3px; }
+.email-template { margin-bottom: 20px; }
+.field > img { max-width: 100px; max-height: 70px; object-fit: contain; }
+.marketing-module input[type=color] { height: 42px; padding: 4px; }
+.marketing-module .form-actions { flex-wrap: wrap; }
+#formPreview:not(:empty) { margin-top: 28px; }
+
+@media (max-width: 1200px) {
+  .marketing-module .marketing-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .marketing-grid { grid-template-columns: 1fr; }
+  .three-grid, .content-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 850px) {
+  .marketing-module .marketing-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .module-intro { flex-wrap: wrap; }
+}
+
+@media (max-width: 620px) {
+  .marketing-module h1 { font-size: 18px; }
+  .marketing-module .topbar-title { min-width: 0; }
+  .three-grid, .content-grid { grid-template-columns: 1fr; }
+  .template-picker { grid-template-columns: 1fr 1fr; }
+  .poster { padding: 22px; }
+  .poster-main h2 { font-size: 28px; }
+  .marketing-module .detail-grid { grid-template-columns: 1fr; }
+  .card-metrics { gap: 8px; }
+  .module-intro { margin-bottom: 18px; }
+  .source-chart { flex-direction: column; }
+}
+
+/* Dashboard welcome actions and equally sized lower panels. */
+.marketing-banner-actions {
+  display: inline-grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.marketing-banner-actions .btn {
+  width: 100%;
+  min-height: 38px;
+}
+
+.marketing-dashboard-panels {
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+@media (max-width: 420px) {
+  .marketing-banner-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
