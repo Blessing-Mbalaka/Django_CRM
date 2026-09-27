@@ -145,9 +145,12 @@ class TaskAttachmentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         from functionalities.tasks.queries import accessible_tasks
 
-        return TaskAttachment.objects.filter(
+        queryset = TaskAttachment.objects.filter(
             task__in=accessible_tasks(self.request.user)
         ).select_related('task', 'uploaded_by')
+        if task := self.request.query_params.get('task'):
+            queryset = queryset.filter(task_id=task)
+        return queryset
 
     def perform_destroy(self, instance):
         stored_file = instance.file

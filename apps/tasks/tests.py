@@ -208,6 +208,49 @@ class ProjectLifecycleApiTests(APITestCase):
         self.assertEqual(project.status, Project.Status.COMPLETED)
         self.assertEqual(project.due_date.isoformat(), '2026-11-07')
 
+    def test_task_can_be_created_inside_project(self):
+        created = self.client.post('/api/v1/projects/', self.project_payload(), format='json')
+        project = Project.objects.get(pk=created.data['id'])
+        todo = BoardColumn.objects.get(board_id=self.board_id, name='To Do')
+
+        response = self.client.post(
+            '/api/v1/tasks/',
+            {
+                'board': self.board_id,
+                'column': todo.id,
+                'parent_task': project.kanban_task_id,
+                'title': 'Project deliverable',
+                'assignee': self.assignee.id,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data['parent_task'], project.kanban_task_id)
+        self.assertEqual(response.data['project'], project.id)
+        self.assertEqual(response.data['project_name'], project.name)
+        listed = self.client.get(f'/api/v1/tasks/?board={self.board_id}')
+        self.assertIn(response.data['id'], [item['id'] for item in listed.data['results']])
+
+
+class TaskWorkspaceTemplateTests(APITestCase):
+    def test_workspace_shell_exposes_every_hash_route_and_local_controls(self):
+        user = User.objects.create_user(username='task-shell', password='test-pass-123')
+        self.client.force_login(user)
+
+        response = self.client.get('/tasks/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'class="inventory-sidebar task-module')
+        for route in ('dashboard', 'projects', 'tasks', 'my', 'calendar', 'team'):
+            with self.subTest(route=route):
+                self.assertContains(response, f'data-route="{route}"')
+        self.assertContains(response, 'href="/academy/#tools"')
+        self.assertContains(response, 'id="taskWorkspaceConfig"')
+        self.assertContains(response, '<dialog id="modal"')
+        self.assertContains(response, 'action="/accounts/logout/"')
+        self.assertNotContains(response, 'class="sme-branded-app"')
+
 
 class TaskAttachmentTests(APITestCase):
     def setUp(self):

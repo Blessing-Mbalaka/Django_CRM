@@ -18,7 +18,12 @@ def accessible_tasks(user):
         models.Q(board__owner=user)
         | models.Q(assignee=user)
         | models.Q(project_card_for__assignees=user)
-    ).filter(parent_task__isnull=True).distinct()
+        | models.Q(parent_task__project_card_for__assignees=user)
+    ).distinct()
+
+
+def workspace_tasks(user):
+    return accessible_tasks(user).filter(project_card_for__isnull=True)
 
 
 def accessible_projects(user):
@@ -29,7 +34,7 @@ def accessible_projects(user):
 
 def dashboard_summary(user):
     today = timezone.localdate()
-    tasks = list(accessible_tasks(user).select_related('column'))
+    tasks = list(workspace_tasks(user).select_related('column'))
     projects = list(accessible_projects(user))
     unfinished = [task for task in tasks if task.column.name != 'Completed']
     return {
@@ -48,7 +53,7 @@ def dashboard_summary(user):
 
 
 def calendar_items(user, start, end):
-    tasks = accessible_tasks(user).filter(due_date__range=(start, end)).select_related('column')
+    tasks = workspace_tasks(user).filter(due_date__range=(start, end)).select_related('column')
     projects = accessible_projects(user).filter(due_date__range=(start, end))
     return {
         'tasks': [
@@ -75,7 +80,7 @@ def calendar_items(user, start, end):
 
 def team_summary(user):
     today = timezone.localdate()
-    tasks = list(accessible_tasks(user).select_related('assignee', 'column', 'board__owner'))
+    tasks = list(workspace_tasks(user).select_related('assignee', 'column', 'board__owner'))
     projects = accessible_projects(user).prefetch_related('assignees')
     user_ids = {user.id}
     user_ids.update(task.assignee_id for task in tasks if task.assignee_id)

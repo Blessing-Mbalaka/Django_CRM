@@ -30,10 +30,13 @@ class BoardSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     assignee_name = serializers.CharField(source='assignee.get_full_name', read_only=True)
     column_name = serializers.CharField(source='column.name', read_only=True)
+    project = serializers.SerializerMethodField()
+    project_name = serializers.SerializerMethodField()
+    is_project_card = serializers.SerializerMethodField()
 
     class Meta:
         model = Task
-        fields = ['id', 'board', 'column', 'column_name', 'title', 'description', 'priority', 'position', 'creator', 'assignee', 'assignee_name', 'client', 'engagement', 'due_date', 'completed_at', 'created_at', 'updated_at']
+        fields = ['id', 'board', 'column', 'column_name', 'title', 'description', 'priority', 'position', 'creator', 'assignee', 'assignee_name', 'client', 'engagement', 'parent_task', 'project', 'project_name', 'is_project_card', 'due_date', 'completed_at', 'created_at', 'updated_at']
         read_only_fields = ['id', 'position', 'creator', 'completed_at', 'created_at', 'updated_at']
 
     def validate(self, attrs):
@@ -44,13 +47,35 @@ class TaskSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'board': 'You do not have access to this board.'})
         if board and column and column.board_id != board.id:
             raise serializers.ValidationError({'column': 'Column must belong to the selected board.'})
+        parent_task = attrs.get('parent_task', getattr(self.instance, 'parent_task', None))
+        if board and parent_task and parent_task.board_id != board.id:
+            raise serializers.ValidationError({'parent_task': 'Project task must belong to the selected board.'})
         return attrs
 
     def create(self, validated_data):
         column = validated_data['column']
-        last_position = Task.objects.filter(column=column).aggregate(value=Max('position'))['value']
+        last_position = Task.objects.filter(
+            column=column,
+            parent_task=validated_data.get('parent_task'),
+        ).aggregate(value=Max('position'))['value']
         validated_data['position'] = (last_position + 1) if last_position is not None else 0
         return super().create(validated_data)
+
+    def _project(self, obj):
+        if obj.parent_task_id:
+            return Project.objects.filter(kanban_task_id=obj.parent_task_id).first()
+        return Project.objects.filter(kanban_task_id=obj.id).first()
+
+    def get_project(self, obj):
+        project = self._project(obj)
+        return project.id if project else None
+
+    def get_project_name(self, obj):
+        project = self._project(obj)
+        return project.name if project else ''
+
+    def get_is_project_card(self, obj):
+        return Project.objects.filter(kanban_task_id=obj.id).exists()
 
 
 class TaskCommentSerializer(serializers.ModelSerializer):

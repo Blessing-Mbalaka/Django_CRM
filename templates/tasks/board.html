@@ -1,27 +1,49 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}Tasks & Kanban{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/sme_suite.css' %}">{% endblock %}
-{% block content %}
-<div class="page-header">
-  <div><div class="eyebrow">Operations</div><h1 class="page-title"><i class="bi bi-kanban me-2 text-uj"></i>Tasks &amp; Kanban</h1><p class="page-subtitle">Plan work, assign ownership and keep progress visible.</p></div>
-  <div class="d-flex gap-2"><select id="boardSelect" class="form-select module-select" aria-label="Select board"></select><button id="newBoardButton" class="btn-uj-outline"><i class="bi bi-plus-lg"></i> Board</button><button class="btn-uj" data-bs-toggle="modal" data-bs-target="#taskModal"><i class="bi bi-plus-lg"></i> Task</button></div>
-</div>
-<div id="moduleFeedback" class="module-feedback" role="status" aria-live="polite" hidden></div>
-<div id="kanbanBoard" class="kanban-board" aria-label="Kanban board"><div class="module-empty w-100"><span class="spinner-border spinner-border-sm me-2"></span>Loading board…</div></div>
-
-{% include "tasks/partials/_projects.html" %}
-
-<div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered"><form id="taskForm" class="modal-content">
-    <div class="modal-header"><div><div class="eyebrow">New work item</div><h2 class="modal-title fs-5" id="taskModalLabel">Create task</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-    <div class="modal-body">
-      <label class="form-label" for="taskTitle">Title</label><input id="taskTitle" name="title" class="form-control mb-3" maxlength="255" required>
-      <label class="form-label" for="taskDescription">Description</label><textarea id="taskDescription" name="description" class="form-control mb-3" rows="3"></textarea>
-      <div class="row g-3"><div class="col-sm-6"><label class="form-label" for="taskPriority">Priority</label><select id="taskPriority" name="priority" class="form-select"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div><div class="col-sm-6"><label class="form-label" for="taskDueDate">Due date</label><input id="taskDueDate" name="due_date" type="date" class="form-control"></div></div>
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Plan projects and manage your small business team's tasks.">
+  <title>Tasks &amp; Kanban | Task &amp; Project Management · EIEAAS</title>
+  <link rel="stylesheet" href="{% static 'sme/shared/css/inventory.css' %}">
+  <link rel="stylesheet" href="{% static 'sme/tasks/css/style.css' %}">
+  <script type="module" src="{% static 'sme/tasks/js/app.js' %}"></script>
+</head>
+<body class="inventory-sidebar task-module dashboard-page" data-banner="{% static 'sme/assets/inventory-banner.png' %}">
+  <a class="skip-link" href="#content">Skip to main content</a>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Expand sidebar" aria-expanded="false" aria-controls="navigation" title="Expand sidebar">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg>
+      </button>
+      <div class="business"><div class="avatar">{{ request.user.initials|default:"SM" }}</div><strong>Task Management</strong><span>{{ request.user.get_role_display }}</span></div>
+      <nav id="navigation" aria-label="Task management navigation">
+        <button type="button" data-route="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg><span>Dashboard</span></button>
+        <button type="button" data-route="projects"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h6l2 2h8v11H4zM8 3h5l2 3"/></svg><span>Projects</span></button>
+        <button type="button" data-route="tasks"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4zM8 9l2 2 4-4M8 15h8"/></svg><span>Tasks</span></button>
+        <button type="button" data-route="my"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21v-3a8 5 0 0 1 16 0v3M16 13l2 2 4-5"/></svg><span>My Tasks</span></button>
+        <button type="button" data-route="calendar"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v16H4zM4 10h16M8 3v4M16 3v4M8 14h2M14 14h2M8 18h2"/></svg><span>Calendar</span></button>
+        <button type="button" data-route="team"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M2 21v-4a6 4 0 0 1 12 0v4M12 21v-4a6 4 0 0 1 10 0v4"/></svg><span>Team</span></button>
+      </nav>
+      <a class="workspace-link" href="{% url 'academy:index' %}#tools" aria-label="Back to Business Tools" title="Back to Business Tools">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg><span>Business Tools</span>
+      </a>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+        <button class="signout-button" type="submit" aria-label="Sign out" title="Sign out"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg><span>Sign out</span></button>
+      </form>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-title"><button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">Task &amp; Project Management</h1></div></div>
+        <div class="actions"><select id="boardSelect" aria-label="Select board"></select><button class="btn" id="primaryAction" type="button">＋ New Task</button></div>
+      </header>
+      <div id="workspaceStatus" class="workspace-status" role="status" aria-live="polite" hidden></div>
+      <main id="content" tabindex="-1"><section class="panel"><p>Loading your task workspace…</p></section></main>
+      <footer>EIEAAS <span>·</span> A little more clarity. A lot more control.</footer>
     </div>
-    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button id="createTaskButton" class="btn-uj" type="submit">Create task</button></div>
-  </form></div>
-</div>
-{% endblock %}
-{% block extra_js %}<script type="module" src="{% static 'js/modules/tasks/kanban.js' %}"></script>{% endblock %}
+  </div>
+  <dialog id="modal" aria-labelledby="modalTitle"><div class="modal-header"><h2 id="modalTitle"></h2><button class="icon-button" data-action="close-modal" aria-label="Close dialog">✕</button></div><div id="modalBody"></div></dialog>
+  <div id="toasts" role="status" aria-live="polite"></div>
+  {{ task_workspace_config|json_script:"taskWorkspaceConfig" }}
+</body>
+</html>
