@@ -3,6 +3,40 @@ from decimal import Decimal
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models.functions import Lower
+
+
+class InventoryCategory(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        constraints = [models.UniqueConstraint(Lower('name'), name='inventory_category_name_ci_unique')]
+
+    def __str__(self):
+        return self.name
+
+
+class InventorySettings(models.Model):
+    business_name = models.CharField(max_length=180, default='My Business')
+    currency = models.CharField(max_length=3, default='ZAR')
+    default_unit = models.CharField(max_length=30, default='units')
+    default_reorder_level = models.DecimalField(max_digits=14, decimal_places=3, default=Decimal('0.000'))
+    low_stock_alerts = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def load(cls):
+        instance, _ = cls.objects.get_or_create(pk=1)
+        return instance
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        return super().save(*args, **kwargs)
 
 
 class StockLocation(models.Model):
@@ -54,4 +88,18 @@ class ReorderRule(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['product', 'location'], name='inventory_unique_reorder_rule')]
+
+
+class ProductInventoryProfile(models.Model):
+    product = models.OneToOneField('products.Product', on_delete=models.CASCADE, related_name='inventory_profile')
+    category = models.ForeignKey(InventoryCategory, null=True, blank=True, on_delete=models.PROTECT, related_name='product_profiles')
+    unit = models.CharField(max_length=30, default='units')
+    preferred_supplier = models.ForeignKey('purchasing.Supplier', null=True, blank=True, on_delete=models.SET_NULL, related_name='preferred_for_products')
+    stock_reference = models.CharField(max_length=100, blank=True)
+    created_through_inventory = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['product__name']
 

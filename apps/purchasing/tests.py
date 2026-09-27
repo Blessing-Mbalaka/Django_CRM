@@ -1,3 +1,4 @@
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -7,6 +8,15 @@ from apps.accounting.models import Account, JournalEntry
 from apps.inventory.models import StockLocation, StockMovement
 from apps.products.models import Product
 from .models import Supplier
+
+
+class SupplierInventoryMetadataTests(TestCase):
+    def test_optional_inventory_metadata_preserves_supplier(self):
+        supplier = Supplier.objects.create(name='Metadata Supplier', contact_person='A Person', address='1 Main Road', notes='Preferred')
+        supplier.refresh_from_db()
+        self.assertEqual(supplier.contact_person, 'A Person')
+        self.assertEqual(supplier.address, '1 Main Road')
+        self.assertEqual(supplier.notes, 'Preferred')
 
 
 class PurchasingApiTests(APITestCase):

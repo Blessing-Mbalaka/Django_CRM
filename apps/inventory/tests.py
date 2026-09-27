@@ -1,10 +1,34 @@
+from django.db.models.deletion import ProtectedError
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounts.models import User
 from apps.products.models import Product
-from .models import StockLocation
+from .models import InventoryCategory, InventorySettings, ProductInventoryProfile, StockLocation
+
+
+class InventoryMetadataTests(TestCase):
+    def test_singleton_settings_have_deterministic_defaults(self):
+        first = InventorySettings.load()
+        second = InventorySettings.load()
+        self.assertEqual(first.pk, second.pk)
+        self.assertEqual(first.default_unit, 'units')
+        self.assertEqual(str(first.default_reorder_level), '0.000')
+
+    def test_category_names_are_case_insensitively_unique(self):
+        InventoryCategory.objects.create(name='Equipment')
+        with self.assertRaises(Exception):
+            InventoryCategory.objects.create(name='equipment')
+
+    def test_profile_defaults_and_assigned_category_protection(self):
+        product = Product.objects.create(sku='META-1', name='Existing product')
+        category = InventoryCategory.objects.create(name='Materials')
+        profile = ProductInventoryProfile.objects.create(product=product, category=category)
+        self.assertEqual(profile.unit, 'units')
+        with self.assertRaises(ProtectedError):
+            category.delete()
 
 
 class InventoryApiTests(APITestCase):

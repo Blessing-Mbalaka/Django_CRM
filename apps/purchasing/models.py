@@ -8,8 +8,11 @@ from django.utils import timezone
 
 class Supplier(models.Model):
     name = models.CharField(max_length=180)
+    contact_person = models.CharField(max_length=120, blank=True)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=30, blank=True)
+    address = models.TextField(blank=True)
+    notes = models.TextField(blank=True)
     tax_number = models.CharField(max_length=40, blank=True)
     is_active = models.BooleanField(default=True)
 

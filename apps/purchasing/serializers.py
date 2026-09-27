@@ -6,7 +6,7 @@ from .models import GoodsReceipt, GoodsReceiptLine, PurchaseOrder, PurchaseOrder
 class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supplier
-        fields = ['id', 'name', 'email', 'phone', 'tax_number', 'is_active']
+        fields = ['id', 'name', 'contact_person', 'email', 'phone', 'address', 'notes', 'tax_number', 'is_active']
 
 
 class PurchaseOrderLineSerializer(serializers.ModelSerializer):
