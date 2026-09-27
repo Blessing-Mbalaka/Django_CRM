@@ -94,7 +94,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'id', 'board', 'name', 'description', 'assignees', 'assignee_details',
-            'due_date', 'kanban_task', 'column', 'column_name', 'subtasks',
+            'start_date', 'due_date', 'status', 'kanban_task', 'column', 'column_name', 'subtasks',
             'subtask_details', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'kanban_task', 'created_at', 'updated_at']
@@ -108,6 +108,13 @@ class ProjectSerializer(serializers.ModelSerializer):
         if not assignees:
             raise serializers.ValidationError('Assign the project to at least one employee.')
         return assignees
+
+    def validate(self, attrs):
+        start_date = attrs.get('start_date', getattr(self.instance, 'start_date', None))
+        due_date = attrs.get('due_date', getattr(self.instance, 'due_date', None))
+        if start_date and due_date and due_date < start_date:
+            raise serializers.ValidationError({'due_date': 'Due date cannot be before the start date.'})
+        return attrs
 
     @transaction.atomic
     def create(self, validated_data):

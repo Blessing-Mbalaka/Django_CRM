@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 
 from apps.tasks.models import Task, TaskActivity
 from .validators import validate_task_column
@@ -39,7 +40,8 @@ def move_task(*, task, destination, position, actor):
 
     task.column = destination
     task.position = position
-    task.save(update_fields=['column', 'position', 'updated_at'])
+    task.completed_at = timezone.now() if destination.name == 'Completed' else None
+    task.save(update_fields=['column', 'position', 'completed_at', 'updated_at'])
     TaskActivity.objects.create(
         task=task,
         actor=actor,

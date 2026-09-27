@@ -6,6 +6,7 @@ from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.contrib.staticfiles import finders
 from django.test import TransactionTestCase
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -117,6 +118,91 @@ class TaskThreeStateMigrationTests(TransactionTestCase):
             [('Legacy Done', 0)],
         )
         self.assertEqual(ActivityModel.objects.filter(task_id=self.task_ids[0], action='created').count(), 1)
+
+
+class TaskCompletionTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='completion-owner', password='test-pass-123')
+        self.client.force_authenticate(self.user)
+        board_response = self.client.post('/api/v1/task-boards/', {'name': 'Completion'}, format='json')
+        self.board_id = board_response.data['id']
+        self.todo = BoardColumn.objects.get(board_id=self.board_id, name='To Do')
+        self.progress = BoardColumn.objects.get(board_id=self.board_id, name='In Progress')
+        self.completed = BoardColumn.objects.get(board_id=self.board_id, name='Completed')
+        task_response = self.client.post(
+            '/api/v1/tasks/',
+            {'board': self.board_id, 'column': self.todo.id, 'title': 'Finish me'},
+            format='json',
+        )
+        self.task_id = task_response.data['id']
+
+    def test_move_to_completed_sets_completed_at(self):
+        response = self.client.post(
+            f'/api/v1/tasks/{self.task_id}/move/',
+            {'column': self.completed.id, 'position': 0},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(Task.objects.get(pk=self.task_id).completed_at)
+
+    def test_move_out_of_completed_clears_completed_at(self):
+        Task.objects.filter(pk=self.task_id).update(column=self.completed, completed_at=timezone.now())
+
+        response = self.client.post(
+            f'/api/v1/tasks/{self.task_id}/move/',
+            {'column': self.progress.id, 'position': 0},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(Task.objects.get(pk=self.task_id).completed_at)
+
+
+class ProjectLifecycleApiTests(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user(username='project-lifecycle-owner', password='test-pass-123')
+        self.assignee = User.objects.create_user(username='project-lifecycle-assignee', password='test-pass-123')
+        self.client.force_authenticate(self.owner)
+        self.board_id = self.client.post(
+            '/api/v1/task-boards/', {'name': 'Project lifecycle'}, format='json'
+        ).data['id']
+
+    def project_payload(self, **overrides):
+        payload = {
+            'board': self.board_id,
+            'name': 'Launch project',
+            'assignees': [self.assignee.id],
+            'start_date': '2026-10-01',
+            'due_date': '2026-10-31',
+            'status': 'active',
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_project_due_date_must_not_precede_start(self):
+        response = self.client.post(
+            '/api/v1/projects/',
+            self.project_payload(due_date='2026-09-30'),
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('due_date', response.data)
+
+    def test_owner_can_update_project_lifecycle(self):
+        created = self.client.post('/api/v1/projects/', self.project_payload(), format='json')
+
+        response = self.client.patch(
+            f"/api/v1/projects/{created.data['id']}/",
+            {'status': 'completed', 'due_date': '2026-11-07'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        project = Project.objects.get(pk=created.data['id'])
+        self.assertEqual(project.status, Project.Status.COMPLETED)
+        self.assertEqual(project.due_date.isoformat(), '2026-11-07')
 
 
 class TaskApiTests(APITestCase):
