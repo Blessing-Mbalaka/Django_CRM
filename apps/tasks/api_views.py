@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
@@ -15,11 +17,9 @@ class BoardViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Board.objects.filter(
-            models.Q(owner=self.request.user) |
-            models.Q(projects__assignees=self.request.user) |
-            models.Q(tasks__assignee=self.request.user)
-        ).distinct()
+        from functionalities.tasks.queries import accessible_boards
+
+        qs = accessible_boards(self.request.user)
         if self.action not in ['list', 'retrieve']:
             qs = qs.filter(owner=self.request.user)
         return qs.prefetch_related('columns')
@@ -38,11 +38,9 @@ class BoardColumnViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = BoardColumn.objects.filter(
-            models.Q(board__owner=self.request.user) |
-            models.Q(board__projects__assignees=self.request.user) |
-            models.Q(board__tasks__assignee=self.request.user)
-        ).distinct()
+        from functionalities.tasks.queries import accessible_boards
+
+        qs = BoardColumn.objects.filter(board__in=accessible_boards(self.request.user))
         if self.action not in ['list', 'retrieve']:
             qs = qs.filter(board__owner=self.request.user)
         return qs.select_related('board')
@@ -58,11 +56,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Task.objects.filter(
-            models.Q(board__owner=self.request.user) |
-            models.Q(assignee=self.request.user) |
-            models.Q(project_card_for__assignees=self.request.user)
-        ).filter(parent_task__isnull=True).distinct().select_related('board', 'column', 'creator', 'assignee', 'client', 'engagement')
+        from functionalities.tasks.queries import accessible_tasks
+
+        qs = accessible_tasks(self.request.user).select_related('board', 'column', 'creator', 'assignee', 'client', 'engagement')
         if self.action in ['update', 'partial_update', 'destroy']:
             qs = qs.filter(board__owner=self.request.user)
         if board := self.request.query_params.get('board'):
@@ -84,6 +80,33 @@ class TaskViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError({'column': 'A valid destination column and position are required.'})
         task = move_task(task=task, destination=destination, position=position, actor=request.user)
         return Response(self.get_serializer(task).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def dashboard(self, request):
+        from functionalities.tasks.queries import dashboard_summary
+
+        return Response(dashboard_summary(request.user))
+
+    @action(detail=False, methods=['get'])
+    def calendar(self, request):
+        from functionalities.tasks.queries import calendar_items
+
+        try:
+            start = date.fromisoformat(request.query_params.get('start', ''))
+            end = date.fromisoformat(request.query_params.get('end', ''))
+        except ValueError as exc:
+            raise serializers.ValidationError({'date_range': 'Enter valid ISO start and end dates.'}) from exc
+        if start > end:
+            raise serializers.ValidationError({'date_range': 'Start date must not be after end date.'})
+        if (end - start).days > 62:
+            raise serializers.ValidationError({'date_range': 'Calendar ranges may not exceed 62 days.'})
+        return Response(calendar_items(request.user, start, end))
+
+    @action(detail=False, methods=['get'])
+    def team(self, request):
+        from functionalities.tasks.queries import team_summary
+
+        return Response(team_summary(request.user))
 
 
 class TaskCommentViewSet(viewsets.ModelViewSet):
@@ -138,10 +161,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'patch', 'head', 'options']
 
     def get_queryset(self):
-        qs = Project.objects.filter(
-            models.Q(board__owner=self.request.user) |
-            models.Q(assignees=self.request.user)
-        ).distinct().select_related('board', 'kanban_task__column').prefetch_related(
+        from functionalities.tasks.queries import accessible_projects
+
+        qs = accessible_projects(self.request.user).select_related('board', 'kanban_task__column').prefetch_related(
             'assignees', 'kanban_task__subtasks__column'
         )
         if board := self.request.query_params.get('board'):

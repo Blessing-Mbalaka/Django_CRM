@@ -309,6 +309,105 @@ class TaskAttachmentTests(APITestCase):
         self.assertFalse(stored_path.exists())
 
 
+class TaskWorkspaceQueryTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='workspace-query',
+            first_name='Workspace',
+            last_name='Owner',
+            password='test-pass-123',
+        )
+        self.other = User.objects.create_user(username='workspace-other', password='test-pass-123')
+        self.client.force_authenticate(self.user)
+        self.board = Board.objects.create(name='Visible board', owner=self.user)
+        self.todo = BoardColumn.objects.create(board=self.board, name='To Do', position=0)
+        self.progress = BoardColumn.objects.create(board=self.board, name='In Progress', position=1)
+        self.completed = BoardColumn.objects.create(board=self.board, name='Completed', position=2)
+        self.today_task = Task.objects.create(
+            board=self.board,
+            column=self.todo,
+            title='Due today',
+            creator=self.user,
+            assignee=self.user,
+            due_date=date.today(),
+        )
+        self.overdue_task = Task.objects.create(
+            board=self.board,
+            column=self.progress,
+            title='Overdue',
+            creator=self.user,
+            assignee=self.user,
+            due_date=date.today() - timedelta(days=1),
+        )
+        self.completed_task = Task.objects.create(
+            board=self.board,
+            column=self.completed,
+            title='Finished',
+            creator=self.user,
+            assignee=self.user,
+            due_date=date.today() - timedelta(days=2),
+            completed_at=timezone.now(),
+        )
+        self.project = Project.objects.create(
+            board=self.board,
+            name='Active project',
+            created_by=self.user,
+            status=Project.Status.ACTIVE,
+            due_date=date.today(),
+        )
+        self.project.assignees.add(self.user)
+
+        hidden_board = Board.objects.create(name='Hidden board', owner=self.other)
+        hidden_column = BoardColumn.objects.create(board=hidden_board, name='To Do', position=0)
+        Task.objects.create(
+            board=hidden_board,
+            column=hidden_column,
+            title='Hidden task',
+            creator=self.other,
+            assignee=self.other,
+            due_date=date.today(),
+        )
+
+    def test_dashboard_counts_are_deduplicated_and_exclude_unrelated_work(self):
+        response = self.client.get('/api/v1/tasks/dashboard/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['active_projects'], 1)
+        self.assertEqual(response.data['due_today'], 1)
+        self.assertEqual(response.data['completed'], 1)
+        self.assertEqual(response.data['overdue'], 1)
+        self.assertEqual(response.data['total_tasks'], 3)
+
+    def test_calendar_returns_accessible_task_and_project_due_items(self):
+        today = date.today().isoformat()
+
+        response = self.client.get(f'/api/v1/tasks/calendar/?start={today}&end={today}')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual([item['title'] for item in response.data['tasks']], ['Due today'])
+        self.assertEqual([item['name'] for item in response.data['projects']], ['Active project'])
+
+    def test_calendar_rejects_malformed_or_overly_large_ranges(self):
+        malformed = self.client.get('/api/v1/tasks/calendar/?start=nope&end=2026-10-01')
+        start = date.today()
+        oversized = self.client.get(
+            f'/api/v1/tasks/calendar/?start={start.isoformat()}&end={(start + timedelta(days=63)).isoformat()}'
+        )
+
+        self.assertEqual(malformed.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(oversized.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_team_summary_uses_only_accessible_tasks(self):
+        response = self.client.get('/api/v1/tasks/team/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], self.user.id)
+        self.assertEqual(response.data[0]['active_tasks'], 2)
+        self.assertEqual(response.data[0]['completed_tasks'], 1)
+        self.assertEqual(response.data[0]['due_today'], 1)
+
+
 class TaskApiTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='tasks', password='test-pass-123')
