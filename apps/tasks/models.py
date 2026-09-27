@@ -1,5 +1,7 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class Board(models.Model):
@@ -89,12 +91,20 @@ class TaskActivity(models.Model):
 
 
 class Project(models.Model):
+    class Status(models.TextChoices):
+        PLANNING = 'planning', 'Planning'
+        ACTIVE = 'active', 'Active'
+        ON_HOLD = 'on_hold', 'On Hold'
+        COMPLETED = 'completed', 'Completed'
+
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='projects')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_kanban_projects')
     assignees = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='kanban_projects')
+    start_date = models.DateField(default=timezone.localdate)
     due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PLANNING)
     kanban_task = models.OneToOneField(
         Task,
         null=True,
@@ -113,6 +123,11 @@ class Project(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        super().clean()
+        if self.due_date and self.start_date and self.due_date < self.start_date:
+            raise ValidationError({'due_date': 'Due date cannot be before the start date.'})
 
 
 class ProjectNotification(models.Model):

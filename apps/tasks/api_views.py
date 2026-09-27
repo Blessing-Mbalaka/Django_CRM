@@ -26,11 +26,9 @@ class BoardViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         board = serializer.save(owner=self.request.user)
         BoardColumn.objects.bulk_create([
-            BoardColumn(board=board, name='Backlog', position=0),
-            BoardColumn(board=board, name='To Do', position=1),
-            BoardColumn(board=board, name='In Progress', position=2),
-            BoardColumn(board=board, name='Blocked', position=3),
-            BoardColumn(board=board, name='Done', position=4),
+            BoardColumn(board=board, name='To Do', position=0),
+            BoardColumn(board=board, name='In Progress', position=1),
+            BoardColumn(board=board, name='Completed', position=2),
         ])
 
 

@@ -1,11 +1,122 @@
 from pathlib import Path
+from datetime import date, timedelta
 
+from django.core.exceptions import ValidationError
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
 from django.contrib.staticfiles import finders
+from django.test import TransactionTestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounts.models import User
-from .models import BoardColumn, Project, ProjectNotification, Task
+from .models import Board, BoardColumn, Project, ProjectNotification, Task
+
+
+class TaskLifecycleModelTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='task-lifecycle', password='test-pass-123')
+        self.client.force_authenticate(self.user)
+
+    def test_new_project_defaults_to_planning_with_start_date(self):
+        board = Board.objects.create(name='Lifecycle', owner=self.user)
+
+        project = Project.objects.create(board=board, name='Launch', created_by=self.user)
+
+        self.assertEqual(project.status, 'planning')
+        self.assertEqual(project.start_date, date.today())
+
+    def test_project_rejects_due_date_before_start_date(self):
+        board = Board.objects.create(name='Dates', owner=self.user)
+        project = Project(
+            board=board,
+            name='Impossible schedule',
+            created_by=self.user,
+            start_date=date.today(),
+            due_date=date.today() - timedelta(days=1),
+        )
+
+        with self.assertRaisesMessage(ValidationError, 'Due date cannot be before the start date.'):
+            project.full_clean()
+
+    def test_new_board_has_exact_three_columns(self):
+        response = self.client.post('/api/v1/task-boards/', {'name': 'Three states'}, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            list(BoardColumn.objects.filter(board_id=response.data['id']).values_list('name', flat=True)),
+            ['To Do', 'In Progress', 'Completed'],
+        )
+
+
+class TaskThreeStateMigrationTests(TransactionTestCase):
+    migrate_from = [('tasks', '0002_project_projectnotification_task_parent_task')]
+    migrate_to = [('tasks', '0003_project_lifecycle_three_state')]
+
+    def setUp(self):
+        super().setUp()
+        self.executor = MigrationExecutor(connection)
+        self.executor.migrate(self.migrate_from)
+        old_apps = self.executor.loader.project_state(self.migrate_from).apps
+        UserModel = old_apps.get_model('accounts', 'User')
+        BoardModel = old_apps.get_model('tasks', 'Board')
+        ColumnModel = old_apps.get_model('tasks', 'BoardColumn')
+        TaskModel = old_apps.get_model('tasks', 'Task')
+        ActivityModel = old_apps.get_model('tasks', 'TaskActivity')
+
+        user = UserModel.objects.create(username='migration-owner', password='unused')
+        board = BoardModel.objects.create(name='Legacy board', owner_id=user.pk)
+        names = ['Backlog', 'To Do', 'In Progress', 'Blocked', 'Done', 'Review']
+        columns = [
+            ColumnModel.objects.create(board=board, name=name, position=index)
+            for index, name in enumerate(names)
+        ]
+        self.task_ids = []
+        for index, column in enumerate(columns):
+            task = TaskModel.objects.create(
+                board=board,
+                column=column,
+                title=f'Legacy {names[index]}',
+                position=0,
+                creator_id=user.pk,
+            )
+            self.task_ids.append(task.pk)
+        ActivityModel.objects.create(
+            task_id=self.task_ids[0], actor_id=user.pk, action='created', detail={'source': 'legacy'}
+        )
+        self.board_id = board.pk
+
+        self.executor = MigrationExecutor(connection)
+        self.executor.migrate(self.migrate_to)
+        self.apps = self.executor.loader.project_state(self.migrate_to).apps
+
+    def tearDown(self):
+        MigrationExecutor(connection).migrate(self.migrate_to)
+        super().tearDown()
+
+    def test_migration_preserves_tasks_and_maps_every_column(self):
+        ColumnModel = self.apps.get_model('tasks', 'BoardColumn')
+        TaskModel = self.apps.get_model('tasks', 'Task')
+        ActivityModel = self.apps.get_model('tasks', 'TaskActivity')
+
+        self.assertEqual(
+            list(ColumnModel.objects.filter(board_id=self.board_id).values_list('name', 'position')),
+            [('To Do', 0), ('In Progress', 1), ('Completed', 2)],
+        )
+        self.assertEqual(set(TaskModel.objects.values_list('id', flat=True)), set(self.task_ids))
+        self.assertEqual(
+            list(TaskModel.objects.filter(column__name='To Do').values_list('title', 'position')),
+            [('Legacy Backlog', 0), ('Legacy To Do', 1)],
+        )
+        self.assertEqual(
+            list(TaskModel.objects.filter(column__name='In Progress').values_list('title', 'position')),
+            [('Legacy In Progress', 0), ('Legacy Blocked', 1), ('Legacy Review', 2)],
+        )
+        self.assertEqual(
+            list(TaskModel.objects.filter(column__name='Completed').values_list('title', 'position')),
+            [('Legacy Done', 0)],
+        )
+        self.assertEqual(ActivityModel.objects.filter(task_id=self.task_ids[0], action='created').count(), 1)
 
 
 class TaskApiTests(APITestCase):
@@ -18,15 +129,15 @@ class TaskApiTests(APITestCase):
         self.assertEqual(board_response.status_code, status.HTTP_201_CREATED)
         board_id = board_response.data['id']
         columns = BoardColumn.objects.filter(board_id=board_id)
-        self.assertEqual(columns.count(), 5)
-        backlog = columns.get(name='Backlog')
-        done = columns.get(name='Done')
-        task_response = self.client.post('/api/tasks/', {'board': board_id, 'column': backlog.id, 'title': 'Send invoice'}, format='json')
+        self.assertEqual(columns.count(), 3)
+        todo = columns.get(name='To Do')
+        completed = columns.get(name='Completed')
+        task_response = self.client.post('/api/tasks/', {'board': board_id, 'column': todo.id, 'title': 'Send invoice'}, format='json')
         self.assertEqual(task_response.status_code, status.HTTP_201_CREATED)
-        move = self.client.post(f"/api/tasks/{task_response.data['id']}/move/", {'column': done.id, 'position': 0}, format='json')
+        move = self.client.post(f"/api/tasks/{task_response.data['id']}/move/", {'column': completed.id, 'position': 0}, format='json')
         self.assertEqual(move.status_code, status.HTTP_200_OK)
         task = Task.objects.get(pk=task_response.data['id'])
-        self.assertEqual(task.column, done)
+        self.assertEqual(task.column, completed)
         self.assertEqual(task.activities.filter(action='moved').count(), 1)
 
     def test_user_cannot_read_another_users_board(self):
@@ -146,14 +257,14 @@ class SharedProjectApiTests(APITestCase):
     def test_assignee_can_open_and_move_the_same_project_card(self):
         created = self.create_project(['Shared checklist item'])
         project = Project.objects.get(pk=created.data['id'])
-        done = BoardColumn.objects.get(board_id=self.board_id, name='Done')
+        completed = BoardColumn.objects.get(board_id=self.board_id, name='Completed')
 
         self.client.force_authenticate(self.employee)
         boards = self.client.get('/api/v1/task-boards/')
         tasks = self.client.get(f'/api/v1/tasks/?board={self.board_id}')
         moved = self.client.post(
             f'/api/v1/tasks/{project.kanban_task_id}/move/',
-            {'column': done.id, 'position': 0},
+            {'column': completed.id, 'position': 0},
             format='json',
         )
 
@@ -161,7 +272,7 @@ class SharedProjectApiTests(APITestCase):
         self.assertEqual(tasks.status_code, status.HTTP_200_OK)
         self.assertEqual(moved.status_code, status.HTTP_200_OK, moved.data)
         project.kanban_task.refresh_from_db()
-        self.assertEqual(project.kanban_task.column, done)
+        self.assertEqual(project.kanban_task.column, completed)
 
     def test_unassigned_user_cannot_see_project_or_card(self):
         self.create_project()
