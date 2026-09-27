@@ -110,7 +110,7 @@ document.addEventListener('submit', async event => {
   try {
     if (form.dataset.form === 'product') {
       const id = form.dataset.id;
-      if (!data.opening_quantity) { delete data.opening_quantity; delete data.location; }
+      if (!Number(data.opening_quantity || 0)) { delete data.opening_quantity; delete data.location; }
       await (id ? API.update(API.itemUrl(config.urls.products, id), data) : API.create(config.urls.products, data));
       closeModal(); return refresh(id ? 'Product updated.' : 'Product added.');
     }

@@ -143,6 +143,10 @@ class InventoryWorkspaceApiTests(APITestCase):
         self.assertTrue(Product.objects.filter(pk=created.data['id'], is_active=False).exists())
         self.assertTrue(type(supplier).objects.filter(pk=supplier.pk).exists())
 
+    def test_zero_opening_quantity_accepts_a_null_location(self):
+        response = self.client.post('/api/v1/inventory-products/', {'sku': 'ZERO-1', 'name': 'Zero opening', 'opening_quantity': '0', 'location': None}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class InventoryWorkspaceTemplateTests(TestCase):
     def setUp(self):

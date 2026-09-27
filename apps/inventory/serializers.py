@@ -31,7 +31,7 @@ class InventoryProductSerializer(serializers.ModelSerializer):
     preferred_supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.filter(is_active=True), allow_null=True, required=False)
     stock_reference = serializers.CharField(max_length=100, allow_blank=True, required=False)
     opening_quantity = serializers.DecimalField(max_digits=14, decimal_places=3, min_value=0, write_only=True, required=False, default=0)
-    location = serializers.PrimaryKeyRelatedField(queryset=StockLocation.objects.filter(is_active=True), write_only=True, required=False)
+    location = serializers.PrimaryKeyRelatedField(queryset=StockLocation.objects.filter(is_active=True), write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Product
