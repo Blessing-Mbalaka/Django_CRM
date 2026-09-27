@@ -1,10 +1,42 @@
-{% extends "base.html" %}{% load static %}
-{% block title %}Inventory{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/sme_suite.css' %}">{% endblock %}
-{% block content %}
-<div class="page-header"><div><div class="eyebrow">Operations</div><h1 class="page-title"><i class="bi bi-boxes me-2 text-uj"></i>Inventory Management</h1><p class="page-subtitle">Track receipts, issues and adjustments across stock locations.</p></div><div class="d-flex gap-2"><button id="newLocationButton" class="btn-uj-outline"><i class="bi bi-geo-alt me-1"></i>Location</button><button class="btn-uj" data-bs-toggle="modal" data-bs-target="#movementModal"><i class="bi bi-plus-lg me-1"></i>Stock movement</button></div></div>
-<div id="moduleFeedback" class="module-feedback" role="status" aria-live="polite" hidden></div>
-<div class="row g-3 mb-4"><div class="col-sm-4"><div class="stat-card compact"><div id="locationCount" class="stat-value">0</div><div class="stat-label">Locations</div></div></div><div class="col-sm-4"><div class="stat-card compact"><div id="movementCount" class="stat-value">0</div><div class="stat-label">Movements</div></div></div><div class="col-sm-4"><div class="stat-card compact"><div id="stockUnitBalance" class="stat-value">0</div><div class="stat-label">Net units</div></div></div></div>
-<div class="uj-card"><div class="module-toolbar"><div class="d-flex gap-2"><select id="inventoryProductFilter" class="form-select module-select"><option value="">All products</option></select><select id="inventoryLocationFilter" class="form-select module-select"><option value="">All locations</option></select></div><span id="inventoryRecordCount" class="toolbar-meta">0 records</span></div><div class="table-responsive"><table class="table uj-table module-table mb-0"><thead><tr><th>Date</th><th>Product</th><th>Location</th><th>Movement</th><th>Quantity</th><th>Unit cost</th><th>Reference</th></tr></thead><tbody id="movementRows"><tr><td colspan="7" class="module-empty">Loading stock movements…</td></tr></tbody></table></div></div>
-<div class="modal fade" id="movementModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><form id="movementForm" class="modal-content"><div class="modal-header"><div><div class="eyebrow">Inventory ledger</div><h2 class="modal-title fs-5">Record stock movement</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label" for="movementProduct">Stock product</label><select id="movementProduct" class="form-select mb-3" required></select><label class="form-label" for="movementLocation">Location</label><select id="movementLocation" class="form-select mb-3" required></select><div class="row g-3"><div class="col-sm-6"><label class="form-label" for="movementType">Movement</label><select id="movementType" class="form-select"><option value="receipt">Receipt</option><option value="issue">Issue</option><option value="adjustment_in">Positive adjustment</option><option value="adjustment_out">Negative adjustment</option></select></div><div class="col-sm-6"><label class="form-label" for="movementQuantity">Quantity</label><input id="movementQuantity" type="number" min="0.001" step="0.001" class="form-control" required></div><div class="col-sm-6"><label class="form-label" for="movementDate">Date</label><input id="movementDate" type="date" class="form-control" required></div><div class="col-sm-6"><label class="form-label" for="movementCost">Unit cost</label><input id="movementCost" type="number" min="0" step="0.01" value="0" class="form-control"></div></div><label class="form-label mt-3" for="movementReference">Reference</label><input id="movementReference" class="form-control" maxlength="100"></div><div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button id="saveMovementButton" type="submit" class="btn-uj">Record movement</button></div></form></div></div>
-{% endblock %}{% block extra_js %}<script type="module" src="{% static 'js/modules/inventory/inventory.js' %}"></script>{% endblock %}
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Database-backed inventory management for products, stock, suppliers and reporting.">
+  <title>Inventory Management · EIEAAS</title>
+  <link rel="stylesheet" href="{% static 'sme/inventory/css/style.css' %}">
+  <script type="module" src="{% static 'sme/inventory/js/app.js' %}"></script>
+</head>
+<body class="inventory-sidebar">
+  <a class="skip-link" href="#content">Skip to main content</a>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Expand sidebar" aria-expanded="false" aria-controls="navigation" title="Expand sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg></button>
+      <div class="business"><div class="avatar" id="businessInitials">IN</div><strong id="businessName">Inventory</strong><span>Inventory workspace</span></div>
+      <nav id="navigation" aria-label="Inventory navigation">
+        <button data-route="dashboard"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg><span>Dashboard</span></button>
+        <button data-route="products"><svg class="nav-icon" viewBox="0 0 24 24"><path d="m3 7 9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></svg><span>Products</span></button>
+        <button data-route="categories"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 5h7l2 3h9v12H3z"/></svg><span>Categories</span></button>
+        <button data-route="in"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>Stock In</span></button>
+        <button data-route="out"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5"/></svg><span>Stock Out</span></button>
+        <button data-route="suppliers"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 5h12v13H3zM15 10h4l3 4v4h-7M5 18a2 2 0 1 0 4 0M16 18a2 2 0 1 0 4 0"/></svg><span>Suppliers</span></button>
+        <button data-route="history"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 0 5M3 4v6h6M12 7v5l3 2"/></svg><span>Stock History</span></button>
+        <button data-route="low"><svg class="nav-icon" viewBox="0 0 24 24"><path d="m12 3 10 18H2zM12 9v5M12 17h.01"/></svg><span>Low Stock</span></button>
+        <button data-route="reports"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 3v18h17M8 16v-5M13 16V6M18 16V9"/></svg><span>Reports</span></button>
+        <button data-route="settings"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg><span>Settings</span></button>
+      </nav>
+      <a class="workspace-link" href="{% url 'academy:index' %}#tools">↗ Business Tools</a>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="signout-button" type="submit" aria-label="Sign out" title="Sign out"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg><span>Sign out</span></button></form>
+    </aside>
+    <div class="main">
+      <header class="topbar"><div class="topbar-title"><button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">Dashboard</h1></div></div><div id="pageActions"></div></header>
+      <div id="workspaceStatus" class="workspace-status" role="status" aria-live="polite" hidden></div>
+      <main id="content" tabindex="-1"><section class="panel"><p>Loading your inventory workspace…</p></section></main>
+      <footer>EIEAAS <span>·</span> A little more clarity. A lot more control.</footer>
+    </div>
+  </div>
+  <dialog id="modal" aria-labelledby="modalTitle"><div class="modal-header"><h2 id="modalTitle"></h2><button class="icon-button" data-action="close-modal" aria-label="Close dialog">✕</button></div><div id="modalBody"></div></dialog>
+  <div id="toasts" role="status" aria-live="polite"></div>
+  {{ inventory_workspace_config|json_script:"inventoryWorkspaceConfig" }}
+</body>
+</html>

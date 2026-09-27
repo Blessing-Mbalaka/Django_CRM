@@ -142,3 +142,24 @@ class InventoryWorkspaceApiTests(APITestCase):
         self.assertEqual(cleared.status_code, status.HTTP_200_OK)
         self.assertTrue(Product.objects.filter(pk=created.data['id'], is_active=False).exists())
         self.assertTrue(type(supplier).objects.filter(pk=supplier.pk).exists())
+
+
+class InventoryWorkspaceTemplateTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='inventory-shell', password='test-pass-123', role=User.Role.DIRECTOR)
+        self.client.force_login(self.user)
+
+    def test_complete_inventory_workspace_shell_renders(self):
+        response = self.client.get('/inventory/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, 'Inventory Management')
+        for route in ('dashboard', 'products', 'categories', 'in', 'out', 'suppliers', 'history', 'low', 'reports', 'settings'):
+            self.assertContains(response, f'data-route="{route}"')
+        self.assertContains(response, '/academy/#tools')
+        self.assertContains(response, '<dialog id="modal"', html=False)
+        self.assertContains(response, 'inventoryWorkspaceConfig')
+        self.assertNotContains(response, 'navbar navbar-expand')
+
+    def test_management_permission_is_safely_serialized(self):
+        response = self.client.get('/inventory/')
+        self.assertContains(response, '"can_manage": true')
