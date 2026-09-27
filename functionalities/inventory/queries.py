@@ -61,7 +61,16 @@ def inventory_summary():
         'low_stock': sum(row['status'] == 'Low Stock' for row in rows),
         'out_of_stock': sum(row['status'] == 'Out of Stock' for row in rows),
         'status_distribution': {status: sum(row['status'] == status for row in rows) for status in ('In Stock', 'Low Stock', 'Out of Stock')},
-        'recent_movements': movement_history()[:5],
+        'recent_movements': [{
+            'id': movement.id, 'product': movement.product_id,
+            'product_name': movement.product.name, 'sku': movement.product.sku,
+            'location': movement.location_id, 'location_name': movement.location.name,
+            'movement_type': movement.movement_type,
+            'movement_label': movement.get_movement_type_display(),
+            'quantity': movement.quantity, 'signed_quantity': movement.signed_quantity,
+            'unit_cost': movement.unit_cost, 'reference': movement.reference,
+            'occurred_on': movement.occurred_on,
+        } for movement in movement_history()[:5]],
     }
 
 

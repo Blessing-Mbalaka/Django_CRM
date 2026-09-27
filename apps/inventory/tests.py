@@ -103,3 +103,42 @@ class InventoryApiTests(APITestCase):
         response = self.client.get('/inventory/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, 'Inventory Management')
+
+
+class InventoryWorkspaceApiTests(APITestCase):
+    def setUp(self):
+        self.manager = User.objects.create_user(username='inventory-director', password='test-pass-123', role=User.Role.DIRECTOR)
+        self.reader = User.objects.create_user(username='inventory-reader', password='test-pass-123', role=User.Role.STAFF)
+        self.location = StockLocation.objects.create(code='API', name='API warehouse')
+        self.client.force_authenticate(self.manager)
+
+    def test_product_category_summary_reports_settings_and_backup(self):
+        category = self.client.post('/api/v1/inventory-categories/', {'name': 'Consumables'}, format='json')
+        self.assertEqual(category.status_code, status.HTTP_201_CREATED)
+        product = self.client.post('/api/v1/inventory-products/', {'sku': 'API-1', 'name': 'API product', 'category': category.data['id'], 'unit': 'boxes', 'cost_price': '8.00', 'opening_quantity': '4', 'location': self.location.id}, format='json')
+        self.assertEqual(product.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(self.client.get('/api/v1/inventory/summary/').status_code, status.HTTP_200_OK)
+        report = self.client.get('/api/v1/inventory/reports/', {'name': 'Current Stock Summary'})
+        self.assertEqual(report.status_code, status.HTTP_200_OK)
+        self.assertEqual(report.data['rows'][0][1], 'API-1')
+        settings = self.client.get('/api/v1/inventory-settings/').data['results'][0]
+        updated = self.client.patch(f"/api/v1/inventory-settings/{settings['id']}/", {'business_name': 'API Business'}, format='json')
+        self.assertEqual(updated.data['business_name'], 'API Business')
+        self.assertEqual(self.client.get('/api/v1/inventory/backup/').status_code, status.HTTP_200_OK)
+
+    def test_reader_can_read_but_cannot_mutate(self):
+        self.client.force_authenticate(self.reader)
+        self.assertEqual(self.client.get('/api/v1/inventory/summary/').status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.post('/api/v1/inventory-categories/', {'name': 'Denied'}, format='json').status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(self.client.get('/api/v1/inventory/backup/').status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_clear_requires_phrase_and_preserves_shared_records(self):
+        supplier = __import__('apps.purchasing.models', fromlist=['Supplier']).Supplier.objects.create(name='Keep supplier')
+        created = self.client.post('/api/v1/inventory-products/', {'sku': 'CLEAR-1', 'name': 'Clear product'}, format='json')
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+        denied = self.client.post('/api/v1/inventory/clear-data/', {'confirmation': 'no'}, format='json')
+        self.assertEqual(denied.status_code, status.HTTP_400_BAD_REQUEST)
+        cleared = self.client.post('/api/v1/inventory/clear-data/', {'confirmation': 'CLEAR INVENTORY DATA'}, format='json')
+        self.assertEqual(cleared.status_code, status.HTTP_200_OK)
+        self.assertTrue(Product.objects.filter(pk=created.data['id'], is_active=False).exists())
+        self.assertTrue(type(supplier).objects.filter(pk=supplier.pk).exists())

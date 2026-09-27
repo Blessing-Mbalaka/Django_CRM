@@ -24,7 +24,7 @@ from apps.billing.api_views        import InvoiceLineViewSet, InvoiceViewSet, Pa
 from apps.expenses.api_views       import ExpenseCategoryViewSet, ExpenseViewSet
 from apps.accounting.api_views     import AccountViewSet, AccountingPeriodViewSet, BankStatementLineViewSet, BankStatementViewSet, JournalEntryViewSet, balance_sheet_report, income_statement_report, trial_balance_report
 from apps.products.api_views       import ProductViewSet
-from apps.inventory.api_views      import ReorderRuleViewSet, StockLocationViewSet, StockMovementViewSet
+from apps.inventory.api_views      import InventoryCategoryViewSet, InventoryProductViewSet, InventorySettingsViewSet, InventoryWorkspaceViewSet, ReorderRuleViewSet, StockLocationViewSet, StockMovementViewSet
 from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierBillViewSet, SupplierViewSet
 from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewSet, SalesOrderViewSet
 from apps.payroll.api_views        import PayrollEmployeeViewSet, PayRunViewSet, PayslipViewSet
@@ -85,6 +85,10 @@ router.register(r'products', ProductViewSet, basename='product')
 router.register(r'stock-locations', StockLocationViewSet, basename='stock-location')
 router.register(r'stock-movements', StockMovementViewSet, basename='stock-movement')
 router.register(r'reorder-rules', ReorderRuleViewSet, basename='reorder-rule')
+router.register(r'inventory-categories', InventoryCategoryViewSet, basename='inventory-category')
+router.register(r'inventory-products', InventoryProductViewSet, basename='inventory-product')
+router.register(r'inventory-settings', InventorySettingsViewSet, basename='inventory-settings')
+router.register(r'inventory', InventoryWorkspaceViewSet, basename='inventory-workspace')
 router.register(r'suppliers', SupplierViewSet, basename='supplier')
 router.register(r'purchase-orders', PurchaseOrderViewSet, basename='purchase-order')
 router.register(r'purchase-order-lines', PurchaseOrderLineViewSet, basename='purchase-order-line')
