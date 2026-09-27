@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Case, DecimalField, F, Sum, Value, When
 
-from apps.inventory.models import StockMovement
+from apps.inventory.models import ReorderRule, StockLocation, StockMovement
 from apps.products.models import Product
 
 
@@ -37,6 +37,10 @@ def weighted_average_cost(*, product, location):
 @transaction.atomic
 def record_movement(*, product, location, movement_type, quantity, occurred_on, user, unit_cost=0, reference='', source_type='', source_id=None):
     product = Product.objects.select_for_update().get(pk=product.pk)
+    # SQLite serializes writes; row-locking databases lock a stable inventory row.
+    rule = ReorderRule.objects.select_for_update().filter(product=product, location=location).first()
+    if rule is None:
+        StockLocation.objects.select_for_update().get(pk=location.pk)
     quantity = Decimal(str(quantity))
     if product.product_type != Product.Type.STOCK:
         raise ValidationError('Stock movements can only be recorded for stock products.')

@@ -6,7 +6,10 @@ from rest_framework.test import APITestCase
 
 from apps.accounts.models import User
 from apps.products.models import Product
-from .models import InventoryCategory, InventorySettings, ProductInventoryProfile, StockLocation
+from functionalities.inventory.queries import inventory_summary, low_stock_rows, product_stock_rows
+from functionalities.inventory.reports import report_dataset, safe_csv_cell
+from functionalities.inventory.services import record_movement
+from .models import InventoryCategory, InventorySettings, ProductInventoryProfile, ReorderRule, StockLocation
 
 
 class InventoryMetadataTests(TestCase):
@@ -29,6 +32,52 @@ class InventoryMetadataTests(TestCase):
         self.assertEqual(profile.unit, 'units')
         with self.assertRaises(ProtectedError):
             category.delete()
+
+
+class InventoryServiceTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='service-stock', password='test-pass-123')
+        self.product = Product.objects.create(sku='SERVICE-1', name='Service stock', product_type=Product.Type.STOCK, cost_price='12.50')
+        self.location = StockLocation.objects.create(code='SVC', name='Service location')
+
+    def test_sequential_issues_cannot_overdraw_stock(self):
+        common = {'product': self.product, 'location': self.location, 'occurred_on': timezone.localdate(), 'user': self.user}
+        record_movement(movement_type='receipt', quantity='5', **common)
+        record_movement(movement_type='issue', quantity='4', **common)
+        with self.assertRaises(Exception):
+            record_movement(movement_type='issue', quantity='2', **common)
+
+
+class InventoryQueryTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='query-stock', password='test-pass-123')
+        self.product = Product.objects.create(sku='QUERY-1', name='Query stock', product_type=Product.Type.STOCK, cost_price='10.00')
+        self.location = StockLocation.objects.create(code='QUERY', name='Query location')
+
+    def test_existing_product_uses_defaults_and_stock_is_not_duplicated(self):
+        InventorySettings.objects.create(default_unit='items', default_reorder_level='3')
+        record_movement(product=self.product, location=self.location, movement_type='receipt', quantity='2', occurred_on=timezone.localdate(), user=self.user)
+        rows = product_stock_rows()
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['unit'], 'items')
+        self.assertEqual(rows[0]['status'], 'Low Stock')
+        self.assertEqual(rows[0]['inventory_value'], 20)
+        self.assertEqual(low_stock_rows()[0]['id'], self.product.id)
+
+    def test_mixed_units_are_labelled_as_aggregate(self):
+        other = Product.objects.create(sku='QUERY-2', name='Other stock', product_type=Product.Type.STOCK)
+        ProductInventoryProfile.objects.create(product=self.product, unit='kg')
+        ProductInventoryProfile.objects.create(product=other, unit='boxes')
+        for product in (self.product, other):
+            record_movement(product=product, location=self.location, movement_type='receipt', quantity='1', occurred_on=timezone.localdate(), user=self.user)
+        self.assertEqual(inventory_summary()['quantity_label'], 'Aggregate quantity')
+
+
+class InventoryReportTests(InventoryQueryTests):
+    def test_exact_report_set_and_safe_csv_cells(self):
+        for name in ('Current Stock Summary', 'Inventory Value', 'Low Stock Report', 'Out of Stock Report', 'Stock Movement Summary', 'Products by Category'):
+            self.assertEqual(report_dataset(name)['name'], name)
+        self.assertEqual(safe_csv_cell('=HYPERLINK("bad")'), "'=HYPERLINK(\"bad\")")
 
 
 class InventoryApiTests(APITestCase):
