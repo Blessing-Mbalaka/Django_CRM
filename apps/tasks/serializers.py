@@ -3,7 +3,7 @@ from django.db import transaction
 from django.db.models import Max
 from rest_framework import serializers
 
-from .models import Board, BoardColumn, Project, ProjectNotification, Task, TaskActivity, TaskComment
+from .models import Board, BoardColumn, Project, ProjectNotification, Task, TaskActivity, TaskAttachment, TaskComment
 
 
 class BoardColumnSerializer(serializers.ModelSerializer):
@@ -72,6 +72,48 @@ class TaskActivitySerializer(serializers.ModelSerializer):
         model = TaskActivity
         fields = ['id', 'task', 'actor', 'action', 'detail', 'created_at']
         read_only_fields = fields
+
+
+class TaskAttachmentSerializer(serializers.ModelSerializer):
+    download_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TaskAttachment
+        fields = [
+            'id', 'task', 'file', 'original_name', 'mime_type', 'size',
+            'checksum', 'uploaded_by', 'created_at', 'download_url',
+        ]
+        read_only_fields = [
+            'id', 'original_name', 'mime_type', 'size', 'checksum',
+            'uploaded_by', 'created_at', 'download_url',
+        ]
+        extra_kwargs = {'file': {'write_only': True}}
+
+    def get_download_url(self, obj):
+        from django.urls import reverse
+
+        return reverse('tasks:attachment_download', args=[obj.pk])
+
+    def validate_task(self, task):
+        from functionalities.tasks.queries import accessible_tasks
+
+        if not accessible_tasks(self.context['request'].user).filter(pk=task.pk).exists():
+            raise serializers.ValidationError('You do not have access to this task.')
+        return task
+
+    def create(self, validated_data):
+        from django.core.exceptions import ValidationError as DjangoValidationError
+        from functionalities.tasks.attachments import add_task_attachment
+
+        upload = validated_data.pop('file')
+        try:
+            return add_task_attachment(
+                task=validated_data['task'],
+                upload=upload,
+                user=self.context['request'].user,
+            )
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError({'file': exc.messages}) from exc
 
 
 class ProjectSerializer(serializers.ModelSerializer):

@@ -1,12 +1,13 @@
 from django.db import models
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from functionalities.tasks.services import move_task
-from .models import Board, BoardColumn, Project, Task, TaskActivity, TaskComment
-from .serializers import BoardColumnSerializer, BoardSerializer, ProjectSerializer, TaskActivitySerializer, TaskCommentSerializer, TaskSerializer
+from .models import Board, BoardColumn, Project, Task, TaskActivity, TaskAttachment, TaskComment
+from .serializers import BoardColumnSerializer, BoardSerializer, ProjectSerializer, TaskActivitySerializer, TaskAttachmentSerializer, TaskCommentSerializer, TaskSerializer
 
 
 class BoardViewSet(viewsets.ModelViewSet):
@@ -110,6 +111,25 @@ class TaskActivityViewSet(viewsets.ReadOnlyModelViewSet):
             models.Q(task__assignee=self.request.user) |
             models.Q(task__project_card_for__assignees=self.request.user)
         ).distinct().select_related('task', 'actor')
+
+
+class TaskAttachmentViewSet(viewsets.ModelViewSet):
+    serializer_class = TaskAttachmentSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        from functionalities.tasks.queries import accessible_tasks
+
+        return TaskAttachment.objects.filter(
+            task__in=accessible_tasks(self.request.user)
+        ).select_related('task', 'uploaded_by')
+
+    def perform_destroy(self, instance):
+        stored_file = instance.file
+        instance.delete()
+        stored_file.delete(save=False)
 
 
 class ProjectViewSet(viewsets.ModelViewSet):

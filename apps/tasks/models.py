@@ -1,3 +1,6 @@
+from pathlib import Path
+from uuid import uuid4
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -88,6 +91,29 @@ class TaskActivity(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+def task_attachment_upload_path(instance, filename):
+    suffix = Path(filename).suffix.lower()
+    return f'tasks/{instance.task_id}/attachments/{uuid4().hex}{suffix}'
+
+
+class TaskAttachment(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to=task_attachment_upload_path)
+    original_name = models.CharField(max_length=255)
+    mime_type = models.CharField(max_length=120)
+    size = models.PositiveBigIntegerField()
+    checksum = models.CharField(max_length=64, db_index=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='task_attachments',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
 
 
 class Project(models.Model):

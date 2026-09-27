@@ -1,11 +1,15 @@
 from pathlib import Path
 from datetime import date, timedelta
+import hashlib
+import tempfile
 
+from django.apps import apps as django_apps
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 from django.contrib.staticfiles import finders
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -203,6 +207,106 @@ class ProjectLifecycleApiTests(APITestCase):
         project = Project.objects.get(pk=created.data['id'])
         self.assertEqual(project.status, Project.Status.COMPLETED)
         self.assertEqual(project.due_date.isoformat(), '2026-11-07')
+
+
+class TaskAttachmentTests(APITestCase):
+    def setUp(self):
+        self.temp_media = tempfile.TemporaryDirectory()
+        self.media_override = override_settings(MEDIA_ROOT=self.temp_media.name)
+        self.media_override.enable()
+        self.owner = User.objects.create_user(username='attachment-owner', password='test-pass-123')
+        self.assignee = User.objects.create_user(username='attachment-assignee', password='test-pass-123')
+        self.outsider = User.objects.create_user(username='attachment-outsider', password='test-pass-123')
+        self.board = Board.objects.create(name='Attachment board', owner=self.owner)
+        self.column = BoardColumn.objects.create(board=self.board, name='To Do', position=0)
+        self.task = Task.objects.create(
+            board=self.board,
+            column=self.column,
+            title='Attach evidence',
+            creator=self.owner,
+            assignee=self.assignee,
+        )
+        self.client.force_authenticate(self.owner)
+
+    def tearDown(self):
+        self.media_override.disable()
+        self.temp_media.cleanup()
+        super().tearDown()
+
+    def upload(self, name='evidence.txt', content=b'hello', content_type='text/plain'):
+        return self.client.post(
+            '/api/v1/task-attachments/',
+            {
+                'task': self.task.id,
+                'file': SimpleUploadedFile(name, content, content_type=content_type),
+            },
+            format='multipart',
+        )
+
+    def test_text_upload_records_metadata_and_checksum(self):
+        response = self.upload()
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertEqual(response.data['original_name'], 'evidence.txt')
+        self.assertEqual(response.data['mime_type'], 'text/plain')
+        self.assertEqual(response.data['size'], 5)
+        self.assertEqual(response.data['checksum'], hashlib.sha256(b'hello').hexdigest())
+        self.assertEqual(response.data['uploaded_by'], self.owner.id)
+
+    def test_upload_rejects_unsupported_mime_type(self):
+        response = self.upload('program.exe', b'MZ', 'application/x-msdownload')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('file', response.data)
+
+    def test_upload_rejects_file_over_25_mb(self):
+        upload = SimpleUploadedFile(
+            'large.txt',
+            b'x' * (25 * 1024 * 1024 + 1),
+            content_type='text/plain',
+        )
+
+        response = self.client.post(
+            '/api/v1/task-attachments/',
+            {'task': self.task.id, 'file': upload},
+            format='multipart',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('file', response.data)
+
+    def test_owner_and_assignee_can_download_but_outsider_gets_404(self):
+        created = self.upload()
+        download_url = created.data['download_url']
+
+        self.client.force_authenticate(None)
+        self.client.force_login(self.owner)
+        owner_response = self.client.get(download_url)
+        self.assertEqual(owner_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(b''.join(owner_response.streaming_content), b'hello')
+        owner_response.close()
+
+        self.client.force_login(self.assignee)
+        assignee_response = self.client.get(download_url)
+        self.assertEqual(assignee_response.status_code, status.HTTP_200_OK)
+        assignee_response.close()
+
+        self.client.force_login(self.outsider)
+        outsider_response = self.client.get(download_url)
+        self.assertEqual(outsider_response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_removes_database_record_and_stored_file(self):
+        created = self.upload()
+        Attachment = django_apps.get_model('tasks', 'TaskAttachment')
+        attachment = Attachment.objects.get(pk=created.data['id'])
+        stored_path = Path(attachment.file.path)
+        self.assertTrue(stored_path.exists())
+
+        response = self.client.delete(f"/api/v1/task-attachments/{attachment.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Attachment.objects.filter(pk=attachment.id).exists())
+        self.assertFalse(stored_path.exists())
 
 
 class TaskApiTests(APITestCase):

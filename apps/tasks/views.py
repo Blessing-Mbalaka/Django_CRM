@@ -1,8 +1,11 @@
 from django.contrib.auth.decorators import login_required
+from django.http import FileResponse
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404, redirect, render
+from pathlib import Path
 
-from .models import ProjectNotification
+from functionalities.tasks.queries import accessible_tasks
+from .models import ProjectNotification, TaskAttachment
 
 
 @login_required
@@ -22,3 +25,17 @@ def open_project_notification(request, pk):
         notification.is_read = True
         notification.save(update_fields=['is_read'])
     return redirect(f'/tasks/?board={notification.project.board_id}&project={notification.project_id}')
+
+
+@login_required
+def download_attachment(request, pk):
+    attachment = get_object_or_404(
+        TaskAttachment.objects.filter(task__in=accessible_tasks(request.user)),
+        pk=pk,
+    )
+    return FileResponse(
+        attachment.file.open('rb'),
+        as_attachment=True,
+        filename=Path(attachment.original_name).name,
+        content_type=attachment.mime_type or 'application/octet-stream',
+    )
