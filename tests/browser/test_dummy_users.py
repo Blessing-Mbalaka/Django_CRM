@@ -106,9 +106,10 @@ def run():
                 assert max(stat_positions) - min(stat_positions) <= 2
 
             page.goto(f'{BASE_URL}/', wait_until='networkidle')
-            assert page.locator('.sme-tool-icon').count() >= 26
-            assert page.locator('a[href="/academy/#diagnostics"]').count() == 1
-            logout = page.locator('form.sme-quick-logout button')
+            assert page.url == f'{BASE_URL}/academy/'
+            assert page.locator('[data-route="tools"]').count() == 1
+            assert page.locator('[data-route="diagnostics"]').count() == 1
+            logout = page.locator('form[action="/accounts/logout/"] button')
             assert logout.count() == 1
             logout.click()
             page.wait_for_url(f'{BASE_URL}/accounts/login/')

@@ -6,12 +6,28 @@ from django.test import TestCase
 from apps.accounts.models import User
 
 
+class CoreLandingTests(TestCase):
+    def test_authenticated_root_redirects_to_academy(self):
+        user = User.objects.create_user(username='academy-landing', password='test-pass-123')
+        self.client.force_login(user)
+
+        response = self.client.get('/')
+
+        self.assertRedirects(response, '/academy/', fetch_redirect_response=False)
+
+    def test_anonymous_root_redirects_to_login(self):
+        response = self.client.get('/')
+
+        self.assertRedirects(response, '/accounts/login/?next=/', fetch_redirect_response=False)
+
+
 class CEOApplicationSmokeTests(TestCase):
     def test_ceo_can_render_the_application_modules(self):
         ceo = User.objects.create_user(username='ceo-smoke', password='test-pass-123', role=User.Role.CEO)
         self.client.force_login(ceo)
+        self.assertRedirects(self.client.get('/'), '/academy/', fetch_redirect_response=False)
         for path in [
-            '/', '/staff/', '/departments/', '/clients/', '/engagements/', '/finance/',
+            '/staff/', '/departments/', '/clients/', '/engagements/', '/finance/',
             '/alerts/', '/analytics/', '/communication/', '/documents/', '/tasks/',
             '/billing/', '/expenses/', '/products/', '/inventory/', '/purchasing/',
             '/sales/', '/accounting/',
@@ -21,19 +37,10 @@ class CEOApplicationSmokeTests(TestCase):
                 response = self.client.get(path)
                 self.assertEqual(response.status_code, 200)
                 self.assertNotContains(response, 'id="sidebar"')
-                if path == '/':
-                    self.assertNotContains(response, 'Back to Business Tools')
-                    self.assertContains(response, 'CEO (Executive)')
-                    self.assertContains(response, '/departments/')
-                    self.assertContains(response, 'module-catalogue-grid')
-                    self.assertContains(response, 'Finance &amp; Accounting')
-                    self.assertContains(response, 'Operations')
-                    self.assertContains(response, 'Available now')
-                else:
-                    self.assertContains(response, 'Back to Business Tools')
-                    self.assertContains(response, 'href="/academy/#tools"')
-                    self.assertContains(response, 'class="sme-branded-app"')
-                    self.assertContains(response, '/static/css/sme_brand.css')
+                self.assertContains(response, 'Back to Business Tools')
+                self.assertContains(response, 'href="/academy/#tools"')
+                self.assertContains(response, 'class="sme-branded-app"')
+                self.assertContains(response, '/static/css/sme_brand.css')
 
     def test_base_uses_matching_bootstrap_bundle_and_runtime_toasts(self):
         ceo = User.objects.create_user(username='asset-smoke', password='test-pass-123', role=User.Role.CEO)
@@ -49,23 +56,19 @@ class CEOApplicationSmokeTests(TestCase):
         self.assertIn('Interface library failed to load', main_js)
         self.assertIn('/api/v1${path} failed', api_client)
 
-    def test_dashboard_is_the_single_role_aware_module_navigation(self):
+    def test_academy_is_the_single_role_aware_module_navigation(self):
         staff = User.objects.create_user(username='tile-staff', password='test-pass-123', role=User.Role.STAFF)
         self.client.force_login(staff)
-        response = self.client.get('/')
-        for path in ('/clients/', '/engagements/', '/sales/', '/billing/', '/expenses/', '/finance/', '/accounting/', '/products/', '/inventory/', '/purchasing/', '/tasks/', '/documents/', '/analytics/', '/alerts/', '/communication/', '/ai/', '/staff/', '/departments/', '/academy/', '/growth/'):
+        response = self.client.get('/academy/')
+        for path in ('/clients/', '/engagements/', '/sales/', '/billing/', '/expenses/', '/finance/', '/accounting/', '/products/', '/inventory/', '/purchasing/', '/tasks/', '/documents/', '/analytics/', '/alerts/', '/communication/', '/ai/', '/staff/', '/departments/', '/growth/'):
             with self.subTest(path=path):
-                self.assertGreaterEqual(response.content.count(f'href="{path}"'.encode()), 1)
-        self.assertNotContains(response, 'id="sidebar"')
+                self.assertContains(response, path)
+        self.assertContains(response, 'id="sidebar"')
         self.assertNotContains(response, 'Back to Business Tools')
-        self.assertContains(response, 'module-info-badge', count=26)
-        self.assertContains(response, 'class="sme-tool-icon"', count=26)
-        self.assertContains(response, 'href="/academy/#diagnostics"')
+        self.assertContains(response, 'id="academy-tools-data"')
+        self.assertContains(response, 'data-route="tools"')
+        self.assertContains(response, 'data-route="diagnostics"')
         self.assertContains(response, 'Business Diagnostic')
-        self.assertContains(response, 'An invoice is a formal request asking a customer to pay')
-        self.assertContains(response, 'aria-describedby="module-help-finance-1"')
-        self.assertContains(response, 'group-growth')
-        self.assertContains(response, 'Coming soon', count=5)
         self.assertNotContains(response, '/payroll/')
         self.assertNotContains(response, '/system-admin/')
 
