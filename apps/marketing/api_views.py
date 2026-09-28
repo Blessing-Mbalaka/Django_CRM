@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
@@ -138,12 +139,15 @@ class MarketingWorkspaceViewSet(viewsets.ViewSet):
         contact = MarketingContact.objects.filter(pk=request.data.get("contact")).first() if request.data.get("contact") else None
         campaign = MarketingCampaign.objects.filter(pk=request.data.get("campaign")).first() if request.data.get("campaign") else None
         content = MarketingContent.objects.filter(pk=request.data.get("content")).first() if request.data.get("content") else None
-        return queue_message(
-            channel=request.data.get("channel", ""), actor=request.user, contact=contact, campaign=campaign, content=content,
-            destination=request.data.get("destination", ""), subject=request.data.get("subject", ""),
-            body=request.data.get("body", ""), html=request.data.get("html", ""),
-            media_url=request.data.get("media_url", ""), scheduled_at=scheduled_at,
-        )
+        try:
+            return queue_message(
+                channel=request.data.get("channel", ""), actor=request.user, contact=contact, campaign=campaign, content=content,
+                destination=request.data.get("destination", ""), subject=request.data.get("subject", ""),
+                body=request.data.get("body", ""), html=request.data.get("html", ""),
+                media_url=request.data.get("media_url", ""), scheduled_at=scheduled_at,
+            )
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(exc.message_dict if hasattr(exc, "message_dict") else exc.messages) from exc
 
     @action(detail=False, methods=["post"], permission_classes=[IsCEODirectorOrAdmin])
     def send(self, request):

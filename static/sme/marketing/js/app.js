@@ -95,7 +95,7 @@ function normalizeForm(form) {
     return formData;
   }
   const values = Object.fromEntries(formData.entries());
-  for (const name of ['campaign', 'contact', 'advert', 'content']) if (values[name] === '') values[name] = null;
+  for (const name of ['campaign', 'contact', 'advert', 'content', 'ends_at']) if (values[name] === '') values[name] = null;
   if (form.dataset.form === 'campaign') values.channels = formData.getAll('channels');
   if (form.dataset.form === 'contact') {
     for (const name of ['email_consent', 'sms_consent', 'whatsapp_consent']) values[name] = formData.has(name);

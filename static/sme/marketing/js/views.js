@@ -21,12 +21,12 @@ export function dashboard(state) {
 }
 
 export function campaigns(state) {
-  const rows = state.campaigns.map(item => [`<strong>${esc(item.name)}</strong>`, esc(item.objective || '—'), esc((item.channels || []).join(', ') || '—'), money(item.budget), `${date(item.start_date)} – ${date(item.end_date)}`, badge(item.status), `<div class="data-actions">${action('Edit', 'edit', `campaign:${item.id}`)}${action('Delete', 'delete', `campaign:${item.id}`)}</div>`]);
+  const rows = state.campaigns.map(item => [`<strong>${esc(item.name)}</strong>`, esc(item.objective || '—'), esc((item.channels || []).join(', ') || '—'), money(item.budget), `${date(item.start_date)} – ${date(item.end_date)}`, badge(item.status), state.canManage ? `<div class="data-actions">${action('Edit', 'edit', `campaign:${item.id}`)}${action('Delete', 'delete', `campaign:${item.id}`)}</div>` : '<span class="muted">Read only</span>']);
   return panel('Your campaigns', 'A clear plan for every promotion', table(['Campaign', 'Objective', 'Channels', 'Budget', 'Dates', 'Status', 'Actions'], rows));
 }
 
 export function advertising(state) {
-  const rows = state.adverts.map(item => [`<strong>${esc(item.name)}</strong>`, esc(item.platform || item.advertising_type || '—'), esc(item.location || '—'), `${money(item.actual_spend)} / ${money(item.budget)}`, badge(item.status), `<div class="data-actions">${action('Edit', 'edit', `advert:${item.id}`)}${action('Delete', 'delete', `advert:${item.id}`)}</div>`]);
+  const rows = state.adverts.map(item => [`<strong>${esc(item.name)}</strong>`, esc(item.platform || item.advertising_type || '—'), esc(item.location || '—'), `${money(item.actual_spend)} / ${money(item.budget)}`, badge(item.status), state.canManage ? `<div class="data-actions">${action('Edit', 'edit', `advert:${item.id}`)}${action('Delete', 'delete', `advert:${item.id}`)}</div>` : '<span class="muted">Read only</span>']);
   return `<div class="module-intro"><p>Manage where your business advertises and track what works.</p>${action('Advertising Opportunities', 'opportunities')}</div>${panel('Your adverts', 'Online, on air, or around the neighbourhood', table(['Advert', 'Platform', 'Location', 'Spent / Budget', 'Status', 'Actions'], rows))}`;
 }
 
@@ -37,12 +37,12 @@ export function opportunities() {
 
 export function content(state) {
   if (!state.content.length) return empty('Upload your first genuine poster or social image.');
-  return `<div class="content-grid">${state.content.map(item => `<article class="panel library-card"><div class="library-preview">${item.image ? `<img src="${esc(item.image)}" alt="">` : '<div class="empty-state">No image</div>'}</div><div class="library-caption"><div><strong>${esc(item.title)}</strong><small>${esc(item.kind)} · ${esc(item.status)}</small></div><div class="data-actions">${action('Edit', 'edit', `content:${item.id}`)}${action('Delete', 'delete', `content:${item.id}`)}</div></div></article>`).join('')}</div>`;
+  return `<div class="content-grid">${state.content.map(item => `<article class="panel library-card"><div class="library-preview">${item.image ? `<img src="${esc(item.image)}" alt="">` : '<div class="empty-state">No image</div>'}</div><div class="library-caption"><div><strong>${esc(item.title)}</strong><small>${esc(item.kind)} · ${esc(item.status)}</small></div>${state.canManage ? `<div class="data-actions">${action('Edit', 'edit', `content:${item.id}`)}${action('Delete', 'delete', `content:${item.id}`)}</div>` : ''}</div></article>`).join('')}</div>`;
 }
 
 export function email(state) {
   const emails = state.messages.filter(item => item.channel === 'email');
-  return `<div class="module-intro"><p>Send only to contacts with affirmative email consent.</p>${state.canManage ? action('Add Contact', 'create', 'contact') : ''}</div>${panel('Email campaigns', 'Twilio Email delivery and status tracking', table(['Subject', 'Recipient', 'Scheduled', 'Status', 'Attempts', 'Actions'], emails.map(item => [esc(item.subject_snapshot || 'Untitled email'), esc(item.destination), date(item.scheduled_at || item.created_at), badge(item.status), esc(item.attempt_count), `<div class="data-actions">${['failed', 'unavailable'].includes(item.status) ? action('Retry', 'retry', item.id) : ''}${['draft', 'scheduled', 'failed', 'unavailable'].includes(item.status) ? action('Cancel', 'cancel', item.id) : ''}</div>`])))}`;
+  return `<div class="module-intro"><p>Send only to contacts with affirmative email consent.</p>${state.canManage ? action('Add Contact', 'create', 'contact') : ''}</div>${panel('Email campaigns', 'Twilio Email delivery and status tracking', table(['Subject', 'Recipient', 'Scheduled', 'Status', 'Attempts', 'Actions'], emails.map(item => [esc(item.subject_snapshot || 'Untitled email'), esc(item.destination), date(item.scheduled_at || item.created_at), badge(item.status), esc(item.attempt_count), state.canManage ? `<div class="data-actions">${['failed', 'unavailable'].includes(item.status) ? action('Retry', 'retry', item.id) : ''}${['draft', 'scheduled', 'failed', 'unavailable'].includes(item.status) ? action('Cancel', 'cancel', item.id) : ''}</div>` : '<span class="muted">Read only</span>'])))}`;
 }
 
 export function calendar(state) {
@@ -50,7 +50,7 @@ export function calendar(state) {
 }
 
 export function leads(state) {
-  return `${stats([['New Leads', state.leads.filter(item => item.status === 'new').length], ['Interested', state.leads.filter(item => item.status === 'interested').length], ['Converted', state.leads.filter(item => item.status === 'converted').length]])}${panel('Marketing leads', 'Follow up and transfer qualified interest to CRM', table(['Contact', 'Source', 'Received', 'Status', 'Value', 'Actions'], state.leads.map(item => [esc(state.contacts.find(contact => contact.id === item.contact)?.name || `Lead ${item.id}`), esc(item.acquisition_source || '—'), date(item.received_date), badge(item.status), money(item.estimated_value), `<div class="data-actions">${action('Edit', 'edit', `lead:${item.id}`)}${!item.client ? action('Send to CRM', 'convert', item.id) : '<span class="badge">In CRM</span>'}</div>`])) )}`;
+  return `${stats([['New Leads', state.leads.filter(item => item.status === 'new').length], ['Interested', state.leads.filter(item => item.status === 'interested').length], ['Converted', state.leads.filter(item => item.status === 'converted').length]])}${panel('Marketing leads', 'Follow up and transfer qualified interest to CRM', table(['Contact', 'Source', 'Received', 'Status', 'Value', 'Actions'], state.leads.map(item => [esc(state.contacts.find(contact => contact.id === item.contact)?.name || `Lead ${item.id}`), esc(item.acquisition_source || '—'), date(item.received_date), badge(item.status), money(item.estimated_value), state.canManage ? `<div class="data-actions">${action('Edit', 'edit', `lead:${item.id}`)}${!item.client ? action('Send to CRM', 'convert', item.id) : '<span class="badge">In CRM</span>'}</div>` : '<span class="muted">Read only</span>'])) )}`;
 }
 
 export function analytics(state, charts) {
