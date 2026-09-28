@@ -542,4 +542,15 @@ The SME visual navigation contract is now integrated without introducing host- o
 
 The next implementation audit is Tasks & Kanban (Phase 6): reconcile the preserved SME task screens with the existing task/project APIs before making any schema changes.
 
+## 26. Marketing & Communications workspace — implemented 28 September 2026
+
+- `/growth/` is the single native Marketing app, with Dashboard, Campaigns, Advertising, Posters & Content, Email Marketing, Calendar, Leads, Analytics, and Brand Kit routes.
+- Planning data, genuine uploads, channel consent, leads, activities, metrics, immutable outbound snapshots, attempts, and webhook events are persisted in `apps.marketing`.
+- Twilio Email/SMS and Meta WhatsApp/Facebook/Instagram are isolated behind environment-configured services. Missing credentials do not block planning; each provider reports **Not configured** or **Unavailable** independently.
+- CEO, Director, and System Administrator roles own writes and delivery controls. Other authenticated users have read-only access.
+- Immediate and scheduled messages share a transactional dispatcher. `send_due_marketing --limit N` provides bounded processing, stale-claim recovery, and duplicate-claim protection.
+- Signed Twilio and Meta callbacks are deduplicated, bounded before storage, and cannot regress terminal delivery states. Provider acceptance is never displayed as delivery.
+- The imported prototype remains a visual reference only. Runtime pages use Django APIs and contain no sample `data.js` or browser-storage database.
+- Operational instructions are in `docs/marketing-provider-setup.md`.
+
 Marketing remains deferred to Phase 8. The later CRM-wide shell/profile/Knowledge Hub/Inventory/Tasks work remains governed by sections 18–20 and is not silently folded into this Academy delivery.

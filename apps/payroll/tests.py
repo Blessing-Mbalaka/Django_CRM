@@ -101,7 +101,9 @@ class PayrollApiTests(APITestCase):
         self.assertContains(response, 'PAYE and UIF values are captured manually')
         self.assertContains(response, 'payrollEmployeeForm')
         dashboard = self.client.get('/')
-        self.assertContains(dashboard, '/payroll/')
+        self.assertRedirects(dashboard, '/academy/', fetch_redirect_response=False)
+        academy = self.client.get('/academy/')
+        self.assertContains(academy, '/payroll/')
 
 
 class PayrollModelTests(APITestCase):

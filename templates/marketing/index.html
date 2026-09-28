@@ -1,0 +1,47 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Campaign, advertising, content, lead and brand management for growing businesses.">
+  <title>Marketing &amp; Advertising · SME Business Suite</title>
+  <link rel="stylesheet" href="{% static 'sme/shared/css/inventory.css' %}">
+  <link rel="stylesheet" href="{% static 'sme/marketing/css/style.css' %}">
+  <script type="module" src="{% static 'sme/marketing/js/app.js' %}"></script>
+</head>
+<body class="inventory-sidebar marketing-module dashboard-page">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Expand sidebar" aria-expanded="false" aria-controls="marketingNavigation">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg>
+      </button>
+      <nav id="marketingNavigation" aria-label="Marketing navigation">
+        <button type="button" data-route="dashboard" data-action="navigate" data-id="dashboard"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-3H4z"/></svg><span>Dashboard</span></button>
+        <button type="button" data-route="campaigns" data-action="navigate" data-id="campaigns"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 11v2l10 4V7zM14 9h3a3 3 0 0 1 0 6h-3M7 15l1 5h3"/></svg><span>Campaigns</span></button>
+        <button type="button" data-route="advertising" data-action="navigate" data-id="advertising"><svg class="nav-icon" viewBox="0 0 24 24"><path d="m3 11 14-6v14L3 13zM17 9h2a2 2 0 0 1 0 4h-2"/></svg><span>Advertising</span></button>
+        <button type="button" data-route="content" data-action="navigate" data-id="content"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 14l3-3 5 5M15 9h.01"/></svg><span>Posters &amp; Content</span></button>
+        <button type="button" data-route="email" data-action="navigate" data-id="email"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 7l9 6 9-6"/></svg><span>Email Marketing</span></button>
+        <button type="button" data-route="calendar" data-action="navigate" data-id="calendar"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM8 3v6M16 3v6M4 10h16"/></svg><span>Marketing Calendar</span></button>
+        <button type="button" data-route="leads" data-action="navigate" data-id="leads"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21a8 6 0 0 1 16 0v3M19 5v6M16 8h6"/></svg><span>Leads</span></button>
+        <button type="button" data-route="analytics" data-action="navigate" data-id="analytics"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Analytics</span></button>
+        <button type="button" data-route="brand" data-action="navigate" data-id="brand"><svg class="nav-icon" viewBox="0 0 24 24"><path d="m12 3 8 5v8l-8 5-8-5V8zM8 13h8M10 9h4"/></svg><span>Brand Kit</span></button>
+      </nav>
+      <a class="workspace-link" href="/academy/#tools"><svg class="nav-icon" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-8h6v8"/></svg><span>Business Tools</span></a>
+      <form method="post" action="/accounts/logout/" class="sidebar-logout">{% csrf_token %}<button class="signout-button" type="submit"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 5H4v14h6M14 8l4 4-4 4M8 12h10"/></svg><span>Sign out</span></button></form>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-title"><button id="menuButton" class="icon-button mobile-menu" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">Marketing &amp; Advertising</h1></div></div>
+        <button class="btn" id="primaryAction" type="button" hidden>＋ Create</button>
+      </header>
+      <div id="providerStatus" class="provider-strip" aria-live="polite"></div>
+      <main id="content" tabindex="-1"><section class="panel loading-state"><h2>Loading Marketing workspace…</h2></section></main>
+      <footer>SME Business Suite <span>·</span> Marketing workspace <span id="saveState">· Connected to CRM data</span></footer>
+    </div>
+  </div>
+  <dialog id="marketingDialog" aria-labelledby="dialogTitle"><div class="modal-header"><h2 id="dialogTitle"></h2><button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button></div><div id="dialogBody"></div></dialog>
+  <div id="toasts" role="status" aria-live="polite"></div>
+  {{ marketing_config|json_script:"marketing-config" }}
+</body>
+</html>

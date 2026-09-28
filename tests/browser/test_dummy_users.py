@@ -16,7 +16,7 @@ SMOKE_PATHS = (
     '/', '/academy/', '/clients/', '/engagements/', '/finance/', '/analytics/',
     '/documents/', '/tasks/', '/billing/', '/expenses/', '/products/',
     '/inventory/', '/purchasing/', '/sales/', '/accounting/', '/payroll/',
-    '/alerts/', '/communication/', '/staff/', '/departments/', '/system-admin/',
+    '/alerts/', '/communication/', '/staff/', '/departments/', '/growth/', '/system-admin/',
 )
 ACADEMY_SECTIONS = {
     'dashboard': 'Welcome to the SME Academy',

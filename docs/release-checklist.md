@@ -12,5 +12,10 @@ Before deploying a release:
 8. Verify document upload/download, bank CSV import/reconciliation, invoice payment, expense approval, and payroll approval in staging.
 9. Confirm only CEO/admin users can access payroll data.
 10. Keep PAYE/UIF manual until versioned statutory rules have been independently verified against current SARS guidance.
+11. Run `python manage.py send_due_marketing --limit 0` after migrations and configure the production scheduler with a bounded positive limit.
+12. Verify `/growth/` reports provider states without exposing credential values; unconfigured channels must say **Not configured**.
+13. Confirm Twilio and Meta callbacks are public HTTPS endpoints, invalid signatures return 403, and the proxy preserves the externally signed URL.
+14. Test Marketing with a dedicated consented recipient only. Acceptance must not appear as delivery, and opt-outs must block provider calls.
+15. Run `python tests/browser/test_marketing_workspace.py` against staging without live credentials unless a separately approved provider test is intended.
 
 Rollback requires the pre-deployment database/media backup and the previous application build. Do not reverse financial or payroll migrations after production data has been entered without a reviewed data migration.
