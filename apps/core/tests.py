@@ -36,11 +36,16 @@ class CEOApplicationSmokeTests(TestCase):
             with self.subTest(path=path):
                 response = self.client.get(path)
                 self.assertEqual(response.status_code, 200)
-                self.assertNotContains(response, 'id="sidebar"')
-                self.assertContains(response, 'Back to Business Tools')
-                self.assertContains(response, 'href="/academy/#tools"')
-                self.assertContains(response, 'class="sme-branded-app"')
-                self.assertContains(response, '/static/css/sme_brand.css')
+                if path in ('/tasks/', '/inventory/'):
+                    self.assertContains(response, 'id="sidebar"')
+                    self.assertContains(response, 'href="/academy/#tools"')
+                    self.assertNotContains(response, 'class="sme-branded-app"')
+                else:
+                    self.assertNotContains(response, 'id="sidebar"')
+                    self.assertContains(response, 'Back to Business Tools')
+                    self.assertContains(response, 'href="/academy/#tools"')
+                    self.assertContains(response, 'class="sme-branded-app"')
+                    self.assertContains(response, '/static/css/sme_brand.css')
 
     def test_base_uses_matching_bootstrap_bundle_and_runtime_toasts(self):
         ceo = User.objects.create_user(username='asset-smoke', password='test-pass-123', role=User.Role.CEO)
@@ -77,14 +82,13 @@ class CEOApplicationSmokeTests(TestCase):
         self.assertContains(finance, 'href="/academy/#tools"')
         self.assertNotContains(finance, 'id="sidebar"')
 
-    def test_growth_marketing_placeholder_renders(self):
+    def test_growth_marketing_workspace_renders(self):
         user = User.objects.create_user(username='growth-user', password='test-pass-123')
         self.client.force_login(user)
         response = self.client.get('/growth/')
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Growth &amp; Marketing')
-        self.assertContains(response, 'Coming soon')
-        self.assertContains(response, 'Back to Business Tools')
+        self.assertContains(response, 'Marketing &amp; Advertising')
+        self.assertNotContains(response, 'Coming soon')
         self.assertContains(response, 'href="/academy/#tools"')
-        self.assertContains(response, 'Return to Business Tools')
-        self.assertNotContains(response, 'id="sidebar"')
+        self.assertContains(response, 'id="sidebar"')
+        self.assertContains(response, 'id="marketing-config"')

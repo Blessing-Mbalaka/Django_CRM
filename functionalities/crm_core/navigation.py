@@ -149,19 +149,15 @@ def get_suite_navigation(user):
         },
         {
             'key': 'growth', 'label': 'Growth & Marketing', 'icon': 'bi-megaphone', 'gradient': 'growth',
-            'description': 'Prepare future campaigns, audience segments, lead generation and channel performance.',
+            'description': 'Plan campaigns, publish content, nurture leads and measure channel performance.',
             'items': [
                 _item('SME Academy', 'bi-mortarboard', 'academy:index', 'Learn through practical courses managed by Academy administrators.'),
-                _item('Growth & Marketing', 'bi-rocket-takeoff', 'core:growth_marketing', 'Preview the planned growth and marketing workspace.'),
+                _item('Marketing & Advertising', 'bi-rocket-takeoff', 'marketing:index', 'Plan and deliver campaigns from the connected Marketing workspace.'),
             ],
             'catalogue_items': [
                 _item('SME Academy', 'bi-mortarboard', 'academy:index', 'Learn through practical courses managed by Academy administrators.'),
                 _direct_item('Business Diagnostic', 'bi-clipboard-data', f"{reverse('academy:index')}#diagnostics", 'Assess your business using administrator-configured questions, scoring and course recommendations.'),
-                {**_item('Campaigns', 'bi-megaphone', 'core:growth_marketing', 'Plan coordinated email, event and relationship campaigns.'), 'coming_soon': True},
-                {**_item('Audience Segments', 'bi-share', 'core:growth_marketing', 'Build focused audiences from CRM and engagement information.'), 'coming_soon': True},
-                {**_item('Lead Generation', 'bi-funnel', 'core:growth_marketing', 'Capture acquisition sources and qualify interest into engagements.'), 'coming_soon': True},
-                {**_item('Channel Performance', 'bi-globe2', 'core:growth_marketing', 'Compare reach, conversion and contribution across channels.'), 'coming_soon': True},
-                {**_item('Marketing Automation', 'bi-bezier2', 'core:growth_marketing', 'Prepare repeatable journeys while preserving human oversight.'), 'coming_soon': True},
+                _item('Marketing & Advertising', 'bi-megaphone', 'marketing:index', 'Manage campaigns, adverts, content, contacts, leads and channel delivery.'),
             ],
         },
     ]
