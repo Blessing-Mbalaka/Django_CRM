@@ -32,3 +32,6 @@ Thumbs.db
 # Legacy standalone project-management application (not used by this CRM)
 /ProjectManagementAPP_FinalBoss/
 /apps/ProjectManagementAPP_FinalBoss/
+
+# Local feature worktrees
+/.worktrees/
