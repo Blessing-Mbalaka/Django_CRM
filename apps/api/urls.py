@@ -28,6 +28,12 @@ from apps.inventory.api_views      import InventoryCategoryViewSet, InventoryPro
 from apps.purchasing.api_views     import GoodsReceiptViewSet, PurchaseOrderLineViewSet, PurchaseOrderViewSet, SupplierBillViewSet, SupplierViewSet
 from apps.sales.api_views          import FulfilmentViewSet, SalesOrderLineViewSet, SalesOrderViewSet
 from apps.payroll.api_views        import PayrollEmployeeViewSet, PayRunViewSet, PayslipViewSet
+from apps.marketing.api_views import (
+    BrandKitViewSet, MarketingActivityViewSet, MarketingAdvertViewSet,
+    MarketingCampaignViewSet, MarketingContactViewSet, MarketingContentViewSet,
+    MarketingLeadViewSet, MarketingMetricViewSet, MarketingWorkspaceViewSet,
+    OutboundMessageViewSet,
+)
 from apps.academy.api_views import (
     AcademyEventViewSet, AcademyResourceViewSet, ChatMessageViewSet,
     ConversationViewSet, CourseCategoryViewSet, CourseEnrollmentViewSet,
@@ -139,6 +145,16 @@ router.register(r'academy/manage/events', AcademyEventManagementViewSet, basenam
 router.register(r'academy/manage/mentors', MentorProfileManagementViewSet, basename='academy-manage-mentor')
 router.register(r'academy/manage/forum-categories', ForumCategoryManagementViewSet, basename='academy-manage-forum-category')
 router.register(r'academy/manage/forum-posts', ForumPostManagementViewSet, basename='academy-manage-forum-post')
+router.register(r'marketing/campaigns', MarketingCampaignViewSet, basename='marketing-campaign')
+router.register(r'marketing/adverts', MarketingAdvertViewSet, basename='marketing-advert')
+router.register(r'marketing/content', MarketingContentViewSet, basename='marketing-content')
+router.register(r'marketing/contacts', MarketingContactViewSet, basename='marketing-contact')
+router.register(r'marketing/leads', MarketingLeadViewSet, basename='marketing-lead')
+router.register(r'marketing/activities', MarketingActivityViewSet, basename='marketing-activity')
+router.register(r'marketing/metrics', MarketingMetricViewSet, basename='marketing-metric')
+router.register(r'marketing/brand-kit', BrandKitViewSet, basename='marketing-brand-kit')
+router.register(r'marketing/outbound-messages', OutboundMessageViewSet, basename='marketing-outbound-message')
+router.register(r'marketing/workspace', MarketingWorkspaceViewSet, basename='marketing-workspace')
 
 
 @api_view(['GET'])
