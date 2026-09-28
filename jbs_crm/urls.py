@@ -41,6 +41,7 @@ urlpatterns = [
     path('accounting/', include('apps.accounting.urls', namespace='accounting')),
     path('payroll/', include('apps.payroll.urls', namespace='payroll')),
     path('academy/', include('apps.academy.urls', namespace='academy')),
+    path('growth/', include('apps.marketing.urls', namespace='marketing')),
 
     # Versioned REST API; legacy /api/ routes remain for current clients.
     path('api/v1/', include('apps.api.urls')),

@@ -9,8 +9,3 @@ def dashboard_view(request):
     """
     return redirect('academy:index')
 
-
-@login_required
-def growth_marketing_view(request):
-    return render(request, 'core/growth_marketing.html')
-
