@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from .models import Certificate, Course, CourseModule, ForumPost, LearningPath
 from .permissions import is_academy_manager
-from functionalities.crm_core.navigation import get_suite_navigation
+from functionalities.crm_core.navigation import get_academy_primary_tools
 
 
 def _api_v1(name):
@@ -14,19 +14,17 @@ def _api_v1(name):
 
 @login_required
 def academy_index(request):
-    academy_tools = []
-    for group in get_suite_navigation(request.user):
-        if group['key'] == 'developer':
-            continue
-        for item in group['catalogue_items']:
-            academy_tools.append({
-                'label': item['label'],
-                'description': item['description'],
-                'url': item['url'],
-                'svg_path': item['svg_path'],
-                'group': group['label'],
-                'coming_soon': item.get('coming_soon', False),
-            })
+    academy_tools = [
+        {
+            'label': item['label'],
+            'description': item['description'],
+            'url': item['url'],
+            'svg_path': item['svg_path'],
+            'group': 'Application',
+            'coming_soon': item.get('coming_soon', False),
+        }
+        for item in get_academy_primary_tools(request.user)
+    ]
     can_manage = is_academy_manager(request.user)
     management_data = None
     if can_manage:
