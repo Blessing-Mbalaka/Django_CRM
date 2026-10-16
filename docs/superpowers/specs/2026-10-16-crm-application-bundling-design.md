@@ -17,7 +17,7 @@ Make Academy's Business Tools page a small application launcher rather than a ca
 
 Every other authenticated business tool is discoverable through CRM, using a persistent CRM sidebar that extends the visual and interaction pattern of the existing Project Management sidebar. Existing application URLs, data models, permissions, and bookmarks remain valid.
 
-The same release verifies the already implemented official Twilio and Meta Marketing providers, applies the pending Marketing migration that causes the local Marketing workspace failure, and stops after automated and browser-level regression testing.
+The same release verifies the already implemented official Twilio and Meta Marketing providers, confirms the Marketing migration that caused the local Marketing workspace failure has been applied, and stops after automated and browser-level regression testing.
 
 ## 2. Scope boundaries
 
@@ -90,7 +90,7 @@ The repository already implements adapters and tests for:
 
 The implementation uses environment-backed settings in `jbs_crm/settings/base.py`, documented placeholders in `.env.example`, and setup guidance in `docs/marketing-provider-setup.md`. These remain authoritative and must be checked against the official documentation already cited in those files.
 
-The local database currently has `marketing.0001_initial` unapplied and contains no `marketing_*` tables. The Django shell route renders in an isolated migrated test database, but Marketing API calls fail against the local database. The release fix is to apply the committed Marketing migration to the local development database, then verify both `/growth/` and `/api/v1/marketing/workspace/` resources. No schema redesign is required for this failure.
+The local database originally had `marketing.0001_initial` unapplied and contained no `marketing_*` tables. The migration has since been applied and the Marketing tables are present. The release work must verify both `/growth/` and `/api/v1/marketing/workspace/` resources against that migrated database. No schema redesign is required for the original failure.
 
 If provider credentials are absent, `/growth/` must still load and show each provider as not configured. Tests must not make live provider calls.
 
