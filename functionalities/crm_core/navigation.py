@@ -95,6 +95,89 @@ def _direct_item(label, icon, url, description, **extra):
     }
 
 
+def get_academy_primary_tools(user):
+    """Return the six canonical applications shown by the Academy launcher."""
+    return [
+        _item('Invoicing', 'bi-receipt', 'billing:invoices', 'Create invoices and record customer payments.'),
+        _item('Inventory', 'bi-boxes', 'inventory:inventory', 'Monitor stock, movements, availability and reorder levels.'),
+        _item('Project Management', 'bi-kanban', 'tasks:board', 'Plan projects and move work through collaborative boards.'),
+        _item('Marketing', 'bi-megaphone', 'marketing:index', 'Plan campaigns, publish content and manage channel delivery.'),
+        _item('CRM', 'bi-people', 'clients:list', 'Manage customers and the business tools connected to them.'),
+        _item('Documents', 'bi-folder2-open', 'documents:library', 'Store controlled documents, folders and file versions.'),
+    ]
+
+
+def get_crm_navigation(user):
+    """Return grouped secondary tools for the role-aware CRM shell."""
+    groups = [
+        {
+            'key': 'customers',
+            'label': 'Customers & Revenue',
+            'items': [
+                _item('Customers', 'bi-people', 'clients:list', 'Keep customer profiles, ownership and relationship information together.'),
+                _item('Engagements', 'bi-briefcase', 'engagements:list', 'Track opportunities, active work, owners and engagement progress.'),
+                _item('Sales Orders', 'bi-bag-check', 'sales:orders', 'Create, confirm, fulfil and invoice customer orders.'),
+            ],
+        },
+        {
+            'key': 'finance',
+            'label': 'Finance',
+            'items': [
+                _item('Expense Tracking', 'bi-wallet2', 'expenses:expenses', 'Submit, approve and pay business expenses.'),
+                _item('Financial Overview', 'bi-cash-coin', 'finance:overview', 'Review revenue, expenses, profit and pipeline.'),
+                _item('Accounting', 'bi-journal-text', 'accounting:ledger', 'Work with journals, statements and reconciliation.'),
+                _item('Business Activity', 'bi-activity', 'analytics:reports', 'Compare financial, purchasing and inventory activity.'),
+            ],
+        },
+        {
+            'key': 'operations',
+            'label': 'Operations',
+            'items': [
+                _item('Products & Services', 'bi-box-seam', 'products:catalogue', 'Maintain the shared product and service catalogue.'),
+                _item('Purchasing', 'bi-cart-check', 'purchasing:orders', 'Manage suppliers, purchase orders, receipts and bills.'),
+            ],
+        },
+        {
+            'key': 'insights',
+            'label': 'Insights',
+            'items': [
+                _item('Reports & Analytics', 'bi-bar-chart-line', 'analytics:reports', 'Explore performance, pipeline and business activity.'),
+                _item('Alerts', 'bi-bell', 'alerts:list', 'Review unresolved risks and operational warnings.'),
+                _item('Communication Health', 'bi-chat-dots', 'communication:health', 'Monitor relationship contact history and communication coverage.'),
+                _item('AI Insights', 'bi-cpu', 'ai:insights', 'Use assisted insights, forecasts and readiness indicators.'),
+            ],
+        },
+        {
+            'key': 'people',
+            'label': 'People & Administration',
+            'items': [
+                _item('Staff', 'bi-person-badge', 'staff:list', 'Maintain staff profiles, roles and availability.'),
+                _item('Departments', 'bi-building', 'centres:list', 'Organise customers, staff and work by department.'),
+            ],
+        },
+        {
+            'key': 'learning',
+            'label': 'Learning & Developer',
+            'items': [
+                _item('SME Academy', 'bi-mortarboard', 'academy:index', 'Open practical courses and business learning support.'),
+                _direct_item('Business Diagnostic', 'bi-clipboard-data', f"{reverse('academy:index')}#diagnostics", 'Assess the business and review course recommendations.'),
+                _direct_item('API Explorer', 'bi-braces', '/api/v1/', 'Inspect the authenticated REST API.', external=True),
+            ],
+        },
+    ]
+
+    role = getattr(user, 'role', None)
+    if user.is_superuser or role in ('dean', 'admin'):
+        groups[4]['items'].append(
+            _item('Payroll Management', 'bi-people-fill', 'payroll:payroll', 'Prepare and review controlled payroll runs.')
+        )
+    if user.is_superuser or user.is_staff or role in ('dean', 'admin'):
+        groups[4]['items'].append(
+            _item('System Admin', 'bi-shield-check', 'admin_panel:dashboard', 'Manage users, access and system settings.')
+        )
+    return [group for group in groups if group['items']]
+
+
 def get_suite_navigation(user):
     """Canonical, role-aware module map for the dashboard catalogue."""
     groups = [
