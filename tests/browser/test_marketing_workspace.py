@@ -8,7 +8,7 @@ from playwright.sync_api import sync_playwright
 
 
 BASE_URL = os.environ.get("CRM_TEST_BASE_URL", "http://127.0.0.1:8023")
-PASSWORD = "MarketingBrowser123!"
+PASSWORD = "JBS@2026!"
 
 
 def login(page, username):
@@ -22,6 +22,8 @@ def login(page, username):
 def submit_dialog(page):
     page.locator('#dialogBody button[type="submit"]').first.click()
     page.wait_for_function("() => !document.querySelector('#marketingDialog').open")
+    page.wait_for_function("() => document.querySelector('#saveState').textContent.includes('Refreshing')")
+    page.wait_for_function("() => document.querySelector('#saveState').textContent.includes('Connected')")
 
 
 def run():
@@ -34,7 +36,7 @@ def run():
         page_errors, server_errors = [], []
         page.on("pageerror", lambda error: page_errors.append(str(error)))
         page.on("response", lambda response: server_errors.append(f"{response.status} {response.url}") if response.status >= 500 else None)
-        login(page, "marketing-browser")
+        login(page, "ndlamini")
         page.goto(f"{BASE_URL}/growth/", wait_until="networkidle")
         page.wait_for_selector('[data-route="dashboard"].active')
         assert page.locator('#marketingNavigation [data-route]').count() == 9
@@ -140,7 +142,7 @@ def run():
 
         reader_context = browser.new_context(viewport={"width": 1200, "height": 800})
         reader_page = reader_context.new_page()
-        login(reader_page, "marketing-reader-browser")
+        login(reader_page, "zmahlangu")
         reader_page.goto(f"{BASE_URL}/growth/#campaigns", wait_until="networkidle")
         assert reader_page.locator('#primaryAction:visible').count() == 0
         assert reader_page.locator('[data-action="edit"]').count() == 0
@@ -148,7 +150,7 @@ def run():
 
         mobile_context = browser.new_context(viewport={"width": 390, "height": 844})
         mobile_page = mobile_context.new_page()
-        login(mobile_page, "marketing-browser")
+        login(mobile_page, "ndlamini")
         mobile_page.goto(f"{BASE_URL}/growth/", wait_until="networkidle")
         mobile_page.locator('#menuButton').click()
         assert 'open' in (mobile_page.locator('#sidebar').get_attribute('class') or '')
