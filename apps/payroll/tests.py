@@ -103,7 +103,9 @@ class PayrollApiTests(APITestCase):
         dashboard = self.client.get('/')
         self.assertRedirects(dashboard, '/academy/', fetch_redirect_response=False)
         academy = self.client.get('/academy/')
-        self.assertContains(academy, '/payroll/')
+        self.assertNotContains(academy, '/payroll/')
+        crm = self.client.get('/clients/')
+        self.assertContains(crm, '/payroll/')
 
 
 class PayrollModelTests(APITestCase):
