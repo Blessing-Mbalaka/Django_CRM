@@ -2,8 +2,46 @@
 .sidebar nav a { color: inherit; text-decoration: none; }
 .sidebar-logout { margin: 0; }
 .sidebar-logout .signout-button { width: 100%; border: 0; cursor: pointer; font: inherit; }
-.provider-strip { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 28px 0; }
-.provider-status { border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--muted); font-size: 11px; padding: 6px 10px; }
+.provider-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  gap: 10px;
+  padding: 14px 28px 0;
+}
+.provider-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: white;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 9px 11px;
+}
+.provider-status-copy { display: grid; gap: 2px; min-width: 0; }
+.provider-status-copy strong { color: var(--ink); font-size: 12px; }
+.provider-status-copy small { color: inherit; text-transform: capitalize; white-space: nowrap; }
+.provider-setup-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.provider-setup-link:hover, .provider-setup-link:focus-visible { background: var(--green); color: white; }
+.provider-readiness-list { display: grid; gap: 10px; }
+.provider-readiness-list .provider-status { padding: 12px 14px; }
 .provider-status.available { color: #175b46; border-color: #9dc8b8; background: #eff9f4; }
 .provider-status.not_configured, .provider-status.unavailable { color: #8a5a00; background: #fff8e7; border-color: #ead29a; }
 .loading-state, .empty-state, .error-state { margin: 24px; text-align: center; padding: 42px; }
@@ -23,7 +61,8 @@
 .brand-logo { max-width: 160px; max-height: 100px; object-fit: contain; }
 .no-data { color: var(--muted); padding: 24px 0; }
 .marketing-funnel > div { min-width: 220px; }
-@media (max-width: 720px) { .marketing-form { grid-template-columns: 1fr; } .provider-strip { padding-inline: 16px; } }
+@media (max-width: 1100px) { .provider-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 720px) { .marketing-form { grid-template-columns: 1fr; } .provider-strip { grid-template-columns: 1fr; padding-inline: 16px; } }
 .marketing-module .signout-button {
   text-decoration: none;
 }

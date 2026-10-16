@@ -43,8 +43,19 @@ function closeDialog() {
 }
 
 function providerStrip() {
-  const labels = { twilio_email: 'Email', twilio_sms: 'SMS', meta_whatsapp: 'WhatsApp', meta_facebook: 'Facebook', meta_instagram: 'Instagram' };
-  $('#providerStatus').innerHTML = Object.entries(state.providers).map(([name, value]) => `<span class="provider-status ${Views.esc(value.state)}" title="${Views.esc(value.message)}">${Views.esc(labels[name])}: ${Views.esc(value.state.replaceAll('_', ' '))}</span>`).join('');
+  const providers = {
+    twilio_email: { label: 'Email', url: 'https://console.twilio.com/us1/account/keys-credentials/api-keys' },
+    twilio_sms: { label: 'SMS', url: 'https://console.twilio.com/us1/account/keys-credentials/api-keys' },
+    meta_whatsapp: { label: 'WhatsApp', url: 'https://developers.facebook.com/apps/' },
+    meta_facebook: { label: 'Facebook', url: 'https://developers.facebook.com/apps/' },
+    meta_instagram: { label: 'Instagram', url: 'https://developers.facebook.com/apps/' },
+  };
+  $('#providerStatus').innerHTML = Object.entries(state.providers).map(([name, value]) => {
+    const provider = providers[name];
+    if (!provider) return '';
+    const label = Views.esc(provider.label);
+    return `<article class="provider-status ${Views.esc(value.state)}" title="${Views.esc(value.message)}"><span class="provider-status-copy"><strong>${label}</strong><small>${Views.esc(value.state.replaceAll('_', ' '))}</small></span><a class="provider-setup-link" href="${provider.url}" target="_blank" rel="noopener noreferrer" aria-label="Get ${label} API key">Get API key <span aria-hidden="true">↗</span></a></article>`;
+  }).join('');
 }
 
 async function loadState() {

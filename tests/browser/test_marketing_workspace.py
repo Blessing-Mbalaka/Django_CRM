@@ -49,6 +49,18 @@ def run():
             page.locator(f'[data-route="{route}"]').click()
             page.wait_for_function("title => document.querySelector('#pageTitle')?.textContent === title", arg=title)
         assert page.locator('#providerStatus').inner_text().lower().count('not configured') >= 1
+        page.locator('[data-route="dashboard"]').click()
+        readiness = page.locator('.provider-readiness-list')
+        assert readiness.locator('.provider-status').count() == 5, page.locator('#content').inner_html()
+        assert readiness.locator('.provider-setup-link').count() == 5
+        assert readiness.evaluate("element => getComputedStyle(element).display") == 'grid'
+        assert readiness.evaluate("element => getComputedStyle(element).gap") == '10px'
+        assert readiness.locator('.provider-status').first.evaluate("element => getComputedStyle(element).display") == 'flex'
+        assert readiness.locator('a[href="https://console.twilio.com/us1/account/keys-credentials/api-keys"]').count() == 2
+        assert readiness.locator('a[href="https://developers.facebook.com/apps/"]').count() == 3
+        for link in readiness.locator('.provider-setup-link').all():
+            assert link.get_attribute('target') == '_blank'
+            assert link.get_attribute('rel') == 'noopener noreferrer'
 
         page.locator('[data-route="campaigns"]').click()
         page.locator('#primaryAction').click()
