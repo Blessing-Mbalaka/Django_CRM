@@ -1,0 +1,32 @@
+<aside class="crm-sidebar" id="crmSidebar" aria-label="CRM tools">
+  <button class="crm-sidebar-toggle" id="crmSidebarToggle" type="button" aria-label="Expand CRM navigation" aria-controls="crmNavigation" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg>
+  </button>
+  <div class="crm-sidebar-brand">
+    <span class="crm-sidebar-avatar">{{ request.user.initials|default:"SM" }}</span>
+    <span><strong>CRM</strong><small>{{ request.user.get_role_display }}</small></span>
+  </div>
+  <nav id="crmNavigation" aria-label="CRM application navigation">
+    {% for group in crm_navigation %}
+      <section class="crm-nav-group" aria-labelledby="crm-group-{{ group.key }}">
+        <h2 id="crm-group-{{ group.key }}">{{ group.label }}</h2>
+        {% for item in group.items %}
+          <a href="{{ item.url }}"{% if item.is_active %} class="is-active" aria-current="page"{% endif %}{% if item.external %} target="_blank" rel="noopener noreferrer"{% endif %} title="{{ item.label }}">
+            <svg class="crm-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="{{ item.svg_path }}"/></svg>
+            <span>{{ item.label }}</span>
+          </a>
+        {% endfor %}
+      </section>
+    {% endfor %}
+  </nav>
+  <a class="crm-workspace-link" href="{% url 'academy:index' %}#tools" aria-label="Back to Business Tools" title="Back to Business Tools">
+    <svg class="crm-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+    <span>Business Tools</span>
+  </a>
+  <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+    <button class="crm-signout" type="submit" title="Sign out">
+      <svg class="crm-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg>
+      <span>Sign out</span>
+    </button>
+  </form>
+</aside>

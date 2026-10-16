@@ -40,11 +40,16 @@ class CEOApplicationSmokeTests(TestCase):
                     self.assertContains(response, 'id="sidebar"')
                     self.assertContains(response, 'href="/academy/#tools"')
                     self.assertNotContains(response, 'class="sme-branded-app"')
-                else:
-                    self.assertNotContains(response, 'id="sidebar"')
+                elif path in ('/billing/', '/documents/'):
+                    self.assertNotContains(response, 'id="crmSidebar"')
                     self.assertContains(response, 'Back to Business Tools')
                     self.assertContains(response, 'href="/academy/#tools"')
                     self.assertContains(response, 'class="sme-branded-app"')
+                else:
+                    self.assertContains(response, 'id="crmSidebar"')
+                    self.assertContains(response, 'Back to Business Tools')
+                    self.assertContains(response, 'href="/academy/#tools"')
+                    self.assertContains(response, 'class="sme-branded-app crm-shell-enabled"')
                     self.assertContains(response, '/static/css/sme_brand.css')
 
     def test_base_uses_matching_bootstrap_bundle_and_runtime_toasts(self):
@@ -61,11 +66,11 @@ class CEOApplicationSmokeTests(TestCase):
         self.assertIn('Interface library failed to load', main_js)
         self.assertIn('/api/v1${path} failed', api_client)
 
-    def test_academy_is_the_single_role_aware_module_navigation(self):
+    def test_academy_and_crm_split_primary_and_secondary_navigation(self):
         staff = User.objects.create_user(username='tile-staff', password='test-pass-123', role=User.Role.STAFF)
         self.client.force_login(staff)
         response = self.client.get('/academy/')
-        for path in ('/clients/', '/engagements/', '/sales/', '/billing/', '/expenses/', '/finance/', '/accounting/', '/products/', '/inventory/', '/purchasing/', '/tasks/', '/documents/', '/analytics/', '/alerts/', '/communication/', '/ai/', '/staff/', '/departments/', '/growth/'):
+        for path in ('/billing/', '/inventory/', '/tasks/', '/growth/', '/clients/', '/documents/'):
             with self.subTest(path=path):
                 self.assertContains(response, path)
         self.assertContains(response, 'id="sidebar"')
@@ -74,13 +79,15 @@ class CEOApplicationSmokeTests(TestCase):
         self.assertContains(response, 'data-route="tools"')
         self.assertContains(response, 'data-route="diagnostics"')
         self.assertContains(response, 'Business Diagnostic')
-        self.assertNotContains(response, '/payroll/')
-        self.assertNotContains(response, '/system-admin/')
+        self.assertEqual(len(response.context['academy_tools']), 6)
 
-        finance = self.client.get('/finance/')
-        self.assertContains(finance, 'Back to Business Tools')
-        self.assertContains(finance, 'href="/academy/#tools"')
-        self.assertNotContains(finance, 'id="sidebar"')
+        crm = self.client.get('/clients/')
+        for path in ('/engagements/', '/sales/', '/expenses/', '/finance/', '/accounting/', '/products/', '/purchasing/', '/analytics/', '/alerts/', '/communication/', '/ai/', '/staff/', '/departments/'):
+            with self.subTest(path=path):
+                self.assertContains(crm, path)
+        self.assertNotContains(crm, '/payroll/')
+        self.assertNotContains(crm, '/system-admin/')
+        self.assertContains(crm, 'id="crmSidebar"')
 
     def test_growth_marketing_workspace_renders(self):
         user = User.objects.create_user(username='growth-user', password='test-pass-123')
@@ -92,3 +99,63 @@ class CEOApplicationSmokeTests(TestCase):
         self.assertContains(response, 'href="/academy/#tools"')
         self.assertContains(response, 'id="sidebar"')
         self.assertContains(response, 'id="marketing-config"')
+
+
+class CRMShellNavigationTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='crm-shell-user', role=User.Role.STAFF)
+        self.client.force_login(self.user)
+
+    def test_crm_contained_pages_render_persistent_sidebar(self):
+        for path, active_label in (
+            ('/clients/', 'Customers'),
+            ('/engagements/', 'Engagements'),
+            ('/finance/', 'Financial Overview'),
+            ('/staff/', 'Staff'),
+            ('/centres/', 'Departments'),
+        ):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'id="crmSidebar"')
+                self.assertContains(response, 'href="/academy/#tools"')
+                self.assertContains(response, 'method="post" action="/accounts/logout/"')
+                self.assertContains(response, f'<span>{active_label}</span>')
+                self.assertContains(response, 'aria-current="page"')
+
+    def test_standalone_and_account_pages_do_not_render_crm_sidebar(self):
+        for path in ('/billing/', '/documents/', '/accounts/profile/'):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, 'id="crmSidebar"')
+
+    def test_context_exposes_role_filtered_navigation_records(self):
+        response = self.client.get('/clients/')
+
+        self.assertTrue(response.context['use_crm_shell'])
+        self.assertEqual(response.context['active_crm_namespace'], 'clients')
+        groups = response.context['crm_navigation']
+        self.assertTrue(groups)
+        self.assertTrue(all(group['items'] for group in groups))
+        self.assertTrue(all(
+            item.get('label') and item.get('url') and item.get('svg_path')
+            for group in groups for item in group['items']
+        ))
+        labels = [item['label'] for group in groups for item in group['items']]
+        self.assertNotIn('Payroll Management', labels)
+        self.assertNotIn('System Admin', labels)
+
+    def test_administrator_context_includes_privileged_navigation(self):
+        admin = User.objects.create_user(username='crm-shell-admin', role=User.Role.ADMIN)
+        self.client.force_login(admin)
+
+        response = self.client.get('/clients/')
+
+        labels = [
+            item['label']
+            for group in response.context['crm_navigation']
+            for item in group['items']
+        ]
+        self.assertIn('Payroll Management', labels)
+        self.assertIn('System Admin', labels)

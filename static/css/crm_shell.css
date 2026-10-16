@@ -1,0 +1,182 @@
+.crm-shell-enabled {
+  --crm-sidebar-collapsed: 76px;
+  --crm-sidebar-expanded: 270px;
+}
+
+.crm-shell-enabled .app-wrapper {
+  padding-left: var(--crm-sidebar-collapsed);
+  transition: padding-left .3s cubic-bezier(.22, 1, .36, 1);
+}
+
+.crm-shell-enabled.crm-sidebar-expanded .app-wrapper {
+  padding-left: var(--crm-sidebar-expanded);
+}
+
+.crm-sidebar {
+  position: fixed;
+  inset: 14px auto 14px 14px;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  width: var(--crm-sidebar-collapsed);
+  padding: 16px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #0f3727, #071f16);
+  box-shadow: 0 18px 45px rgba(7, 31, 22, .18);
+  color: #fff;
+  transition: width .3s cubic-bezier(.22, 1, .36, 1), transform .25s ease;
+}
+
+.crm-sidebar-expanded .crm-sidebar { width: var(--crm-sidebar-expanded); }
+
+.crm-sidebar-toggle,
+.crm-mobile-menu {
+  display: grid;
+  place-items: center;
+  border: 0;
+  color: #ef8d55;
+}
+
+.crm-sidebar-toggle {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  padding: 9px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .08);
+}
+
+.crm-sidebar-toggle svg,
+.crm-nav-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.crm-sidebar-toggle svg { transition: transform .3s ease; }
+.crm-sidebar-expanded .crm-sidebar-toggle svg { transform: rotate(180deg); }
+
+.crm-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+  margin-bottom: 14px;
+  padding: 6px 2px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.crm-sidebar-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 2px solid #ef8d55;
+  border-radius: 50%;
+  background: #fff;
+  color: #0f3727;
+  font-weight: 800;
+}
+
+.crm-sidebar-brand > span:last-child { display: flex; flex-direction: column; }
+.crm-sidebar-brand strong { font-size: .95rem; }
+.crm-sidebar-brand small { color: #aed0b8; font-size: .67rem; }
+
+.crm-sidebar nav { flex: 1; min-width: 238px; }
+.crm-nav-group { margin-bottom: 12px; }
+.crm-nav-group h2 {
+  margin: 0;
+  padding: 7px 9px 4px;
+  color: #72977c;
+  font-size: .61rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.crm-nav-group a,
+.crm-workspace-link,
+.crm-signout {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  min-height: 40px;
+  margin: 3px 0;
+  padding: 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  color: #aed0b8;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.crm-nav-group a:hover,
+.crm-nav-group a.is-active,
+.crm-workspace-link:hover,
+.crm-signout:hover {
+  background: rgba(255, 255, 255, .08);
+  color: #fff;
+  text-decoration: none;
+}
+
+.crm-nav-group a.is-active { box-shadow: inset 3px 0 #ef8d55; }
+.crm-nav-icon { color: #ef8d55; }
+.crm-workspace-link { margin-top: 12px; border-top: 1px solid rgba(255, 255, 255, .1); border-radius: 0 0 18px 18px; }
+.crm-signout { background: rgba(255, 255, 255, .08); }
+
+.crm-sidebar span,
+.crm-nav-group h2 {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s ease, visibility .18s ease;
+}
+
+.crm-sidebar-expanded .crm-sidebar span,
+.crm-sidebar-expanded .crm-nav-group h2,
+.crm-sidebar.is-open span,
+.crm-sidebar.is-open .crm-nav-group h2 {
+  opacity: 1;
+  visibility: visible;
+}
+
+.crm-mobile-menu {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #0f3727;
+  font-size: 1.35rem;
+}
+
+@media (max-width: 720px) {
+  .crm-shell-enabled .app-wrapper,
+  .crm-shell-enabled.crm-sidebar-expanded .app-wrapper { padding-left: 0; }
+  .crm-sidebar {
+    width: var(--crm-sidebar-expanded);
+    transform: translateX(calc(-100% - 24px));
+    visibility: hidden;
+  }
+  .crm-sidebar.is-open {
+    transform: translateX(0);
+    visibility: visible;
+    box-shadow: 0 0 0 100vmax rgba(7, 31, 22, .46);
+  }
+  .crm-sidebar.is-open span,
+  .crm-sidebar.is-open .crm-nav-group h2 { opacity: 1; visibility: visible; }
+  .crm-mobile-menu { display: grid; }
+  .crm-sidebar-toggle { display: none; }
+}

@@ -2,7 +2,11 @@
 <header class="topbar" role="banner">
 
   <div class="topbar-leading">
-    {% if request.resolver_match.view_name != 'core:dashboard' %}
+    {% if use_crm_shell %}
+      <button id="crmMobileMenu" class="crm-mobile-menu" type="button" aria-label="Open CRM navigation" aria-controls="crmSidebar" aria-expanded="false">
+        <i class="bi bi-list" aria-hidden="true"></i>
+      </button>
+    {% elif request.resolver_match.view_name != 'core:dashboard' %}
       <a href="{% url 'academy:index' %}#tools" class="dashboard-return-btn" aria-label="Back to Business Tools">
         <i class="bi bi-arrow-left" aria-hidden="true"></i>
         <span>Back to Business Tools</span>
