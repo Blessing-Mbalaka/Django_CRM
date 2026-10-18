@@ -50,6 +50,8 @@ class AcademyCoursePageTests(TestCase):
         self.assertContains(response, 'id="academy-tools-data"')
         self.assertContains(response, 'data-tools-banner-url="/static/sme/assets/inventory-banner.png"')
         self.assertContains(response, 'data-marketing-url="/growth/"')
+        self.assertContains(response, "const primaryAction = course")
+        self.assertContains(response, 'Explore courses')
         self.assertContains(response, '"url": "/billing/"')
         self.assertContains(response, '"svg_path"')
         self.assertNotContains(response, '127.0.0.1:8023')

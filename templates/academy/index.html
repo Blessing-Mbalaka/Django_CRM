@@ -831,12 +831,16 @@ window.Academy = (() => {
   const resourceMap = { foundations: 'canvas', validation: 'research', finance: 'cash', marketing: 'marketing', operations: 'plan', compliance: 'compliance', funding: 'funding', growth: 'plan' };
   function dashboard() {
     const sum = A.summary();
-    const banner = `<section class="banner"><div class="banner-copy"><span class="eyebrow">Welcome back, ${esc(S.profile.name)}</span><h2>Learn. Build. Grow.</h2><p>Practical skills, tools and support designed to help South African SMEs grow and scale.</p>${btn('Continue Learning', 'course', currentCourse().id, 'shine')}</div></section>`;
+    const course = currentCourse();
+    const primaryAction = course
+      ? btn('Continue Learning', 'course', course.id, 'shine')
+      : '<a class="btn shine" href="#courses">Explore courses</a>';
+    const banner = `<section class="banner"><div class="banner-copy"><span class="eyebrow">Welcome back, ${esc(S.profile.name)}</span><h2>Learn. Build. Grow.</h2><p>Practical skills, tools and support designed to help South African SMEs grow and scale.</p>${primaryAction}</div></section>`;
     return banner + stats([['Courses in Progress', sum.active, 'courses'], ['Completed Courses', sum.completed, 'learning'], ['Learning Hours', sum.hours, 'events'], ['Certificates / Achievements', sum.certificates, 'certificates']]) + panel('Your learning journey', U.journey(), btn('View paths ↗', 'navigate', 'paths'));
   }
   function paths() {
     return title('Learning Paths', 'Choose a practical route through the skills your business needs.') + `<div class="paths-grid">${A.paths.map(path => {
-      const courses = A.courses.filter(c => c.path === path.id), value = Math.round(courses.reduce((sum, c) => sum + A.progress(c.id), 0) / courses.length);
+      const courses = A.courses.filter(c => c.path === path.id), value = courses.length ? Math.round(courses.reduce((sum, c) => sum + A.progress(c.id), 0) / courses.length) : 0;
       return `<section class="panel"><span class="badge">${path.stage}</span><h2 class="path-title">${path.title}</h2><div class="progress-label"><span>${courses.length} short courses</span><strong>${value}%</strong></div>${U.progress(value)}<details class="path-list"><summary>View courses</summary>${courses.map(c => `<button data-action="course" data-id="${c.id}">${A.progress(c.id) === 100 ? '✓ ' : ''}${esc(c.title)}</button>`).join('')}</details>${btn('Explore this path', 'path', path.id)}</section>`;
     }).join('')}</div>`;
   }
