@@ -25,3 +25,14 @@ Regards, Blessing Mbalaka
 9. Marketing is available at `/growth/`. Install the pinned requirements, run migrations, and read `docs/marketing-provider-setup.md` before adding Twilio or Meta credentials. Without those optional credentials the planning workspace remains functional and labels delivery channels as not configured.
 
 10. Process scheduled Marketing delivery with `python manage.py send_due_marketing --limit 100`. Configure this command in the deployment scheduler; do not use a browser tab as a scheduler.
+
+11. SME workspace routes (updated 27 September 2026):
+The authenticated app lands at `/academy/`. Task/project management is at `/tasks/` and Inventory is at `/inventory/`; both use hash routes inside a Django-served shell and persist through the database APIs.
+
+12. Apply migrations before running the updated workspaces:
+`.venv\Scripts\python.exe manage.py migrate`
+
+13. Verification commands:
+`.venv\Scripts\python.exe manage.py check`
+`.venv\Scripts\python.exe manage.py test -v 2`
+With the server running on port 8023, set `CRM_TEST_BASE_URL=http://127.0.0.1:8023` and run the browser scripts under `tests/browser/`.

@@ -27,7 +27,7 @@ class AcademyCoursePageTests(TestCase):
         self.assertContains(response, '/static/sme/shared/css/knowledge-hub.css')
         self.assertContains(response, '/static/sme/academy/css/style.css')
         self.assertContains(response, '/static/sme/academy/js/api.js')
-        self.assertContains(response, '/static/sme/academy/js/course-page.js')
+        self.assertNotContains(response, '/static/sme/academy/js/course-page.js')
         self.assertContains(response, 'class="nav-icon"')
         self.assertContains(response, reverse('core:dashboard'))
         self.assertNotContains(response, 'js/data.js')
@@ -48,6 +48,8 @@ class AcademyCoursePageTests(TestCase):
             with self.subTest(navigation_item=navigation_item):
                 self.assertContains(response, navigation_item)
         self.assertContains(response, 'id="academy-tools-data"')
+        self.assertContains(response, 'data-tools-banner-url="/static/sme/assets/inventory-banner.png"')
+        self.assertContains(response, 'data-marketing-url="/growth/"')
         self.assertContains(response, '"url": "/billing/"')
         self.assertContains(response, '"svg_path"')
         self.assertNotContains(response, '127.0.0.1:8023')

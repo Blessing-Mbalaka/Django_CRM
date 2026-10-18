@@ -1,26 +1,458 @@
 {% load static %}
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Practical, administrator-managed courses for South African SMEs.">
-    <title>SME Academy · EIEAAS</title>
-    <link rel="stylesheet" href="{% static 'sme/shared/css/inventory.css' %}">
-    <link rel="stylesheet" href="{% static 'sme/shared/css/knowledge-hub.css' %}">
-    <link rel="stylesheet" href="{% static 'sme/academy/css/style.css' %}">
-    {% if can_manage_academy %}<link rel="stylesheet" href="{% static 'sme/academy/css/admin.css' %}">{% endif %}
-    <script defer src="{% static 'sme/academy/js/api.js' %}"></script>
-    {% if can_manage_academy %}
-    <script defer src="{% static 'sme/academy/js/academy-admin-api.js' %}"></script>
-    <script defer src="{% static 'sme/academy/js/academy-admin-schema.js' %}"></script>
-    <script defer src="{% static 'sme/academy/js/academy-admin.js' %}"></script>
-    {% endif %}
-    <script defer src="{% static 'sme/academy/js/course-page.js' %}"></script>
-  </head>
-  <body class="inventory-sidebar knowledge-module academy-module">
-    <div class="shell">
-      <aside class="sidebar" id="sidebar">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Practical, administrator-managed courses for South African SMEs.">
+  <title>SME Academy · EIEAAS</title>
+
+  <!-- Keep the existing shared EIEAAS/Inventory foundations. -->
+  <link rel="stylesheet" href="{% static 'sme/shared/css/inventory.css' %}">
+  <link rel="stylesheet" href="{% static 'sme/shared/css/knowledge-hub.css' %}">
+  <link rel="stylesheet" href="{% static 'sme/academy/css/style.css' %}">
+  {% if can_manage_academy %}<link rel="stylesheet" href="{% static 'sme/academy/css/admin.css' %}">{% endif %}
+
+  <!-- Locked visual baseline: the earlier Academy CSS/look. -->
+  <style>
+
+:root{--green:#285c3d;--green-dark:#1d462e;--muted:#647067;--line:#dfe6df;--paper:#fff;--bg:#f6f8f5;--accent:#f39a62;--shadow:0 8px 30px rgba(28,54,38,.08)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:#1f2a23}.app-shell{min-height:100vh;display:grid;grid-template-columns:245px 1fr}.sidebar{position:sticky;top:0;height:100vh;background:#173b28;color:#fff;padding:20px 14px;display:flex;flex-direction:column;gap:16px}.brand{padding:8px 10px 18px;border-bottom:1px solid rgba(255,255,255,.12)}.brand strong{display:block;font-size:18px}.brand span{font-size:11px;opacity:.72}.sidebar nav{display:flex;flex-direction:column;gap:4px}.sidebar nav button{border:0;background:transparent;color:#dfeae2;text-align:left;padding:10px 11px;border-radius:8px;display:flex;gap:10px;align-items:center;cursor:pointer}.sidebar nav button:hover,.sidebar nav button.active{background:rgba(255,255,255,.11);color:#fff}.nav-icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.sidebar-foot{margin-top:auto}.sidebar-foot button{width:100%;border:1px solid rgba(255,255,255,.18);background:transparent;color:white;border-radius:8px;padding:9px;cursor:pointer}.main{min-width:0}.topbar{height:70px;padding:0 28px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}.topbar button{border:0;background:#eef3ed;border-radius:8px;padding:8px 11px;cursor:pointer}.topbar-title h1{font-size:18px;margin:0}.content{padding:28px;max-width:1450px;margin:0 auto;outline:none}.banner{background:linear-gradient(135deg,#234f35,#467859);color:white;border-radius:16px;padding:34px;display:flex;justify-content:space-between;align-items:center;min-height:210px;margin-bottom:22px;box-shadow:var(--shadow)}.banner-copy{max-width:700px}.banner h2{font-size:36px;margin:8px 0}.banner p{opacity:.9;max-width:620px}.eyebrow{font-weight:700}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 22px}.stat,.panel{background:var(--paper);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow)}.stat{padding:18px}.stat-label{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:11px}.stat strong{display:block;margin:8px 0 2px}.stat small,.muted{color:var(--muted)}.panel{padding:22px;margin-bottom:22px}.panel-header{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:16px}.panel-header h2,.panel h2{margin-top:0}.page-heading{margin-bottom:22px}.page-heading h2{margin:0 0 6px;font-size:24px}.page-heading p{margin:0;color:var(--muted)}.btn{display:inline-flex;align-items:center;justify-content:center;border:0;background:var(--green);color:white;padding:10px 14px;border-radius:8px;text-decoration:none;cursor:pointer;font-weight:650}.btn.secondary{background:#eef3ed;color:var(--green)}.btn.shine{background:#fff;color:var(--green);margin-top:10px}.btn.small{padding:8px 10px;font-size:12px}.badge{display:inline-block;background:#edf4ea;color:var(--green);padding:5px 8px;border-radius:999px;font-size:10px;font-weight:700}.knowledge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:22px}.knowledge-card{margin-bottom:0}.card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.resource-meta,.progress-label{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:11px;margin:12px 0 7px}.learning-progress{height:8px;background:#edf1ed;border-radius:999px;overflow:hidden}.learning-progress span{display:block;height:100%;background:var(--green);border-radius:inherit}.filters{display:flex;gap:12px;flex-wrap:wrap}.filters input,.filters select,.field input,.field select,.field textarea,.community-actions select{border:1px solid #ccd8ce;background:#fff;border-radius:8px;padding:10px 11px;font:inherit}.filters input{min-width:220px;flex:1}.field{display:flex;flex-direction:column;gap:6px;font-size:12px}.field textarea{min-height:110px;resize:vertical}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field.full,.learning-check.full,.muted.full{grid-column:1/-1}.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}.error{color:#a22626;font-size:12px}.quiz-options{display:grid;gap:10px;border:0;padding:0}.quiz-options label,.learning-check{display:flex;gap:9px;align-items:flex-start;background:#f8faf7;padding:11px;border-radius:8px}.course-layout{display:grid;grid-template-columns:260px 1fr;gap:18px}.lesson-list{padding:12px}.lesson-button{width:100%;border:0;background:transparent;text-align:left;padding:10px;border-radius:8px;display:flex;gap:9px;cursor:pointer}.lesson-button.selected{background:#edf4ea;color:var(--green);font-weight:700}.video-placeholder{min-height:220px;background:#edf3ed;border-radius:12px;display:grid;place-items:center;text-align:center;padding:20px;margin-bottom:18px}.back-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.notice{background:#fff7e8;border-left:3px solid #e8a44f;padding:12px;border-radius:7px}.empty{text-align:center;padding:30px;color:var(--muted)}.toast{background:#1f3829;color:white;padding:11px 14px;border-radius:8px;box-shadow:var(--shadow)}#toasts{position:fixed;right:18px;bottom:18px;z-index:100;display:grid;gap:8px}dialog{border:0;border-radius:14px;max-width:720px;width:calc(100% - 32px);padding:0;box-shadow:0 24px 70px rgba(0,0,0,.25)}dialog::backdrop{background:rgba(10,25,16,.5)}.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}.modal-head h2{margin:0}.modal-head button{border:0;background:#eef3ed;border-radius:8px;padding:7px 10px;cursor:pointer}.modal-body{padding:20px}.certificate{text-align:center;border:6px double #bfd1c1;padding:35px}.resource-sheet{display:grid;gap:8px;margin:16px 0}.resource-sheet>div{display:flex;justify-content:space-between;gap:10px;padding:10px;background:#f7faf6;border-radius:7px}
+@media(max-width:1000px){.app-shell{grid-template-columns:1fr}.sidebar{position:fixed;left:-270px;width:245px;z-index:90;transition:.2s}.sidebar.open{left:0}.content{padding:20px}.knowledge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.course-layout{grid-template-columns:1fr}.topbar{display:flex!important}}
+@media(max-width:650px){.knowledge-grid,.stats,.form-grid{grid-template-columns:1fr}.content{padding:14px}.banner{padding:24px}.banner h2{font-size:28px}.topbar{padding:0 14px}}
+
+/* Shared Inventory components plus Academy-only layouts. */
+.academy-module .sidebar {
+  max-height: calc(100dvh - 44px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #5e8367 transparent;
+}
+
+.academy-module .sidebar nav {
+  flex-shrink: 0;
+}
+
+.academy-module .sidebar .signout-button {
+  margin-top: 24px;
+}
+
+.academy-module .academy-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.academy-module .stat strong {
+  font-size: 24px;
+}
+
+.academy-module .banner .eyebrow {
+  text-transform: none;
+  font-size: 12px;
+  letter-spacing: .02em;
+}
+
+.academy-course {
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.course-art {
+  min-height: 125px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: #e0edda;
+  color: var(--green);
+}
+
+.course-art svg {
+  width: 42px;
+  height: 42px;
+  stroke-width: 1;
+  color: #547d57;
+}
+
+.course-art span {
+  font-size: 11px;
+  max-width: 140px;
+  line-height: 1.6;
+}
+
+.art-finance,
+.art-funding {
+  background: #d6e6d5;
+}
+
+.art-marketing,
+.art-validation {
+  background: #eaf1df;
+}
+
+.art-growth,
+.art-compliance {
+  background: #d8e8df;
+}
+
+.course-card-body {
+  padding: 22px;
+}
+
+.course-card-body h2 {
+  line-height: 1.5;
+  margin: 16px 0 8px;
+}
+
+.course-card-body p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.continue-course {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+  gap: 25px;
+  align-items: center;
+}
+
+.continue-course .course-art {
+  min-height: 180px;
+  border-radius: 12px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.continue-course h2 {
+  margin: 16px 0 10px;
+}
+
+.continue-course p {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.journey {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(110px, 1fr));
+  gap: 8px;
+  padding: 12px 0;
+  overflow-x: auto;
+}
+
+.journey li {
+  position: relative;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.journey li:before {
+  content: '';
+  position: absolute;
+  height: 2px;
+  background: #dbe6d6;
+  width: calc(100% + 8px);
+  left: 50%;
+  top: 19px;
+}
+
+.journey li:last-child:before {
+  display: none;
+}
+
+.journey b {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #edf2e8;
+  color: #7c8b73;
+  z-index: 1;
+}
+
+.journey .done b {
+  background: var(--green);
+  color: white;
+}
+
+.journey .current b {
+  background: #c6dfbc;
+  color: var(--green);
+  outline: 4px solid #e8f0e1;
+}
+
+.journey strong {
+  font-size: 11px;
+}
+
+.journey small {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.paths-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.path-title {
+  margin: 20px 0 !important;
+}
+
+.path-list {
+  margin: 18px 0;
+}
+
+.path-list summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  margin-bottom: 12px;
+}
+
+.path-list button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 11px 0;
+  background: none;
+  color: var(--green);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.academy-module .filters label {
+  flex: 1;
+  min-width: 140px;
+}
+
+.academy-module .filters select {
+  width: 100%;
+}
+
+.completed-list>div,
+.session-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.completed-list>div {
+  justify-content: space-between;
+}
+
+.diagnostic-panel {
+  max-width: 800px;
+}
+
+.diagnostic-score {
+  margin: 20px 0;
+}
+
+.mentor-avatar {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #dfead8;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.community-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+
+.community-actions select {
+  width: auto;
+}
+
+.section-title {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.discussion h2 {
+  margin-top: 16px;
+}
+
+.discussion p {
+  line-height: 1.8;
+  font-size: 13px;
+}
+
+.discussion small {
+  color: var(--muted);
+}
+
+.discussion details {
+  margin-top: 20px;
+}
+
+.discussion summary {
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.discussion form {
+  margin-top: 20px;
+}
+
+.achievement-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.achievement-row span {
+  padding: 13px 16px;
+  border-radius: 10px;
+  background: #dfead8;
+  color: var(--green);
+  font-size: 12px;
+}
+
+.growth-chart {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-around;
+  min-height: 190px;
+}
+
+.growth-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 1;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.growth-column div {
+  width: 100%;
+  max-width: 42px;
+  background: #8bb47b;
+  border-radius: 6px 6px 0 0;
+}
+
+.growth-column:last-child div {
+  background: var(--green);
+}
+
+.compact-cards .course-art {
+  min-height: 70px;
+  padding: 15px;
+}
+
+.compact-cards .course-card-body {
+  padding: 16px;
+}
+
+.academy-module .form-actions {
+  flex-wrap: wrap;
+}
+
+@media(max-width:1200px) {
+  .academy-module .sidebar {
+    max-height: calc(100dvh - 32px);
+  }
+}
+
+@media(max-width:850px) {
+  .academy-module .academy-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .continue-course {
+    grid-template-columns: 150px 1fr;
+  }
+}
+
+@media(max-width:620px) {
+  .academy-module .sidebar {
+    max-height: calc(100dvh - 20px);
+  }
+
+  .paths-grid,
+  .continue-course {
+    grid-template-columns: 1fr;
+  }
+
+  .continue-course .course-art {
+    min-height: 120px;
+  }
+
+  .academy-module .academy-stats .stat:last-child {
+    grid-column: auto;
+  }
+
+  .academy-module .stat strong {
+    font-size: 21px;
+  }
+}
+
+/* Dashboard starts with the welcome banner; keep mobile navigation accessible. */
+.academy-dashboard .banner,
+.academy-dashboard .stat,
+.academy-dashboard .panel {
+  border-color: transparent;
+}
+
+.academy-dashboard .stat-label .nav-icon {
+  color: #ef8d55;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.academy-dashboard .topbar {
+  display: none;
+}
+
+@media (max-width: 620px) {
+  .academy-dashboard .topbar {
+    display: flex;
+    padding: 10px 14px 0;
+    border: 0;
+  }
+
+  .academy-dashboard .topbar-title > div,
+  .academy-dashboard .topbar > button {
+    display: none;
+  }
+}
+.academy-module .banner h2 {
+  color: #000;
+}
+  </style>
+</head>
+<body class="inventory-sidebar knowledge-module academy-module">
+  <div class="shell app-shell">
+    <aside class="sidebar" id="sidebar">
+
         <button class="sidebar-toggle" id="sidebarToggle" aria-label="Expand sidebar" aria-expanded="false" aria-controls="navigation" title="Expand sidebar">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v14M13 9l3 3-3 3"/></svg>
         </button>
@@ -28,7 +460,7 @@
           <button type="button" data-route="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg><span>Dashboard</span></button>
           <button type="button" data-route="learning"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l6 6L21 5"/></svg><span>My Learning</span></button>
           <button type="button" data-route="paths"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v18M5 5h10l-2 3 2 3H5M5 15h15"/></svg><span>Learning Paths</span></button>
-          <button type="button" data-route="courses" class="active" aria-current="page"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16"/></svg><span>Courses</span></button>
+          <button type="button" data-route="courses"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16"/></svg><span>Courses</span></button>
           <button type="button" data-route="diagnostics"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4zM8 8h8M8 12h8M8 16h4"/></svg><span>Business Diagnostic</span></button>
           <button type="button" data-route="resources"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4zM4 9h16M10 9v12"/></svg><span>Templates &amp; Resources</span></button>
           <button type="button" data-route="tools"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg><span>Business Tools</span></button>
@@ -47,55 +479,592 @@
           {% csrf_token %}
           <button class="signout-button" type="submit" title="Sign out" aria-label="Sign out"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg><span>Sign out</span></button>
         </form>
-      </aside>
-      <div class="main">
-        <header class="topbar">
-          <div class="topbar-title">
-            <button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button>
-            <div><span class="eyebrow">LEARN · APPLY · GROW</span><h1 id="pageTitle">SME Academy</h1></div>
-          </div>
-          <a class="btn secondary" href="{% url 'accounts:profile' %}">My Profile</a>
-        </header>
-        <main
-          id="academyApp"
-          tabindex="-1"
-          data-paths-url="{{ academy_paths_url }}"
-          data-courses-url="{{ academy_courses_url }}"
-          data-enrollments-url="{{ academy_enrollments_url }}"
-          data-resources-url="{{ academy_resources_url }}"
-          data-diagnostics-url="{{ academy_diagnostics_url }}"
-          data-funding-url="{{ academy_funding_url }}"
-          data-events-url="{{ academy_events_url }}"
-          data-mentors-url="{{ academy_mentors_url }}"
-          data-bookings-url="{{ academy_bookings_url }}"
-          data-conversations-url="{{ academy_conversations_url }}"
-          data-messages-url="{{ academy_messages_url }}"
-          data-forum-categories-url="{{ academy_forum_categories_url }}"
-          data-forum-posts-url="{{ academy_forum_posts_url }}"
-          data-forum-replies-url="{{ academy_forum_replies_url }}"
-          data-tools-banner-url="{% static 'sme/assets/welcome-banner-bg.png' %}"
-        >
+
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-title">
+          <button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+          <div><span class="eyebrow">LEARN · APPLY · GROW</span><h1 id="pageTitle">SME Academy</h1></div>
+        </div>
+        <a class="btn secondary" href="{% url 'accounts:profile' %}">My Profile</a>
+      </header>
+
+      <!-- Keep academyApp for the existing Django/admin integration.
+           academyContent is the render target for the hardcoded Academy UI. -->
+      <main
+        id="academyApp"
+        data-paths-url="{{ academy_paths_url }}"
+        data-courses-url="{{ academy_courses_url }}"
+        data-enrollments-url="{{ academy_enrollments_url }}"
+        data-resources-url="{{ academy_resources_url }}"
+        data-diagnostics-url="{{ academy_diagnostics_url }}"
+        data-funding-url="{{ academy_funding_url }}"
+        data-events-url="{{ academy_events_url }}"
+        data-mentors-url="{{ academy_mentors_url }}"
+        data-bookings-url="{{ academy_bookings_url }}"
+        data-conversations-url="{{ academy_conversations_url }}"
+        data-messages-url="{{ academy_messages_url }}"
+        data-forum-categories-url="{{ academy_forum_categories_url }}"
+        data-forum-posts-url="{{ academy_forum_posts_url }}"
+        data-forum-replies-url="{{ academy_forum_replies_url }}"
+        data-tools-banner-url="{% static 'sme/assets/inventory-banner.png' %}"
+        data-marketing-url="{% url 'marketing:index' %}"
+      >
+        <section id="academyContent" class="content" tabindex="-1">
           <section class="panel" aria-live="polite">
-            <h2>Loading courses…</h2>
-            <p>Please wait while the Academy catalogue is loaded.</p>
+            <h2>Loading Academy…</h2>
+            <p>Please wait while the live Academy catalogue is loaded.</p>
           </section>
-        </main>
-        {{ academy_tools|json_script:"academy-tools-data" }}
+        </section>
+      </main>
+
+      <footer>EIEAAS <span>·</span> SME Academy <span>·</span> Content managed in Django</footer>
+    </div>
+  </div>
+
+  <dialog id="modal">
+    <div class="modal-head"><h2 id="modalTitle"></h2><button type="button" data-action="close" aria-label="Close">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </dialog>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  {{ academy_tools|json_script:"academy-tools-data" }}
+
         {% if can_manage_academy %}
         {{ academy_management_data|json_script:"academy-management-data" }}
         <dialog id="academyManageDialog" class="academy-manage-dialog" aria-labelledby="academyManageDialogTitle">
           <form id="academyManageForm">
-            <div class="manage-dialog-head"><div><span class="eyebrow">ACADEMY MANAGEMENT</span><h2 id="academyManageDialogTitle">Add item</h2></div><button type="button" class="icon-button" data-dialog-close aria-label="Close">&times;</button></div>
+            <div class="manage-dialog-head">
+              <div><span class="eyebrow">ACADEMY MANAGEMENT</span><h2 id="academyManageDialogTitle">Add item</h2></div>
+              <button type="button" class="icon-button" data-dialog-close aria-label="Close">&times;</button>
+            </div>
             <div id="academyManageErrors" class="manage-errors" role="alert" aria-live="assertive" hidden></div>
             <div id="academyManageFields" class="manage-form-grid"></div>
-            <div class="manage-dialog-actions"><button type="button" class="btn secondary" data-dialog-close>Cancel</button><button type="submit" class="btn" id="academyManageSave">Save</button></div>
+            <div class="manage-dialog-actions">
+              <button type="button" class="btn secondary" data-dialog-close>Cancel</button>
+              <button type="submit" class="btn" id="academyManageSave">Save</button>
+            </div>
           </form>
         </dialog>
         <button type="button" data-manage-context="course" hidden aria-hidden="true">Manage course</button>
         {% endif %}
-        <footer>EIEAAS <span>·</span> SME Academy <span>·</span> Content managed in Django</footer>
-      </div>
-    </div>
-    <div id="toasts" role="status" aria-live="polite"></div>
-  </body>
+
+
+  <script>
+
+    window.ACADEMY_API = {
+      paths: "{{ academy_paths_url|escapejs }}",
+      courses: "{{ academy_courses_url|escapejs }}",
+      enrollments: "{{ academy_enrollments_url|escapejs }}",
+      resources: "{{ academy_resources_url|escapejs }}",
+      diagnostics: "{{ academy_diagnostics_url|escapejs }}",
+      funding: "{{ academy_funding_url|escapejs }}",
+      events: "{{ academy_events_url|escapejs }}",
+      mentors: "{{ academy_mentors_url|escapejs }}",
+      bookings: "{{ academy_bookings_url|escapejs }}",
+      conversations: "{{ academy_conversations_url|escapejs }}",
+      messages: "{{ academy_messages_url|escapejs }}",
+      forumCategories: "{{ academy_forum_categories_url|escapejs }}",
+      forumPosts: "{{ academy_forum_posts_url|escapejs }}",
+      forumReplies: "{{ academy_forum_replies_url|escapejs }}",
+      marketing: document.getElementById('academyApp').dataset.marketingUrl
+    };
+    window.ACADEMY_USER = {
+      name: "{{ request.user.get_full_name|default:request.user.username|escapejs }}",
+      business: "",
+      email: "{{ request.user.email|escapejs }}",
+      location: "",
+      industry: "",
+      stage: "Foundations"
+    };
+    try { window.ACADEMY_TOOLS = JSON.parse(document.getElementById('academy-tools-data').textContent); } catch (e) { window.ACADEMY_TOOLS = []; }
+  
+  </script>
+
+  <script>
+
+document.addEventListener('click', function (event) {
+  const hrefButton = event.target.closest('[data-href]');
+  if (hrefButton) {
+    window.location.href = hrefButton.dataset.href;
+    return;
+  }
+
+  const routeButton = event.target.closest('[data-route]');
+  if (routeButton) {
+    const route = routeButton.dataset.route;
+    window.location.hash = route === 'diagnostics' ? 'diagnostic' : route;
+  }
+});
+
+  </script>
+
+  <script>
+
+/* Django/DRF API adapter: replaces the original mock data.js. */
+window.Academy = (() => {
+  const API = window.ACADEMY_API || {};
+  const STANDARD_MODULES = ['Getting Started','Understanding the Business Need','Practical Example','Guided Activity','Review Your Approach','Test Your Learning','Apply It to Your Business','Additional Resources','Reflect & Discuss'];
+  const FALLBACK_DIAGNOSTIC = ['Business Model','Market','Customers','Product / Service','Finance','Operations','Technology','Marketing','Team','Intellectual Property','Funding Readiness','Growth','Scalability'];
+
+  const unwrap = value => Array.isArray(value) ? value : (value?.results || value?.data || []);
+  const val = (obj, ...keys) => { for (const k of keys) if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k]; return undefined; };
+  const objId = value => value && typeof value === 'object' ? val(value,'id','pk','uuid','slug') : value;
+  const objText = (value, fallback='') => value && typeof value === 'object' ? String(val(value,'name','title','label','display_name','slug') ?? fallback) : String(value ?? fallback);
+  const number = (value, fallback=0) => { const n = Number(value); return Number.isFinite(n) ? n : fallback; };
+  const dateOnly = value => value ? String(value).slice(0,10) : '';
+  const absolute = url => { if (!url) return ''; try { return new URL(url, window.location.origin).href; } catch { return url; } };
+
+  async function get(url) {
+    if (!url) return [];
+    const response = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`${response.status} ${response.statusText} — ${url}`);
+    return response.json();
+  }
+
+  const state = {
+    page: 'dashboard', courseId: null, module: 0, completed: {}, outputs: {}, reflections: {}, quiz: {}, certificates: {},
+    query: '', filters: { path: 'All', level: 'All', duration: 'All', stage: 'All', status: 'All' }, resourceCategory: 'All',
+    profile: window.ACADEMY_USER || { name: 'Learner', business: '', email: '', location: '', industry: '', stage: 'Foundations' },
+    diagnosticStep: 0, diagnosticAnswers: Array(13).fill(null), diagnosticFinished: false, sessions: [], registrations: new Set(), posts: [],
+    communityTopic: 'All', settings: { reminders: true, digest: false, compact: false }, activity: []
+  };
+
+  const A = { state, paths: [], courses: [], resources: [], mentors: [], opportunities: [], events: [], diagnostic: [...FALLBACK_DIAGNOSTIC], tools: window.ACADEMY_TOOLS || [] };
+
+  function normalizePath(p) {
+    return {
+      id: String(val(p,'id','pk','uuid','slug') ?? ''),
+      title: String(val(p,'title','name','label') ?? 'Learning Path'),
+      stage: objText(val(p,'business_stage','stage','target_stage'), 'Foundations'),
+      titles: []
+    };
+  }
+
+  function normalizeCourse(c) {
+    const rawPath = val(c,'path','learning_path','learningPath');
+    const modules = unwrap(val(c,'modules','course_modules','lessons')).map(m => objText(m));
+    const outputTitle = String(val(c,'output_title','practical_output_title','task_title') ?? 'Apply this learning to your business');
+    const outputText = String(val(c,'output_description','practical_output','task_description') ?? 'Record the next practical step for your business.');
+    return {
+      id: String(val(c,'id','pk','uuid','slug') ?? ''),
+      title: String(val(c,'title','name') ?? 'Course'),
+      path: String(objId(rawPath) ?? val(c,'path_slug','learning_path_slug') ?? 'general'),
+      category: objText(rawPath, val(c,'category_name','category') ?? 'SME Academy'),
+      stage: objText(val(c,'business_stage','stage','target_stage'), 'Foundations'),
+      level: objText(val(c,'level','course_level'), 'Beginner'),
+      duration: number(val(c,'duration_minutes','duration','estimated_minutes'), 60),
+      description: String(val(c,'description','summary','short_description') ?? ''),
+      output: [outputTitle, outputText],
+      modules: modules.length ? modules : [...STANDARD_MODULES],
+      instructor: objText(val(c,'instructor','facilitator','created_by'), 'SME Academy')
+    };
+  }
+
+  function normalizeResource(r) {
+    const file = val(r,'file','download_url','file_url','attachment','url');
+    return {
+      id: String(val(r,'slug','id','pk','uuid') ?? ''),
+      name: String(val(r,'name','title') ?? 'Resource'),
+      category: objText(val(r,'category','resource_category'), 'General'),
+      type: String(val(r,'file_type','type','format') ?? 'Resource').toUpperCase(),
+      fields: unwrap(val(r,'fields','sections')).map(x => objText(x)).filter(Boolean),
+      downloadUrl: absolute(typeof file === 'object' ? val(file,'url','file') : file)
+    };
+  }
+
+  function normalizeMentor(m) {
+    return {
+      id: String(val(m,'id','pk','uuid','slug') ?? ''),
+      name: String(val(m,'name','full_name','display_name') ?? 'Mentor'),
+      expertise: objText(val(m,'expertise','specialisation','specialty'), 'Business support'),
+      industry: objText(val(m,'industry','sector'), ''),
+      availability: String(val(m,'availability','availability_text','next_available') ?? 'Contact for availability')
+    };
+  }
+
+  function normalizeFunding(o) {
+    return {
+      id: String(val(o,'id','pk','uuid','slug') ?? ''),
+      title: String(val(o,'title','name') ?? 'Funding opportunity'),
+      provider: objText(val(o,'provider','organisation','organization'), ''),
+      type: objText(val(o,'category','opportunity_category','type'), 'Funding'),
+      deadline: dateOnly(val(o,'deadline','closing_date','end_date')),
+      eligibility: String(val(o,'eligibility','eligibility_summary','description','summary') ?? '')
+    };
+  }
+
+  function normalizeEvent(e) {
+    const start = val(e,'start','start_at','start_datetime','date');
+    const d = start ? new Date(start) : null;
+    return {
+      id: String(val(e,'id','pk','uuid','slug') ?? ''),
+      title: String(val(e,'title','name') ?? 'Event'),
+      date: dateOnly(start),
+      time: String(val(e,'time','start_time') ?? (d && !Number.isNaN(d.valueOf()) ? d.toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit',hour12:false}) : '')),
+      mode: objText(val(e,'mode','delivery_mode','format'), ''),
+      type: objText(val(e,'category','event_category','type'), 'Event'),
+      location: String(val(e,'location','venue','meeting_url') ?? '')
+    };
+  }
+
+  function normalizePost(p) {
+    return {
+      id: String(val(p,'id','pk','uuid','slug') ?? ''),
+      title: String(val(p,'title','subject') ?? 'Discussion'),
+      body: String(val(p,'body','content','message') ?? ''),
+      author: objText(val(p,'author','user','created_by'), 'Member'),
+      topic: objText(val(p,'category','forum_category','topic'), 'General'),
+      kind: objText(val(p,'kind','post_type','type'), 'Discussion'),
+      replies: unwrap(val(p,'replies','forum_replies')).map(r => `${objText(val(r,'author','user','created_by'),'Member')}: ${String(val(r,'body','content','message') ?? '')}`)
+    };
+  }
+
+  function applyEnrollments(rows) {
+    for (const e of rows) {
+      const courseId = String(objId(val(e,'course')) ?? val(e,'course_id') ?? '');
+      if (!courseId) continue;
+      const completeModules = unwrap(val(e,'completed_modules','module_completions','completed_lessons'));
+      if (completeModules.length) state.completed[courseId] = completeModules.map((m,i) => number(val(m,'order','position','index'), i));
+      else {
+        const pct = number(val(e,'progress','progress_percent','completion_percentage'), val(e,'completed','is_completed') ? 100 : 0);
+        state.completed[courseId] = Array.from({length: Math.max(0, Math.min(9, Math.round(pct/100*9)))}, (_,i) => i);
+      }
+      const completedAt = val(e,'completed_at','completion_date');
+      if (completedAt || val(e,'completed','is_completed') === true) state.certificates[courseId] = dateOnly(completedAt || new Date().toISOString());
+    }
+  }
+
+  A.progress = id => Math.round((state.completed[String(id)]?.length || 0) / 9 * 100);
+  A.summary = () => ({
+    active: A.courses.filter(c => A.progress(c.id) > 0 && A.progress(c.id) < 100).length,
+    completed: A.courses.filter(c => A.progress(c.id) === 100).length,
+    hours: (A.courses.reduce((sum,c) => sum + c.duration * A.progress(c.id)/100, 0)/60).toFixed(1),
+    certificates: Object.keys(state.certificates).length
+  });
+  A.day = offset => { const d = new Date(); d.setDate(d.getDate()+offset); return d.toISOString().slice(0,10); };
+
+  A.load = async function() {
+    const [paths,courses,enrollments,resources,diagnostics,funding,events,mentors,bookings,posts] = await Promise.all([
+      get(API.paths), get(API.courses), get(API.enrollments), get(API.resources), get(API.diagnostics), get(API.funding), get(API.events), get(API.mentors), get(API.bookings), get(API.forumPosts)
+    ]);
+    A.paths = unwrap(paths).map(normalizePath).filter(x => x.id);
+    A.courses = unwrap(courses).map(normalizeCourse).filter(x => x.id);
+    A.resources = unwrap(resources).map(normalizeResource).filter(x => x.id);
+    A.mentors = unwrap(mentors).map(normalizeMentor).filter(x => x.id);
+    A.opportunities = unwrap(funding).map(normalizeFunding).filter(x => x.id);
+    A.events = unwrap(events).map(normalizeEvent).filter(x => x.id);
+    const diagRows = unwrap(diagnostics);
+    if (diagRows.length) A.diagnostic = diagRows.slice(0,13).map(d => objText(val(d,'category','diagnostic_category','name','title'), 'Business Diagnostic'));
+    state.sessions = unwrap(bookings).map(b => ({ mentor: String(objId(val(b,'mentor')) ?? val(b,'mentor_id') ?? ''), date: dateOnly(val(b,'date','scheduled_date','start')), time: String(val(b,'time','scheduled_time') ?? ''), topic: String(val(b,'topic','notes','reason') ?? '') }));
+    state.posts = unwrap(posts).map(normalizePost);
+    applyEnrollments(unwrap(enrollments));
+    if (!state.courseId && A.courses.length) state.courseId = A.courses[0].id;
+    return A;
+  };
+
+  return A;
+})();
+
+  
+</script>
+<script>
+
+/* Small presentation helpers; shared layout and controls come from Inventory. */
+(function (A) {
+  const S = A.state;
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const paths = {
+    dashboard: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+    learning: 'M3 12l6 6L21 5', paths: 'M5 3v18M5 5h10l-2 3 2 3H5M5 15h15',
+    courses: 'M3 4h7l2 2 2-2h7v16h-7l-2 2-2-2H3zM12 6v16',
+    diagnostic: 'M4 3h16v18H4zM8 8h8M8 12h8M8 16h4', resources: 'M4 3h16v18H4zM4 9h16M10 9v12',
+    tools: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
+    mentorship: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M2 21v-4a6 4 0 0 1 12 0v4M17 6h5v8h-3l-2 3z',
+    community: 'M3 4h18v13H9l-5 4v-4H3zM7 8h10M7 12h7',
+    funding: 'M3 8l9-5 9 5H3zM5 10v8M12 10v8M19 10v8M3 21h18',
+    events: 'M4 5h16v16H4zM4 10h16M8 3v4M16 3v4', growth: 'M4 3v18h17M8 16v-5M13 16V6M18 16V9',
+    certificates: 'M12 3a6 6 0 1 0 0 12 6 6 0 0 0 0-12M8 14l-2 7 6-3 6 3-2-7',
+    profile: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8M4 21v-3a8 5 0 0 1 16 0v3',
+    settings: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2'
+  };
+  const icon = name => `<svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${paths[name] || paths.courses}"/></svg>`;
+  const btn = (label, action, id = '', style = 'secondary small') => `<button type="button" class="btn ${style}" data-action="${action}" data-id="${esc(id)}">${label}</button>`;
+  const panel = (title, body, action = '') => `<section class="panel"><div class="panel-header"><h2>${title}</h2>${action}</div>${body}</section>`;
+  const title = (text, subtitle) => `<div class="page-heading"><div><h2>${text}</h2><p>${subtitle}</p></div></div>`;
+  const progress = value => `<div class="learning-progress" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}"><span style="width:${value}%"></span></div>`;
+  const empty = text => `<div class="empty"><strong>${text}</strong><p>Try another filter or explore a learning path.</p></div>`;
+  const stats = rows => `<div class="stats academy-stats">${rows.map(([label, value, glyph]) => `<article class="stat"><div class="stat-label"><span>${label}</span>${glyph ? icon(glyph) : ''}</div><strong>${value}</strong><small>Sample workspace</small></article>`).join('')}</div>`;
+  const options = (items, value) => items.map(item => `<option value="${esc(item)}" ${item === value ? 'selected' : ''}>${esc(item)}</option>`).join('');
+  const field = (name, label, value = '', type = 'text', extra = '') => `<label class="field">${label}<input name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
+  const area = (name, label, value = '') => `<label class="field full">${label}<textarea name="${name}" maxlength="4000">${esc(value)}</textarea></label>`;
+  const form = (kind, body, label = 'Save', id = '') => `<form data-form="${kind}" data-id="${esc(id)}"><div class="error" id="formError" role="alert"></div><div class="form-grid">${body}</div><div class="form-actions"><button class="btn" type="submit">${label}</button></div></form>`;
+  const date = value => new Date(`${value}T12:00:00`).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
+  function courseCard(course) {
+    const value = A.progress(course.id);
+    return `<article class="panel academy-course"><div class="course-art art-${course.path}">${icon('courses')}<span>${esc(course.stage)}</span></div><div class="course-card-body"><span class="badge">${esc(course.category)}</span><h2>${esc(course.title)}</h2><p>${esc(course.description)}</p><div class="resource-meta"><span>${course.duration} min</span><span>${course.level}</span></div><div class="progress-label"><span>9 modules</span><strong>${value}%</strong></div>${progress(value)}<div class="card-actions">${btn(value ? value === 100 ? 'Review Course' : 'Continue' : 'Start Course', 'course', course.id)}</div></div></article>`;
+  }
+  const grid = items => items.length ? `<div class="knowledge-grid">${items.map(courseCard).join('')}</div>` : empty('No matching courses');
+  function matches(course) {
+    const f = S.filters, value = A.progress(course.id);
+    const status = value === 100 ? 'Completed' : value > 0 ? 'In Progress' : 'Not Started';
+    return `${course.title} ${course.description} ${course.category}`.toLowerCase().includes(S.query.toLowerCase()) && (f.path === 'All' || course.path === f.path) && (f.level === 'All' || course.level === f.level) && (f.stage === 'All' || course.stage === f.stage) && (f.status === 'All' || status === f.status) && (f.duration === 'All' || (f.duration === 'Up to 60 min' ? course.duration <= 60 : course.duration > 60));
+  }
+  function journey() {
+    const stages = ['Foundations', 'Validate', 'Build', 'Grow', 'Scale', 'Investment Ready'];
+    const active = Math.max(0, stages.indexOf(S.profile.stage));
+    return `<ol class="journey">${stages.map((stage, i) => `<li class="${i < active ? 'done' : i === active ? 'current' : 'upcoming'}" ${i === active ? 'aria-current="step"' : ''}><b>${i < active ? '✓' : i + 1}</b><strong>${stage}</strong><small>${i < active ? 'Completed' : i === active ? 'Current focus' : 'Upcoming'}</small></li>`).join('')}</ol>`;
+  }
+  A.U = { esc, icon, btn, panel, title, progress, empty, stats, options, field, area, form, date, courseCard, grid, matches, journey };
+})(window.Academy);
+
+  
+</script>
+<script>
+
+(function (A) {
+  const S = A.state, U = A.U;
+  const { esc, btn, panel, title, stats, grid, date } = U;
+  const currentCourse = () => A.courses.find(c => c.id === 'idea' && A.progress(c.id) < 100) || A.courses.find(c => A.progress(c.id) > 0 && A.progress(c.id) < 100) || A.courses[0];
+  const resourceMap = { foundations: 'canvas', validation: 'research', finance: 'cash', marketing: 'marketing', operations: 'plan', compliance: 'compliance', funding: 'funding', growth: 'plan' };
+  function dashboard() {
+    const sum = A.summary();
+    const banner = `<section class="banner"><div class="banner-copy"><span class="eyebrow">Welcome back, ${esc(S.profile.name)}</span><h2>Learn. Build. Grow.</h2><p>Practical skills, tools and support designed to help South African SMEs grow and scale.</p>${btn('Continue Learning', 'course', currentCourse().id, 'shine')}</div></section>`;
+    return banner + stats([['Courses in Progress', sum.active, 'courses'], ['Completed Courses', sum.completed, 'learning'], ['Learning Hours', sum.hours, 'events'], ['Certificates / Achievements', sum.certificates, 'certificates']]) + panel('Your learning journey', U.journey(), btn('View paths ↗', 'navigate', 'paths'));
+  }
+  function paths() {
+    return title('Learning Paths', 'Choose a practical route through the skills your business needs.') + `<div class="paths-grid">${A.paths.map(path => {
+      const courses = A.courses.filter(c => c.path === path.id), value = Math.round(courses.reduce((sum, c) => sum + A.progress(c.id), 0) / courses.length);
+      return `<section class="panel"><span class="badge">${path.stage}</span><h2 class="path-title">${path.title}</h2><div class="progress-label"><span>${courses.length} short courses</span><strong>${value}%</strong></div>${U.progress(value)}<details class="path-list"><summary>View courses</summary>${courses.map(c => `<button data-action="course" data-id="${c.id}">${A.progress(c.id) === 100 ? '✓ ' : ''}${esc(c.title)}</button>`).join('')}</details>${btn('Explore this path', 'path', path.id)}</section>`;
+    }).join('')}</div>`;
+  }
+  const courseResults = () => grid(A.courses.filter(U.matches));
+  function courses() {
+    const filters = [['level', 'Course Level', ['All', 'Beginner', 'Intermediate']], ['duration', 'Duration', ['All', 'Up to 60 min', 'Over 60 min']], ['stage', 'Business Stage', ['All', 'Foundations', 'Validate', 'Build', 'Grow', 'Scale', 'Investment Ready']], ['status', 'Learning Status', ['All', 'Completed', 'In Progress', 'Not Started']]];
+    return title('Courses', 'Find practical skills for your next business step.') + `<div class="panel"><div class="filters"><input id="courseSearch" type="search" value="${esc(S.query)}" placeholder="Search courses..." aria-label="Search courses"><label>Learning Path<select data-filter="path"><option value="All">All</option>${A.paths.map(p => `<option value="${p.id}" ${S.filters.path === p.id ? 'selected' : ''}>${p.title}</option>`).join('')}</select></label>${filters.map(([key, label, values]) => `<label>${label}<select data-filter="${key}">${U.options(values, S.filters[key])}</select></label>`).join('')}</div></div><div id="courseResults">${courseResults()}</div>`;
+  }
+  function learning() {
+    const started = A.courses.filter(c => A.progress(c.id) > 0);
+    return title('My Learning', 'Continue a course, finish a practical task, or review what you have learnt.') + grid(started.filter(c => A.progress(c.id) < 100)) + panel('Completed Courses', `<div class="completed-list">${started.filter(c => A.progress(c.id) === 100).map(c => `<div><span>${esc(c.title)}</span>${btn('Review', 'course', c.id)}</div>`).join('')}</div>`) + panel('Recent Activity', `<ul class="activity-list">${S.activity.slice(0, 12).map(text => `<li>${esc(text)}</li>`).join('')}</ul>`);
+  }
+  function course() {
+    const c = A.courses.find(c => c.id === S.courseId); if (!c) return U.empty('Course not found');
+    const module = S.module, done = S.completed[c.id] || [], output = S.outputs[c.id] || {}, quiz = S.quiz[c.id];
+    const safety = c.path === 'compliance' || c.path === 'funding' ? '<p class="notice">Educational sample only. Not legal, tax, financial advice or an eligibility decision. Confirm current requirements with the relevant authority or provider.</p>' : '';
+    let content = '';
+    if (module === 0) content = `<div class="video-placeholder"><span>▶</span><strong>${esc(c.title)}</strong><small>Video lesson placeholder · No streaming</small></div><p>${esc(c.description)}</p>`;
+    if (module === 1) content = `<h3>Begin with a useful question</h3><p>What would you like to improve in your business? Write down the current situation and what a better result would look like.</p><p>This course helps you work towards: <strong>${esc(c.output[0])}</strong>.</p>`;
+    if (module === 2) content = `<h3>A South African SME example</h3><p>A small Soweto business chooses one improvement to work on this week. The owner gathers the information available, tests a small change and records the result.</p><p class="notice">For this course, the next step is: ${esc(c.output[1])}</p>`;
+    if (module === 3) content = U.form('activity', U.area('notes', 'Guided Activity: what will you investigate?', output.notes || '') + '<p class="muted full">Save a short note for this preview session.</p>', 'Save Activity', c.id);
+    if (module === 4) content = `<h3>Review what you learnt</h3>${['What evidence do you have?', 'What assumption still needs checking?', 'What is the smallest next step?'].map(text => `<label class="learning-check"><input type="checkbox">${text}</label>`).join('')}`;
+    if (module === 5) content = `<form data-form="quiz" data-id="${c.id}"><fieldset class="quiz-options"><legend>Which is the most useful next step after this course?</legend>${[c.output[0], 'Wait until every detail is certain', 'Copy another business without checking', 'Make a large commitment without evidence'].map((text, i) => `<label><input type="radio" name="answer" value="${i}" required>${esc(text)}</label>`).join('')}</fieldset><button class="btn" type="submit">Submit Answer</button></form>${quiz ? `<p class="notice" role="status">${quiz.correct ? 'Correct — apply the learning through a practical task.' : 'Try again — choose an action that applies this course to your business.'}</p>` : ''}`;
+    if (module === 6) content = `<h3>Practical Business Task</h3><p><strong>${esc(c.output[0])}</strong></p><p>${esc(c.output[1])}</p>` + U.form('output', U.area('result', 'Your practical output', output.result || '') + (/pitch/i.test(c.title) ? '<label class="field full">Select pitch deck (preview only)<input type="file" name="attachment" accept=".pdf,.ppt,.pptx"><small>No file is uploaded or stored. Only the filename is shown.</small></label>' : '') + (output.attachment ? `<p class="muted full">Selected: ${esc(output.attachment)}</p>` : ''), 'Save Business Task', c.id);
+    if (module === 7) content = `<h3>Put a useful tool to work</h3><p>Use this sample worksheet to organise your next steps.</p>${btn('View worksheet', 'resource', resourceMap[c.path])}${c.path === 'marketing' ? `<p><a href="${esc(API.marketing)}">Open Marketing to plan your campaign ↗</a></p>` : ''}${c.path === 'compliance' ? '<p><a href="../knowledge-hub/index.html#compliance">Open the Compliance Knowledge Centre ↗</a></p>' : ''}`;
+    if (module === 8) content = U.form('reflection', U.area('reflection', 'What will you do differently in your business?', S.reflections[c.id] || ''), 'Save Reflection', c.id) + '<p class="muted">Private to this preview. Nothing is posted to the community.</p>';
+    const lessons = c.modules.map((name, i) => `<button class="lesson-button ${i === module ? 'selected' : ''}" data-action="module" data-id="${i}" ${i === module ? 'aria-current="step"' : ''}><span>${done.includes(i) ? '✓' : i + 1}</span>${name}</button>`).join('');
+    return `<div class="back-row">${btn('← Courses', 'navigate', 'courses')}<span class="badge">${c.level}</span></div>${title(esc(c.title), `${c.duration} minutes · ${c.instructor}`)}<p>${esc(c.description)}</p><div class="progress-label"><span>Learn → Apply → Improve</span><strong>${A.progress(c.id)}% complete</strong></div>${U.progress(A.progress(c.id))}<div class="course-layout"><aside class="panel lesson-list">${lessons}</aside><section class="panel lesson-content"><h2>${c.modules[module]}</h2>${safety}${content}<div class="form-actions"><button class="btn secondary" data-action="module" data-id="${module - 1}" ${module === 0 ? 'disabled' : ''}>Previous</button>${btn(done.includes(module) ? 'Completed ✓' : 'Mark Complete', 'complete', c.id, '')}<button class="btn secondary" data-action="module" data-id="${module + 1}" ${module === 8 ? 'disabled' : ''}>Next</button></div></section></div>`;
+  }
+  function diagnosticResults() {
+    const metrics = [['Marketing', [7]], ['Financial Readiness', [4]], ['Digital Maturity', [6]], ['Market Validation', [1, 2, 3]], ['Investment Readiness', [10, 11, 12]]];
+    const values = metrics.map(([name, indices]) => [name, Math.round(indices.reduce((sum, i) => sum + Number(S.diagnosticAnswers[i] || 1) * 25, 0) / indices.length)]);
+    const candidates = [['marketing-1', values[0][1]], ['finance-2', values[1][1]], ['operations-3', values[2][1]], ['validation-2', values[3][1]], ['funding-2', values[4][1]]].sort((a, b) => a[1] - b[1]);
+    return title('Your Business Diagnostic', 'Illustrative results based on your self-reported answers, not a verified business assessment.') + panel('Your starting point', values.map(([name, value]) => `<div class="diagnostic-score"><div class="progress-label"><span>${name}</span><strong>${value}%</strong></div>${U.progress(value)}</div>`).join(''), btn('Review Answers', 'diagnostic-review')) + title('Recommended Learning Path', 'Start with the areas where you reported the least confidence.') + grid(candidates.slice(0, 3).map(([id]) => A.courses.find(c => c.id === id)));
+  }
+  function diagnostic() {
+    if (S.diagnosticFinished) return diagnosticResults();
+    const step = S.diagnosticStep;
+    return title('Business Diagnostic', 'A short self-check to help choose your next learning step.') + `<section class="panel diagnostic-panel"><div class="progress-label"><span>Step ${step + 1} of ${A.diagnostic.length}</span><strong>${A.diagnostic[step]}</strong></div>${U.progress(step / A.diagnostic.length * 100)}<form data-form="diagnostic"><fieldset class="quiz-options"><legend>How confident are you with ${A.diagnostic[step].toLowerCase()} in your business?</legend>${['I am just getting started', 'I have some information, but need help', 'I have a working approach', 'I review and improve this regularly'].map((text, i) => `<label><input type="radio" name="answer" value="${i + 1}" ${S.diagnosticAnswers[step] === String(i + 1) ? 'checked' : ''} required>${text}</label>`).join('')}</fieldset><div class="form-actions"><button type="button" class="btn secondary" data-action="diagnostic-back" ${step === 0 ? 'disabled' : ''}>Previous</button><button class="btn" type="submit">${step === 12 ? 'View Results' : 'Next'}</button></div></form></section>`;
+  }
+  function resources() {
+    const items = A.resources.filter(r => S.resourceCategory === 'All' || r.category === S.resourceCategory);
+    return title('Templates & Resources', 'Simple worksheets to turn learning into action.') + `<div class="filters"><select id="resourceCategory" aria-label="Resource category">${U.options(['All', ...new Set(A.resources.map(r => r.category))], S.resourceCategory)}</select></div><div class="knowledge-grid">${items.map(r => `<article class="panel knowledge-card">${U.icon('resources')}<h2>${r.name}</h2><p>${r.category}</p><span class="badge">${r.type} · Sample template</span><div class="card-actions">${btn('View', 'resource', r.id)}${btn('Download', 'download', r.id)}</div></article>`).join('')}</div>`;
+  }
+  function tools() {
+    const items = (A.tools || []).map(t => [t.label, t.description || '', t.coming_soon ? '' : t.url]);
+    return title('Business Tools', 'Apply what you learn in the rest of your SME workspace.') + `<div class="knowledge-grid">${items.map(([name, description, href]) => `<article class="panel knowledge-card">${U.icon('tools')}<h2>${esc(name)}</h2><p>${esc(description)}</p><div class="card-actions">${href ? `<a class="btn secondary small" href="${href}">Open Tool ↗</a>` : '<span class="badge">Coming soon</span>'}</div></article>`).join('')}</div>`;
+  }
+  function mentorship() {
+    const sessions = S.sessions.map(s => `<div class="session-row"><strong>${A.mentors.find(m => m.id === s.mentor).name}</strong><span>${date(s.date)} · ${s.time}</span><span>${esc(s.topic)}</span><span class="badge">Demo booking</span></div>`).join('');
+    return title('Mentorship', 'Find a useful conversation for your next business challenge. Sample mentors only.') + `<div class="knowledge-grid">${A.mentors.map(m => `<article class="panel knowledge-card"><span class="mentor-avatar">${m.name.split(' ').map(n => n[0]).join('')}</span><h2>${m.name}</h2><p>${m.expertise}</p><small>${m.industry}</small><p>Available: ${m.availability}</p><div class="card-actions">${btn('Book Session', 'book', m.id)}</div></article>`).join('')}</div>` + panel('Upcoming Mentorship Sessions', sessions);
+  }
+  function community() {
+    const posts = S.posts.filter(p => S.communityTopic === 'All' || p.topic === S.communityTopic);
+    return title('SME Community', 'Exchange practical ideas with other business owners. Posts in this demo stay on this page.') + `<div class="community-actions">${btn('Ask a Question', 'community-form', 'Question', '')}${btn('Share a Resource', 'community-form', 'Resource')}<select id="communityTopic" aria-label="Popular topics">${U.options(['All', 'Operations', 'Customer growth', 'Business resources'], S.communityTopic)}</select></div><h2 class="section-title">Recent discussions & SME success stories</h2>${posts.map(p => `<article class="panel discussion"><span class="badge">${p.kind} · ${p.topic}</span><h2>${esc(p.title)}</h2><p>${esc(p.body)}</p><small>${esc(p.author)} · Sample community</small><details><summary>${p.replies.length} replies</summary>${p.replies.map(reply => `<p>${esc(reply)}</p>`).join('')}${U.form('reply', U.area('reply', 'Add a reply for this preview'), 'Add Reply', p.id)}</details></article>`).join('')}`;
+  }
+  function funding() {
+    return title('Funding & Opportunities', 'Explore sample support options. These are not live offers or application links.') + `<div class="knowledge-grid">${A.opportunities.map(o => `<article class="panel knowledge-card"><span class="badge">${o.type}</span><h2>${o.title}</h2><p>${o.provider}</p><p>${o.eligibility}</p><small>Deadline: ${date(o.deadline)}</small><div class="card-actions">${btn('View Opportunity', 'opportunity', o.id)}</div></article>`).join('')}</div>`;
+  }
+  function events() {
+    return title('Events & Webinars', 'Learn together and make useful connections. All listings are samples.') + `<div class="knowledge-grid">${A.events.map(e => `<article class="panel knowledge-card"><span class="badge">${e.type}</span><h2>${e.title}</h2><p>${date(e.date)} · ${e.time} SAST</p><small>${e.mode} · ${e.location}</small><div class="card-actions">${btn(S.registrations.has(e.id) ? 'Registered (demo) ✓' : 'Register', 'register', e.id)}</div></article>`).join('')}</div>`;
+  }
+  function growth() {
+    const chart = (name, values, unit) => {
+      const maximum = Math.max(...values), bars = values.map((value, i) => `<div class="growth-column"><span>${value}${unit}</span><div style="height:${value / maximum * 130}px"></div><small>${['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'][i]}</small></div>`).join('');
+      return panel(name, `<div class="growth-chart" role="img" aria-label="${name}: ${values.map(v => v + unit).join(', ')}">${bars}</div>`);
+    };
+    return title('My Business Growth', 'Illustrative business results, not verified data or outcomes attributed to course completion.') + stats([['Revenue Growth', '+18%'], ['Customers Acquired', '42'], ['Jobs Created', '2'], ['Funding Raised', 'R25,000'], ['Markets Entered', '2'], ['Digital Adoption Score', '64%'], ['Business Formalisation', 'In progress'], ['Investment Readiness', '45%']]) + `<div class="paths-grid">${chart('Growth over time · Revenue (R thousands)', [12, 14, 13, 16, 17, 19], '')}${chart('Learning completed · Courses', [1, 2, 3, 4, 5, 7], '')}${chart('Business readiness progression', [20, 25, 30, 34, 40, 45], '%')}</div>`;
+  }
+  function certificates() {
+    return title('Certificates & Achievements', 'Celebrate learning milestones. These are sample certificates, not accredited qualifications.') + `<div class="achievement-row"><span>✓ Foundations completed</span><span>✓ First practical steps</span><span>✓ Consistent learner</span></div><div class="knowledge-grid">${Object.keys(S.certificates).map(id => `<article class="panel knowledge-card">${U.icon('certificates')}<h2>${esc(A.courses.find(c => c.id === id).title)}</h2><p>Completed ${date(S.certificates[id])}</p><div class="card-actions">${btn('View Certificate', 'certificate', id)}${btn('Download', 'certificate-download', id)}${btn('Share', 'certificate-share', id)}</div></article>`).join('')}</div>`;
+  }
+  function profile() {
+    const p = S.profile;
+    return title('My Profile', 'Your sample business and learning profile.') + panel('Business details', U.form('profile', U.field('name', 'Your Name', p.name, 'text', 'required maxlength="100"') + U.field('business', 'Business Name', p.business, 'text', 'required maxlength="150"') + U.field('email', 'Email', p.email, 'email', 'required') + U.field('location', 'Location', p.location) + U.field('industry', 'Industry', p.industry) + `<label class="field">Business Stage<select name="stage">${U.options(['Foundations', 'Validate', 'Build', 'Grow', 'Scale', 'Investment Ready'], p.stage)}</select></label>`, 'Save Profile'));
+  }
+  function settings() {
+    return title('Settings', 'Choose how this preview works for you.') + panel('Learning preferences', U.form('settings', `<label class="learning-check full"><input type="checkbox" name="reminders" ${S.settings.reminders ? 'checked' : ''}>Learning reminder preference</label><label class="learning-check full"><input type="checkbox" name="digest" ${S.settings.digest ? 'checked' : ''}>Community digest preference</label><label class="learning-check full"><input type="checkbox" name="compact" ${S.settings.compact ? 'checked' : ''}>Compact course cards</label><p class="muted full">Preferences stay in this browser page until refresh. No emails or notifications are sent.</p>`, 'Save Preferences'));
+  }
+  A.V = { dashboard, paths, courses, courseResults, learning, course, diagnostic, resources, tools, mentorship, community, funding, events, growth, certificates, profile, settings };
+})(window.Academy);
+
+  
+</script>
+<script>
+
+/* All mutations are local to this preview session. No data is sent or persisted. */
+(function (A) {
+  const S = A.state, U = A.U, V = A.V, $ = selector => document.querySelector(selector);
+  const pages = { dashboard: 'Dashboard', learning: 'My Learning', paths: 'Learning Paths', courses: 'Courses', diagnostic: 'Business Diagnostic', resources: 'Templates & Resources', tools: 'Business Tools', mentorship: 'Mentorship', community: 'SME Community', funding: 'Funding & Opportunities', events: 'Events & Webinars', growth: 'My Business Growth', certificates: 'Certificates', profile: 'My Profile', settings: 'Settings' };
+  let trigger, nextId = 1;
+  function toast(message) { const e = document.createElement('div'); e.className = 'toast'; e.textContent = message; $('#toasts').append(e); setTimeout(() => e.remove(), 4000); }
+  function closeSidebar() { $('#sidebar').classList.remove('open'); $('#menuButton').setAttribute('aria-expanded', 'false'); }
+  function render() {
+    document.body.classList.toggle('academy-dashboard', S.page === 'dashboard');
+    $('#pageTitle').textContent = S.page === 'dashboard' ? 'SME Academy' : pages[S.page] || 'Course Details'; document.title = $('#pageTitle').textContent + ' · EIEAAS';
+    document.querySelectorAll('#navigation [data-route]').forEach(button => {
+      const route = button.dataset.route;
+      const active = route === S.page || (S.page === 'course' && route === 'courses');
+      button.classList.toggle('active', active);
+      if (active) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
+    $('#academyContent').innerHTML = V[S.page]();
+    document.body.classList.toggle('compact-cards', S.settings.compact);
+  }
+  function navigate() {
+    const [page, id] = location.hash.slice(1).split('/');
+    if (page === 'manage' && window.AcademyAdmin?.canManage) {
+      closeSidebar();
+      window.AcademyAdmin.render();
+      return;
+    }
+    S.page = pages[page] || page === 'course' ? page : 'dashboard';
+    if (page === 'course') { S.courseId = id; const done = S.completed[id] || []; S.module = Array.from({ length: 9 }, (_, i) => i).find(i => !done.includes(i)) ?? 0; }
+    closeSidebar(); render(); $('#academyContent').focus({ preventScroll: true });
+  }
+  function modal(title, html) { trigger = document.activeElement; $('#modalTitle').textContent = title; $('#modalBody').innerHTML = html; $('#modal').showModal(); }
+  function close() { $('#modal').close(); $('#modalBody').innerHTML = ''; if (trigger?.isConnected) trigger.focus(); }
+  function certificate(id) {
+    const c = A.courses.find(c => c.id === id);
+    modal('Sample Certificate', `<div class="certificate"><span>EIEAAS · SME Academy</span><h2>Certificate of Completion</h2><p>Presented to ${U.esc(S.profile.name)}</p><h3>${U.esc(c.title)}</h3><p>Completed ${U.date(S.certificates[id])}</p><small>Front-end sample · Not an accredited qualification</small></div>`);
+  }
+  document.addEventListener('click', event => {
+    const t = event.target.closest('[data-action]');
+    if (t) {
+      const { action, id } = t.dataset;
+      if (action === 'navigate') location.hash = id;
+      if (action === 'course') location.hash = `course/${id}`;
+      if (action === 'close') close();
+      if (action === 'path') { S.query = ''; S.filters = { path: id, level: 'All', duration: 'All', stage: 'All', status: 'All' }; location.hash = 'courses'; }
+      if (action === 'module') { S.module = Math.max(0, Math.min(8, Number(id))); render(); }
+      if (action === 'complete') {
+        if (S.module === 5 && !S.quiz[id]?.correct && !S.completed[id]?.includes(5)) { toast('Answer the practice question correctly first.'); return; }
+        if (S.module === 6 && !S.outputs[id]?.result?.trim() && !S.completed[id]?.includes(6)) { toast('Save your practical business task first.'); return; }
+        const before = S.completed[id] || [], done = new Set(before); done.add(S.module); S.completed[id] = [...done];
+        if (done.size > before.length) S.activity.unshift('Completed module: ' + A.courses.find(c => c.id === id).modules[S.module]);
+        if (done.size === 9) S.certificates[id] = S.certificates[id] || A.day(0);
+        render(); toast('Module completed');
+      }
+      if (action === 'diagnostic-back') { const checked = document.querySelector('input[name="answer"]:checked'); if (checked) S.diagnosticAnswers[S.diagnosticStep] = checked.value; S.diagnosticStep = Math.max(0, S.diagnosticStep - 1); render(); }
+      if (action === 'diagnostic-review') { S.diagnosticFinished = false; S.diagnosticStep = 0; render(); }
+      if (action === 'resource') {
+        const r = A.resources.find(r => r.id === id);
+        modal(r.name, `<span class="badge">${r.type} · Sample worksheet</span><div class="resource-sheet">${r.fields.map(field => `<div><strong>${field}</strong><span>Add your own business information</span></div>`).join('')}</div>${U.btn('Download (demo)', 'download', id)}<p class="muted">Preview only. No real file is generated.</p>`);
+      }
+      if (action === 'download') {
+        const r = A.resources.find(r => String(r.id) === String(id));
+        if (r?.downloadUrl) window.open(r.downloadUrl, '_blank', 'noopener');
+        else toast('No downloadable file is attached to this resource yet.');
+      }
+      if (action === 'certificate-download') toast('Certificate download can be linked to the server certificate view when available.');
+      if (action === 'certificate-share') toast('Share preview only — nothing was posted or sent.');
+      if (action === 'certificate') certificate(id);
+      if (action === 'crm-preview') modal('CRM tool preview', '<p>Your CRM module can be linked here when its entry point is available.</p><p>No CRM connection has been created in this front-end preview.</p>');
+      if (action === 'book') {
+        const m = A.mentors.find(m => m.id === id);
+        modal('Book a mentorship session', `<p>${m.name} · ${m.expertise}</p>` + U.form('booking', U.field('date', 'Date', A.day(4), 'date', `required min="${A.day(1)}"`) + `<label class="field">Time (SAST)<select name="time">${U.options(['09:00', '10:00', '11:00', '14:00'], '10:00')}</select></label>` + U.area('topic', 'What would you like to discuss?') + '<p class="muted full">Booking details will be submitted once the create action is mapped to your serializer fields.</p>', 'Book Session (demo)', id));
+      }
+      if (action === 'register') {
+        if (S.registrations.has(id)) { toast('Already registered in this preview.'); return; }
+        const e = A.events.find(e => e.id === id);
+        modal('Event registration preview', `<h3>${e.title}</h3><p>${U.date(e.date)} · ${e.time} SAST · ${e.mode}</p>` + U.form('registration', U.field('name', 'Name', S.profile.name, 'text', 'required') + U.field('email', 'Email', S.profile.email, 'email', 'required') + '<p class="muted full">No registration is submitted to an organiser.</p>', 'Register (demo)', id));
+      }
+      if (action === 'opportunity') {
+        const o = A.opportunities.find(o => o.id === id);
+        modal(o.title, `<span class="badge">${o.type}</span><p>${o.provider}</p><p>Deadline: ${U.date(o.deadline)}</p><h3>Eligibility summary</h3><p>${o.eligibility}</p><p class="notice">Illustrative opportunity only. This is not an actual offer, verified eligibility assessment or funding application.</p>${U.btn('Explore Funding Readiness', 'course', 'funding-2')}`);
+      }
+      if (action === 'community-form') modal(id === 'Question' ? 'Ask a Question' : 'Share a Resource', U.form('post', U.field('title', 'Title', '', 'text', 'required maxlength="180"') + U.area('body', id === 'Question' ? 'Your question' : 'Describe the resource') + `<label class="field">Topic<select name="topic">${U.options(['Operations', 'Customer growth', 'Business resources'], 'Operations')}</select></label><input type="hidden" name="kind" value="${id}"><p class="muted full">Saved locally in this preview, not published to anyone.</p>`, 'Add to Preview'));
+      if (action === 'help') modal('Help & Support', '<details open><summary>How do I start?</summary><p>Choose a learning path or take the Business Diagnostic, then open a course.</p></details><details><summary>Are changes saved?</summary><p>This front-end prototype keeps edits only until the page is refreshed.</p></details><details><summary>Are bookings and certificates real?</summary><p>No. They are demonstration screens. No booking, message, registration or certificate is sent.</p></details>');
+    }
+    if (!event.target.closest('#sidebar') && !event.target.closest('#menuButton')) closeSidebar();
+  });
+  document.addEventListener('input', event => { if (event.target.id === 'courseSearch') { S.query = event.target.value; $('#courseResults').innerHTML = V.courseResults(); } });
+  document.addEventListener('change', event => {
+    const t = event.target;
+    if (t.dataset.filter) { S.filters[t.dataset.filter] = t.value; $('#courseResults').innerHTML = V.courseResults(); }
+    if (t.id === 'resourceCategory') { S.resourceCategory = t.value; render(); }
+    if (t.id === 'communityTopic') { S.communityTopic = t.value; render(); }
+  });
+  document.addEventListener('submit', event => {
+    const form = event.target.closest('form[data-form]'); if (!form) return; event.preventDefault(); if (!form.reportValidity()) return;
+    const data = new FormData(form), values = Object.fromEntries(data), kind = form.dataset.form, id = form.dataset.id;
+    const error = text => { const box = form.querySelector('#formError'); if (box) box.textContent = text; else toast(text); };
+    if (kind === 'diagnostic') { S.diagnosticAnswers[S.diagnosticStep] = values.answer; if (S.diagnosticStep === 12) S.diagnosticFinished = true; else S.diagnosticStep++; render(); return; }
+    if (kind === 'quiz') { S.quiz[id] = { correct: values.answer === '0' }; render(); return; }
+    if (kind === 'activity' || kind === 'output') {
+      if (kind === 'output' && !values.result.trim()) { error('Describe your practical output before saving.'); return; }
+      S.outputs[id] = { ...S.outputs[id], ...values, attachment: data.get('attachment')?.name || S.outputs[id]?.attachment || '' }; render(); toast('Saved for this preview.'); return;
+    }
+    if (kind === 'reflection') { S.reflections[id] = values.reflection; render(); toast('Reflection saved privately in this preview.'); return; }
+    if (kind === 'booking') {
+      if (values.date <= A.day(0)) { error('Choose a future date.'); return; }
+      if (S.sessions.some(s => s.mentor === id && s.date === values.date && s.time === values.time)) { error('This sample session is already booked.'); return; }
+      S.sessions.push({ mentor: id, ...values }); close(); render(); toast('Demo session added. No mentor was contacted.'); return;
+    }
+    if (kind === 'registration') { S.registrations.add(id); close(); render(); toast('Registered in this preview only.'); return; }
+    if (kind === 'post') {
+      if (!values.title.trim() || !values.body.trim()) { error('Enter a title and message.'); return; }
+      S.posts.unshift({ ...values, id: `new-post-${nextId++}`, author: S.profile.name, replies: [] }); close(); render(); toast('Added locally. Nothing was published.'); return;
+    }
+    if (kind === 'reply') { if (!values.reply.trim()) { error('Write a reply first.'); return; } S.posts.find(p => p.id === id).replies.push(`${S.profile.name}: ${values.reply}`); render(); toast('Reply added to this preview.'); return; }
+    if (kind === 'profile') { if (!values.name.trim() || !values.business.trim()) { error('Enter your name and business name.'); return; } Object.assign(S.profile, values); render(); toast('Profile updated for this preview.'); return; }
+    if (kind === 'settings') { S.settings = { reminders: data.has('reminders'), digest: data.has('digest'), compact: data.has('compact') }; render(); toast('Preferences saved for this preview.'); }
+  });
+  $('#sidebarToggle').onclick = () => { const expanded = document.body.classList.toggle('sidebar-expanded'); $('#sidebarToggle').setAttribute('aria-expanded', String(expanded)); $('#sidebarToggle').setAttribute('aria-label', expanded ? 'Collapse sidebar' : 'Expand sidebar'); $('#sidebarToggle').title = expanded ? 'Collapse sidebar' : 'Expand sidebar'; };
+  $('#menuButton').onclick = () => { const open = $('#sidebar').classList.toggle('open'); $('#menuButton').setAttribute('aria-expanded', String(open)); };
+  $('#modal').addEventListener('cancel', event => { event.preventDefault(); close(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSidebar(); });
+  window.addEventListener('hashchange', () => { if ($('#modal').open) close(); navigate(); });
+  A.load().then(navigate).catch(error => {
+    console.error('Academy API load failed:', error);
+    document.querySelector('#academyContent').innerHTML = `<section class="panel"><h2>Academy could not load</h2><p>${U.esc(error.message || 'Unable to load Academy data.')}</p></section>`;
+  });
+})(window.Academy);
+
+  
+</script>
+
+
+  <script defer src="{% static 'sme/academy/js/api.js' %}"></script>
+  <!-- The inline Academy renderer above owns #academyApp. Do not load the legacy
+       course-page renderer here: it would replace the preferred page after load. -->
+  {% if can_manage_academy %}
+  <!-- Preserve the existing manager implementation. -->
+  <script defer src="{% static 'sme/academy/js/academy-admin-api.js' %}"></script>
+  <script defer src="{% static 'sme/academy/js/academy-admin-schema.js' %}"></script>
+  <script defer src="{% static 'sme/academy/js/academy-admin.js' %}"></script>
+  {% endif %}
+</body>
 </html>

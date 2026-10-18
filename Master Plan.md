@@ -1,8 +1,8 @@
 # SME Shell and CRM Integration — Master Plan
 
-**Status:** Approved integration direction
+**Status:** Academy landing, Tasks, and Inventory workspaces implemented
 
-**Updated:** 18 September 2026
+**Updated:** 27 September 2026
 
 **Source prototype:** `SMEs (3)/SMEs/`
 
@@ -11,6 +11,8 @@
 **Primary decision:** The SME experience becomes the main user-facing shell. Its current CSS and page-specific JavaScript are preserved while pages are brought under Django one at a time. Existing CRM tools remain operational at their current routes and are linked from the SME Tools page; restyling those tools is a later project. Marketing is deliberately implemented last because it requires the largest new schema and API surface.
 
 **Implementation update — 18 September 2026:** The first Academy course vertical slice is implemented. Django admin now manages learning paths, courses, and typed ordered modules; published content is exposed through authenticated `/api/v1/academy/` endpoints; YouTube URLs are validated and rendered through `youtube-nocookie.com`; the Django Academy page preserves the supplied CSS and does not load the prototype `data.js`; and the editable sample catalogue is seeded into the database. Learner progress, quizzes, outputs, diagnostics, bookings, and certificates remain later Academy slices.
+
+**Implementation update — 27 September 2026:** `/academy/` is the canonical authenticated landing page and `/` redirects there. Tasks now provides database-backed Dashboard, Projects, Tasks, My Tasks, Calendar, and Team routes, a data-preserving three-state workflow (`To Do`, `In Progress`, `Completed`), and protected genuine attachments. Inventory now provides ten database-backed routes for products, categories, stock in/out, suppliers, history, low stock, six reports, and settings. Inventory quantities change only through movements; management-only backup and confirmation-gated clear-data operations preserve shared Products, Suppliers, and Purchasing records.
 
 ---
 

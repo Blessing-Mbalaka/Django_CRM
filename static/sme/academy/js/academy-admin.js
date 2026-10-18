@@ -2,7 +2,7 @@
   const configNode = document.querySelector('#academy-management-data');
   if (!configNode) return;
   const config = JSON.parse(configNode.textContent);
-  const root = document.querySelector('#academyApp');
+  const root = document.querySelector('#academyContent');
   const dialog = document.querySelector('#academyManageDialog');
   const form = document.querySelector('#academyManageForm');
   const fieldsRoot = document.querySelector('#academyManageFields');

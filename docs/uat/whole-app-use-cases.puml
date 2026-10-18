@@ -1,0 +1,193 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #F8FBFF
+  BorderColor #2F5D8A
+}
+
+title JBS CRM Use Case Diagram - All Users
+
+actor Visitor as visitor
+actor "Authenticated User" as auth_user
+actor "General Staff" as staff
+actor Analyst as analyst
+actor "Engagement Lead" as lead
+actor "Department Director" as director
+actor CEO as ceo
+actor "System Administrator" as admin
+actor "Academy Manager" as academy_manager
+actor Developer as developer
+
+staff --|> auth_user
+analyst --|> staff
+lead --|> staff
+director --|> lead
+ceo --|> director
+admin --|> staff
+academy_manager --|> staff
+
+rectangle "JBS CRM Platform" {
+
+  package "Authentication" {
+    usecase "Log In" as UC_Login
+    usecase "Log Out" as UC_Logout
+    usecase "Reset Password" as UC_ResetPassword
+    usecase "View Own Profile" as UC_Profile
+  }
+
+  package "Dashboard & Navigation" {
+    usecase "Open Business Dashboard" as UC_Dashboard
+    usecase "Navigate Module Catalogue" as UC_NavigateModules
+    usecase "Open SME Academy Landing" as UC_AcademyLanding
+  }
+
+  package "CRM & Sales" {
+    usecase "Manage Clients" as UC_Clients
+    usecase "Track Engagements" as UC_Engagements
+    usecase "Create and Fulfil Sales Orders" as UC_SalesOrders
+  }
+
+  package "Finance & Accounting" {
+    usecase "Issue Invoices and Record Payments" as UC_Billing
+    usecase "Submit and Approve Expenses" as UC_Expenses
+    usecase "Review Financial Overview" as UC_FinancialOverview
+    usecase "Maintain Accounting Ledger" as UC_Accounting
+    usecase "Review Business Activity" as UC_BusinessActivity
+    usecase "Run Payroll" as UC_Payroll
+  }
+
+  package "Operations" {
+    usecase "Maintain Product and Service Catalogue" as UC_Products
+    usecase "Monitor Inventory and Stock Movements" as UC_Inventory
+    usecase "Manage Purchasing and Supplier Orders" as UC_Purchasing
+    usecase "Manage Tasks and Kanban Boards" as UC_Tasks
+    usecase "Upload and Retrieve Documents" as UC_Documents
+  }
+
+  package "Insights & Control" {
+    usecase "View Reports and Analytics" as UC_Analytics
+    usecase "Review and Resolve Alerts" as UC_Alerts
+    usecase "Monitor Communication Health" as UC_CommsHealth
+    usecase "Review AI Insights" as UC_AIInsights
+  }
+
+  package "People & Administration" {
+    usecase "Maintain Staff Records" as UC_Staff
+    usecase "Maintain Departments" as UC_Departments
+    usecase "Administer Users and Access" as UC_SystemAdmin
+  }
+
+  package "Growth & Academy" {
+    usecase "Take Academy Courses" as UC_Courses
+    usecase "Use Business Diagnostic" as UC_Diagnostic
+    usecase "Review Funding Opportunities" as UC_Funding
+    usecase "Register for Events" as UC_Events
+    usecase "Book Mentorship" as UC_Mentorship
+    usecase "Participate in Community" as UC_Community
+    usecase "Manage Academy Content" as UC_AcademyManage
+    usecase "View Own Certificate" as UC_Certificate
+    usecase "Verify Certificate Link" as UC_CertificateVerify
+    usecase "Preview Growth and Marketing Workspace" as UC_GrowthMarketing
+  }
+
+  package "Developer API" {
+    usecase "Browse Authenticated API" as UC_APIExplorer
+  }
+}
+
+visitor --> UC_Login
+visitor --> UC_ResetPassword
+visitor --> UC_CertificateVerify
+
+auth_user --> UC_Logout
+auth_user --> UC_Profile
+auth_user --> UC_Dashboard
+auth_user --> UC_NavigateModules
+auth_user --> UC_AcademyLanding
+auth_user --> UC_Courses
+auth_user --> UC_Diagnostic
+auth_user --> UC_Funding
+auth_user --> UC_Events
+auth_user --> UC_Mentorship
+auth_user --> UC_Community
+auth_user --> UC_Certificate
+
+staff --> UC_Clients
+staff --> UC_Engagements
+staff --> UC_SalesOrders
+staff --> UC_Billing
+staff --> UC_Expenses
+staff --> UC_Products
+staff --> UC_Inventory
+staff --> UC_Purchasing
+staff --> UC_Tasks
+staff --> UC_Documents
+staff --> UC_CommsHealth
+
+analyst --> UC_Analytics
+analyst --> UC_Alerts
+analyst --> UC_AIInsights
+analyst --> UC_BusinessActivity
+
+lead --> UC_Staff
+lead --> UC_Departments
+lead --> UC_FinancialOverview
+
+director --> UC_Accounting
+director --> UC_GrowthMarketing
+
+ceo --> UC_Payroll
+ceo --> UC_FinancialOverview
+ceo --> UC_Analytics
+ceo --> UC_SystemAdmin
+
+admin --> UC_SystemAdmin
+admin --> UC_Payroll
+admin --> UC_Accounting
+admin --> UC_Staff
+admin --> UC_Departments
+admin --> UC_APIExplorer
+
+academy_manager --> UC_AcademyManage
+academy_manager --> UC_Courses
+academy_manager --> UC_Funding
+academy_manager --> UC_Events
+academy_manager --> UC_Mentorship
+academy_manager --> UC_Community
+
+UC_Dashboard .> UC_NavigateModules : <<include>>
+UC_AcademyLanding .> UC_Courses : <<include>>
+UC_AcademyLanding .> UC_Diagnostic : <<include>>
+UC_AcademyLanding .> UC_Funding : <<include>>
+UC_AcademyLanding .> UC_Events : <<include>>
+UC_AcademyLanding .> UC_Mentorship : <<include>>
+UC_AcademyLanding .> UC_Community : <<include>>
+UC_Billing .> UC_Clients : <<include>>
+UC_SalesOrders .> UC_Clients : <<include>>
+UC_Purchasing .> UC_Inventory : <<include>>
+UC_Alerts .> UC_Analytics : <<extend>>
+UC_AIInsights .> UC_Analytics : <<extend>>
+UC_Certificate .> UC_Courses : <<extend>>
+UC_AcademyManage .> UC_Courses : <<include>>
+UC_AcademyManage .> UC_Funding : <<include>>
+UC_AcademyManage .> UC_Events : <<include>>
+UC_AcademyManage .> UC_Mentorship : <<include>>
+UC_AcademyManage .> UC_Community : <<include>>
+
+note right of academy_manager
+Academy manager access is granted to
+system administrators, CEOs, and Django staff users.
+end note
+
+note bottom of UC_Payroll
+Payroll visibility is restricted to privileged roles.
+end note
+
+note bottom of UC_APIExplorer
+Browsable API is mounted at /api/v1/ and /api/.
+end note
+
+@enduml
