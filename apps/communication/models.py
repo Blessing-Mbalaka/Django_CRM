@@ -1,7 +1,8 @@
+from apps.companies.models import CompanyOwnedModel
 from django.db import models
 
 
-class CommunicationLog(models.Model):
+class CommunicationLog(CompanyOwnedModel):
     """Record of every interaction with a client/engagement."""
 
     class ContactType(models.TextChoices):

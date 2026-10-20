@@ -1,8 +1,9 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from apps.finance.models import FinancialRecord
 
 
-class FinancialRecordSerializer(serializers.ModelSerializer):
+class FinancialRecordSerializer(CompanyModelSerializer):
     record_type_display = serializers.SerializerMethodField()
     engagement_title    = serializers.SerializerMethodField()
 

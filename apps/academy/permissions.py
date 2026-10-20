@@ -8,6 +8,7 @@ def is_academy_manager(user):
     return bool(
         user
         and user.is_authenticated
+        and user.company.is_original
         and (
             user.is_superuser
             or user.is_staff

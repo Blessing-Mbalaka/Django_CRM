@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Company team{% endblock %}
+{% block content %}
+<h1>{{ request.company.name }} team</h1>
+<p>Company code: <strong>{{ request.company.slug }}</strong>. Each team member has their own learning progress.</p>
+<div class="row g-4">
+  <section class="col-lg-6"><h2>Team members</h2><ul class="list-group">{% for member in team %}<li class="list-group-item">{{ member.get_full_name|default:member.username }} · {{ member.username }} · {{ member.get_role_display }}{% if not member.is_active %} (inactive){% endif %}</li>{% endfor %}</ul></section>
+  <section class="col-lg-6"><h2>Add a team member</h2><form method="post">{% csrf_token %}{{ form.non_field_errors }}{% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}{{ field.errors }}</div>{% endfor %}<button class="btn-uj" type="submit">Create team member</button></form></section>
+</div>
+{% endblock %}

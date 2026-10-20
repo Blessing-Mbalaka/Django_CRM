@@ -1,0 +1,1 @@
+{% if request.company %}<span class="company-badge" style="font-size:.8rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ request.company.name }}">{{ request.company.name }}{% if request.user.role == 'admin' or request.user.role == 'dean' %} · <a href="{% url 'accounts:company_users' %}">Team</a>{% endif %}</span>{% endif %}

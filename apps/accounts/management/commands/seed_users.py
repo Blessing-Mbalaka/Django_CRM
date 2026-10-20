@@ -1,3 +1,4 @@
+from apps.companies.tenancy import company_job
 """
 Management command: seed_users
 Creates dummy departments and users for development/demo purposes.
@@ -66,6 +67,7 @@ class Command(BaseCommand):
         )
 
     @transaction.atomic
+    @company_job
     def handle(self, *args, **options):
         if options['clear']:
             deleted, _ = User.objects.filter(is_superuser=False).delete()

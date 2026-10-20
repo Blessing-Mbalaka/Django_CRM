@@ -1,9 +1,10 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 
 from .models import Fulfilment, SalesOrder, SalesOrderLine
 
 
-class SalesOrderLineSerializer(serializers.ModelSerializer):
+class SalesOrderLineSerializer(CompanyModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     net_amount = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
     tax_amount = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
@@ -19,7 +20,7 @@ class SalesOrderLineSerializer(serializers.ModelSerializer):
         return sales_order
 
 
-class SalesOrderSerializer(serializers.ModelSerializer):
+class SalesOrderSerializer(CompanyModelSerializer):
     client_name = serializers.CharField(source='client.name', read_only=True)
     lines = SalesOrderLineSerializer(many=True, read_only=True)
     subtotal = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
@@ -37,7 +38,7 @@ class SalesOrderSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class FulfilmentSerializer(serializers.ModelSerializer):
+class FulfilmentSerializer(CompanyModelSerializer):
     lines = serializers.SerializerMethodField()
 
     class Meta:

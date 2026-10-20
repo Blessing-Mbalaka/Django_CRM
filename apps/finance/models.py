@@ -1,7 +1,8 @@
+from apps.companies.models import CompanyOwnedModel
 from django.db import models
 
 
-class FinancialRecord(models.Model):
+class FinancialRecord(CompanyOwnedModel):
     """Revenue and pipeline financial tracking per engagement."""
 
     class RecordType(models.TextChoices):

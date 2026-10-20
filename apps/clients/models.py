@@ -1,7 +1,8 @@
+from apps.companies.models import CompanyOwnedModel
 from django.db import models
 
 
-class Client(models.Model):
+class Client(CompanyOwnedModel):
     """Institutional client or stakeholder organisation."""
 
     class Visibility(models.TextChoices):

@@ -42,6 +42,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'apps.companies',     # Company ownership and access boundaries
     'apps.accounts',      # Authentication, login, user roles
     'apps.core',          # Dashboard, base views, shared utilities
     'apps.admin_panel',   # System administration, user management
@@ -80,6 +81,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'apps.companies.middleware.CompanyMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -129,6 +131,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
+# Usernames are unique within a company; the custom backend always checks company.
+SILENCED_SYSTEM_CHECKS = ['auth.W004']
 
 # Optional Marketing credentials; empty values keep planning features available.
 TWILIO_EMAIL_API_KEY = env('TWILIO_EMAIL_API_KEY', default='')
@@ -208,6 +212,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+STORAGES = {
+    'default': {'BACKEND': 'apps.companies.storage.CompanyFileStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
 
 # ---------------------------------------------------------------------------
 # CRISPY FORMS

@@ -1,15 +1,16 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 
 from .models import GoodsReceipt, GoodsReceiptLine, PurchaseOrder, PurchaseOrderLine, Supplier, SupplierBill, SupplierPayment
 
 
-class SupplierSerializer(serializers.ModelSerializer):
+class SupplierSerializer(CompanyModelSerializer):
     class Meta:
         model = Supplier
         fields = ['id', 'name', 'contact_person', 'email', 'phone', 'address', 'notes', 'tax_number', 'is_active']
 
 
-class PurchaseOrderLineSerializer(serializers.ModelSerializer):
+class PurchaseOrderLineSerializer(CompanyModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     line_total = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
 
@@ -24,7 +25,7 @@ class PurchaseOrderLineSerializer(serializers.ModelSerializer):
         return purchase_order
 
 
-class PurchaseOrderSerializer(serializers.ModelSerializer):
+class PurchaseOrderSerializer(CompanyModelSerializer):
     supplier_name = serializers.CharField(source='supplier.name', read_only=True)
     location_name = serializers.CharField(source='location.name', read_only=True)
     lines = PurchaseOrderLineSerializer(many=True, read_only=True)
@@ -43,7 +44,7 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class GoodsReceiptSerializer(serializers.ModelSerializer):
+class GoodsReceiptSerializer(CompanyModelSerializer):
     lines = serializers.SerializerMethodField()
 
     class Meta:
@@ -55,7 +56,7 @@ class GoodsReceiptSerializer(serializers.ModelSerializer):
         return [{'purchase_order_line': line.purchase_order_line_id, 'quantity': line.quantity} for line in obj.lines.all()]
 
 
-class SupplierBillSerializer(serializers.ModelSerializer):
+class SupplierBillSerializer(CompanyModelSerializer):
     supplier_name = serializers.CharField(source='purchase_order.supplier.name', read_only=True)
 
     class Meta:
@@ -64,7 +65,7 @@ class SupplierBillSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class SupplierPaymentSerializer(serializers.ModelSerializer):
+class SupplierPaymentSerializer(CompanyModelSerializer):
     class Meta:
         model = SupplierPayment
         fields = ['id', 'supplier_bill', 'amount', 'paid_on', 'reference', 'recorded_by', 'created_at']

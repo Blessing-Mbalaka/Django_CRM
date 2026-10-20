@@ -3,12 +3,14 @@ JBS CRM — Root URL Configuration
 All app URLs are included here for clean modular routing.
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from apps.companies.storage import company_media
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
+    re_path(r'^media/(?P<path>.*)$', company_media, name='company-media'),
     # Django built-in admin
     path('admin/', admin.site.urls),
 
@@ -52,5 +54,4 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += staticfiles_urlpatterns()

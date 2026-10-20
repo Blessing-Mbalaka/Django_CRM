@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from pathlib import Path
 
 from django.conf import settings
@@ -5,7 +6,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class DocumentLibrary(models.Model):
+class DocumentLibrary(CompanyOwnedModel):
     class Scope(models.TextChoices):
         PERSONAL = 'personal', 'Personal'
         TEAM = 'team', 'Team'
@@ -19,14 +20,14 @@ class DocumentLibrary(models.Model):
     class Meta:
         ordering = ['name']
         constraints = [
-            models.UniqueConstraint(fields=['owner', 'name'], name='documents_unique_library_name_per_owner'),
+            models.UniqueConstraint(fields=['company', 'owner', 'name'], name='documents_unique_library_name_per_owner'),
         ]
 
     def __str__(self):
         return self.name
 
 
-class Folder(models.Model):
+class Folder(CompanyOwnedModel):
     library = models.ForeignKey(DocumentLibrary, on_delete=models.CASCADE, related_name='folders')
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='children')
     name = models.CharField(max_length=160)
@@ -36,7 +37,7 @@ class Folder(models.Model):
     class Meta:
         ordering = ['name']
         constraints = [
-            models.UniqueConstraint(fields=['library', 'parent', 'name'], name='documents_unique_folder_name'),
+            models.UniqueConstraint(fields=['company', 'library', 'parent', 'name'], name='documents_unique_folder_name'),
         ]
 
     def clean(self):
@@ -54,7 +55,7 @@ class Folder(models.Model):
         return self.name
 
 
-class Document(models.Model):
+class Document(CompanyOwnedModel):
     class Classification(models.TextChoices):
         PUBLIC = 'public', 'Public'
         INTERNAL = 'internal', 'Internal'
@@ -97,7 +98,7 @@ def document_upload_path(instance, filename):
     return f'documents/{instance.document_id}/{instance.version_number}{suffix}'
 
 
-class DocumentVersion(models.Model):
+class DocumentVersion(CompanyOwnedModel):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='versions')
     version_number = models.PositiveIntegerField()
     file = models.FileField(upload_to=document_upload_path)
@@ -111,14 +112,14 @@ class DocumentVersion(models.Model):
     class Meta:
         ordering = ['-version_number']
         constraints = [
-            models.UniqueConstraint(fields=['document', 'version_number'], name='documents_unique_version_number'),
+            models.UniqueConstraint(fields=['company', 'document', 'version_number'], name='documents_unique_version_number'),
         ]
 
     def __str__(self):
         return f'{self.document.title} v{self.version_number}'
 
 
-class DocumentActivity(models.Model):
+class DocumentActivity(CompanyOwnedModel):
     document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='activities')
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='+')
     action = models.CharField(max_length=40)

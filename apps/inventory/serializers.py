@@ -1,3 +1,4 @@
+from apps.companies.serializers import CompanyModelSerializer
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.utils import timezone
@@ -9,7 +10,7 @@ from apps.purchasing.models import Supplier
 from .models import InventoryCategory, InventorySettings, ProductInventoryProfile, ReorderRule, StockLocation, StockMovement
 
 
-class InventoryCategorySerializer(serializers.ModelSerializer):
+class InventoryCategorySerializer(CompanyModelSerializer):
     product_count = serializers.IntegerField(source='product_profiles.count', read_only=True)
 
     class Meta:
@@ -18,14 +19,14 @@ class InventoryCategorySerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'product_count', 'created_at', 'updated_at']
 
 
-class InventorySettingsSerializer(serializers.ModelSerializer):
+class InventorySettingsSerializer(CompanyModelSerializer):
     class Meta:
         model = InventorySettings
         fields = ['id', 'business_name', 'currency', 'default_unit', 'default_reorder_level', 'low_stock_alerts', 'updated_at']
         read_only_fields = ['id', 'updated_at']
 
 
-class InventoryProductSerializer(serializers.ModelSerializer):
+class InventoryProductSerializer(CompanyModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=InventoryCategory.objects.filter(is_active=True), allow_null=True, required=False)
     unit = serializers.CharField(max_length=30, required=False)
     preferred_supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.filter(is_active=True), allow_null=True, required=False)
@@ -85,13 +86,13 @@ class InventoryProductSerializer(serializers.ModelSerializer):
         return data
 
 
-class StockLocationSerializer(serializers.ModelSerializer):
+class StockLocationSerializer(CompanyModelSerializer):
     class Meta:
         model = StockLocation
         fields = ['id', 'code', 'name', 'is_active']
 
 
-class StockMovementSerializer(serializers.ModelSerializer):
+class StockMovementSerializer(CompanyModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     location_name = serializers.CharField(source='location.name', read_only=True)
     signed_quantity = serializers.DecimalField(max_digits=14, decimal_places=3, read_only=True)
@@ -108,7 +109,7 @@ class StockMovementSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(exc.messages) from exc
 
 
-class ReorderRuleSerializer(serializers.ModelSerializer):
+class ReorderRuleSerializer(CompanyModelSerializer):
     on_hand = serializers.SerializerMethodField()
 
     class Meta:

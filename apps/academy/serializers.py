@@ -1,3 +1,4 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from django.urls import reverse
 
@@ -12,7 +13,7 @@ from .models import (
 )
 
 
-class NamedCategorySerializer(serializers.ModelSerializer):
+class NamedCategorySerializer(CompanyModelSerializer):
     class Meta:
         fields = ['id', 'name', 'slug', 'position']
         abstract = True
@@ -53,7 +54,7 @@ class ForumCategorySerializer(NamedCategorySerializer):
         model = ForumCategory
 
 
-class LearningPathSummarySerializer(serializers.ModelSerializer):
+class LearningPathSummarySerializer(CompanyModelSerializer):
     stage = serializers.CharField(source='get_business_stage_display', read_only=True)
 
     class Meta:
@@ -61,7 +62,7 @@ class LearningPathSummarySerializer(serializers.ModelSerializer):
         fields = ['slug', 'title', 'description', 'business_stage', 'stage', 'position']
 
 
-class CourseModuleSerializer(serializers.ModelSerializer):
+class CourseModuleSerializer(CompanyModelSerializer):
     type = serializers.CharField(source='module_type', read_only=True)
     video_embed_url = serializers.SerializerMethodField()
 
@@ -88,7 +89,8 @@ class CourseModuleSerializer(serializers.ModelSerializer):
         return module.youtube_embed_url(origin)
 
 
-class CourseListSerializer(serializers.ModelSerializer):
+class CourseListSerializer(CompanyModelSerializer):
+    module_count = serializers.SerializerMethodField()
     path = LearningPathSummarySerializer(read_only=True)
     category = CourseCategorySerializer(read_only=True)
     level_config = CourseLevelSerializer(read_only=True)
@@ -99,6 +101,7 @@ class CourseListSerializer(serializers.ModelSerializer):
         model = Course
         fields = [
             'slug',
+            'module_count',
             'title',
             'description',
             'learning_outcome',
@@ -118,6 +121,10 @@ class CourseListSerializer(serializers.ModelSerializer):
     def get_level_label(self, course):
         return course.level_config.name if course.level_config else course.get_level_display()
 
+    def get_module_count(self, course):
+        modules = getattr(course, 'published_modules', None)
+        return len(modules) if modules is not None else course.modules.filter(is_published=True).count()
+
     def get_enrollment_status(self, course):
         enrollments = getattr(course, 'current_user_enrollments', [])
         return enrollments[0].status if enrollments else CourseEnrollment.Status.NOT_STARTED
@@ -134,7 +141,7 @@ class CourseDetailSerializer(CourseListSerializer):
         return CourseModuleSerializer(modules, many=True, context=self.context).data
 
 
-class CertificateSerializer(serializers.ModelSerializer):
+class CertificateSerializer(CompanyModelSerializer):
     print_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -145,16 +152,24 @@ class CertificateSerializer(serializers.ModelSerializer):
         return reverse('academy:certificate', kwargs={'verification_id': certificate.verification_id})
 
 
-class CourseEnrollmentSerializer(serializers.ModelSerializer):
+class CourseEnrollmentSerializer(CompanyModelSerializer):
     course = CourseListSerializer(read_only=True)
     certificate = CertificateSerializer(read_only=True)
+    completed_modules = serializers.SerializerMethodField()
+    quiz_attempts = serializers.SerializerMethodField()
 
     class Meta:
         model = CourseEnrollment
-        fields = ['id', 'course', 'status', 'final_grade', 'started_at', 'completed_at', 'certificate']
+        fields = ['id', 'course', 'status', 'final_grade', 'started_at', 'completed_at', 'certificate', 'completed_modules', 'quiz_attempts']
+
+    def get_completed_modules(self, enrollment):
+        return list(enrollment.module_progress.filter(module__is_published=True).values('module_id', 'module__position', 'response', 'completed_at'))
+
+    def get_quiz_attempts(self, enrollment):
+        return list(enrollment.quiz_attempts.order_by('created_at', 'id').values('module_id', 'selected_option', 'is_correct'))
 
 
-class AcademyResourceSerializer(serializers.ModelSerializer):
+class AcademyResourceSerializer(CompanyModelSerializer):
     category = ResourceCategorySerializer(read_only=True)
     download_url = serializers.SerializerMethodField()
 
@@ -169,13 +184,13 @@ class AcademyResourceSerializer(serializers.ModelSerializer):
         return request.build_absolute_uri(resource.resource_file.url) if request else resource.resource_file.url
 
 
-class DiagnosticOptionSerializer(serializers.ModelSerializer):
+class DiagnosticOptionSerializer(CompanyModelSerializer):
     class Meta:
         model = DiagnosticOption
         fields = ['id', 'label', 'position']
 
 
-class DiagnosticQuestionSerializer(serializers.ModelSerializer):
+class DiagnosticQuestionSerializer(CompanyModelSerializer):
     category = DiagnosticCategorySerializer(read_only=True)
     options = DiagnosticOptionSerializer(many=True, read_only=True)
 
@@ -184,7 +199,7 @@ class DiagnosticQuestionSerializer(serializers.ModelSerializer):
         fields = ['id', 'prompt', 'position', 'category', 'options']
 
 
-class DiagnosticSerializer(serializers.ModelSerializer):
+class DiagnosticSerializer(CompanyModelSerializer):
     questions = DiagnosticQuestionSerializer(many=True, read_only=True)
 
     class Meta:
@@ -192,14 +207,14 @@ class DiagnosticSerializer(serializers.ModelSerializer):
         fields = ['slug', 'title', 'version', 'questions']
 
 
-class DiagnosticSubmissionSerializer(serializers.ModelSerializer):
+class DiagnosticSubmissionSerializer(CompanyModelSerializer):
     class Meta:
         model = DiagnosticSubmission
         fields = ['id', 'user', 'diagnostic', 'diagnostic_version', 'answers', 'category_scores', 'recommendations', 'total_score', 'created_at']
         read_only_fields = fields
 
 
-class FundingOpportunitySerializer(serializers.ModelSerializer):
+class FundingOpportunitySerializer(CompanyModelSerializer):
     category = OpportunityCategorySerializer(read_only=True)
 
     class Meta:
@@ -207,7 +222,7 @@ class FundingOpportunitySerializer(serializers.ModelSerializer):
         fields = ['slug', 'title', 'provider', 'category', 'description', 'eligibility', 'opens_on', 'closes_on', 'application_url', 'contact_email']
 
 
-class AcademyEventSerializer(serializers.ModelSerializer):
+class AcademyEventSerializer(CompanyModelSerializer):
     category = EventCategorySerializer(read_only=True)
     is_registered = serializers.SerializerMethodField()
 
@@ -220,14 +235,14 @@ class AcademyEventSerializer(serializers.ModelSerializer):
         return event.registrations.filter(user=user).exists()
 
 
-class EventRegistrationSerializer(serializers.ModelSerializer):
+class EventRegistrationSerializer(CompanyModelSerializer):
     class Meta:
         model = EventRegistration
         fields = ['id', 'event', 'user', 'registered_at']
         read_only_fields = fields
 
 
-class MentorProfileSerializer(serializers.ModelSerializer):
+class MentorProfileSerializer(CompanyModelSerializer):
     name = serializers.SerializerMethodField()
 
     class Meta:
@@ -238,7 +253,7 @@ class MentorProfileSerializer(serializers.ModelSerializer):
         return mentor.user.get_full_name() or mentor.user.username
 
 
-class MentorshipBookingSerializer(serializers.ModelSerializer):
+class MentorshipBookingSerializer(CompanyModelSerializer):
     mentor_detail = MentorProfileSerializer(source='mentor', read_only=True)
     learner_name = serializers.SerializerMethodField()
     can_respond = serializers.SerializerMethodField()
@@ -261,7 +276,7 @@ class MentorshipBookingSerializer(serializers.ModelSerializer):
         return mentor
 
 
-class ChatMessageSerializer(serializers.ModelSerializer):
+class ChatMessageSerializer(CompanyModelSerializer):
     sender_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -273,7 +288,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         return message.sender.get_full_name() or message.sender.username
 
 
-class ConversationSerializer(serializers.ModelSerializer):
+class ConversationSerializer(CompanyModelSerializer):
     messages = ChatMessageSerializer(many=True, read_only=True)
 
     class Meta:
@@ -281,7 +296,7 @@ class ConversationSerializer(serializers.ModelSerializer):
         fields = ['id', 'booking', 'created_at', 'messages']
 
 
-class ForumReplySerializer(serializers.ModelSerializer):
+class ForumReplySerializer(CompanyModelSerializer):
     author_name = serializers.SerializerMethodField()
 
     class Meta:
@@ -293,7 +308,7 @@ class ForumReplySerializer(serializers.ModelSerializer):
         return reply.author.get_full_name() or reply.author.username
 
 
-class ForumPostSerializer(serializers.ModelSerializer):
+class ForumPostSerializer(CompanyModelSerializer):
     author_name = serializers.SerializerMethodField()
     category_detail = ForumCategorySerializer(source='category', read_only=True)
     replies = ForumReplySerializer(many=True, read_only=True)

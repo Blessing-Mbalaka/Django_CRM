@@ -1,3 +1,4 @@
+from apps.companies.serializers import CompanyModelSerializer
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
@@ -6,7 +7,7 @@ from functionalities.accounting.reconciliation import create_bank_statement
 from .models import Account, AccountingPeriod, BankStatement, BankStatementLine, JournalEntry, JournalLine
 
 
-class AccountSerializer(serializers.ModelSerializer):
+class AccountSerializer(CompanyModelSerializer):
     class Meta:
         model = Account
         fields = ['id', 'code', 'name', 'account_type', 'system_role', 'is_active']
@@ -33,7 +34,7 @@ class AccountSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class AccountingPeriodSerializer(serializers.ModelSerializer):
+class AccountingPeriodSerializer(CompanyModelSerializer):
     class Meta:
         model = AccountingPeriod
         fields = ['id', 'name', 'start_date', 'end_date', 'is_closed']
@@ -44,7 +45,7 @@ class AccountingPeriodSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class JournalLineSerializer(serializers.ModelSerializer):
+class JournalLineSerializer(CompanyModelSerializer):
     account_name = serializers.CharField(source='account.name', read_only=True)
 
     class Meta:
@@ -53,7 +54,7 @@ class JournalLineSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 
-class JournalEntrySerializer(serializers.ModelSerializer):
+class JournalEntrySerializer(CompanyModelSerializer):
     lines = JournalLineSerializer(many=True)
     total_debit = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
     total_credit = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
@@ -84,7 +85,7 @@ class BankStatementLineInputSerializer(serializers.Serializer):
     amount = serializers.DecimalField(max_digits=16, decimal_places=2)
 
 
-class BankStatementLineSerializer(serializers.ModelSerializer):
+class BankStatementLineSerializer(CompanyModelSerializer):
     is_reconciled = serializers.BooleanField(read_only=True)
     journal_date = serializers.DateField(source='matched_journal_line.entry.date', read_only=True)
     journal_reference = serializers.CharField(source='matched_journal_line.entry.reference', read_only=True)
@@ -95,7 +96,7 @@ class BankStatementLineSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class BankStatementSerializer(serializers.ModelSerializer):
+class BankStatementSerializer(CompanyModelSerializer):
     bank_account_name = serializers.CharField(source='bank_account.name', read_only=True)
     lines = BankStatementLineInputSerializer(many=True, write_only=True)
     statement_lines = BankStatementLineSerializer(source='lines', many=True, read_only=True)
@@ -128,7 +129,7 @@ class BankStatementSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(detail) from exc
 
 
-class ReconciliationCandidateSerializer(serializers.ModelSerializer):
+class ReconciliationCandidateSerializer(CompanyModelSerializer):
     date = serializers.DateField(source='entry.date', read_only=True)
     reference = serializers.CharField(source='entry.reference', read_only=True)
     description = serializers.CharField(source='entry.description', read_only=True)

@@ -31,7 +31,7 @@
       <form method="post" action="/accounts/logout/" class="sidebar-logout">{% csrf_token %}<button class="signout-button" type="submit"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 5H4v14h6M14 8l4 4-4 4M8 12h10"/></svg><span>Sign out</span></button></form>
     </aside>
     <div class="main">
-      <header class="topbar">
+      <header class="topbar">{% include "partials/_company_badge.html" %}
         <div class="topbar-title"><button id="menuButton" class="icon-button mobile-menu" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">Marketing &amp; Advertising</h1></div></div>
         <button class="btn" id="primaryAction" type="button" hidden>＋ Create</button>
       </header>

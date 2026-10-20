@@ -1,3 +1,4 @@
+from apps.companies.tenancy import company_job
 """
 functionalities/alerts/services.py
 Alert business logic: querying, generation pipeline, and resolution.
@@ -28,6 +29,7 @@ def get_all_alerts(include_resolved=False):
 
 # ── Alert Generators ─────────────────────────────────────────────────────────
 
+@company_job
 def generate_no_contact_alerts(threshold_days=30):
     """
     Scan active/prospect engagements for those with no contact beyond the
@@ -72,6 +74,7 @@ def generate_no_contact_alerts(threshold_days=30):
     return created
 
 
+@company_job
 def generate_overdue_payment_alerts():
     """
     Scan canonical invoices that still have a balance after their due date.
@@ -111,6 +114,7 @@ def generate_overdue_payment_alerts():
     return created
 
 
+@company_job
 def generate_overlap_alerts():
     """
     Detect engagements where the same client has multiple active/prospect

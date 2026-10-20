@@ -1,8 +1,9 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from apps.centres.models import Centre
 
 
-class CentreSerializer(serializers.ModelSerializer):
+class CentreSerializer(CompanyModelSerializer):
     director_name = serializers.SerializerMethodField()
 
     class Meta:

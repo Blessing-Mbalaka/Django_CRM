@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from pathlib import Path
 from uuid import uuid4
 
@@ -43,7 +44,7 @@ def brand_upload_path(instance, filename):
     return f"marketing/brand/{uuid4().hex}{extension}"
 
 
-class TimestampedModel(models.Model):
+class TimestampedModel(CompanyOwnedModel):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -296,18 +297,19 @@ class BrandKit(TimestampedModel):
     instagram_url = models.URLField(blank=True)
     linkedin_url = models.URLField(blank=True)
 
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['company'], name='marketing_brandkit_company')]
+
     @classmethod
     def load(cls):
-        obj, _ = cls.objects.get_or_create(pk=1)
+        from apps.companies.tenancy import owned_company_id
+        obj, _ = cls.objects.get_or_create(company_id=owned_company_id())
         return obj
 
     def clean(self):
         super().clean()
-        if self.pk not in (None, 1):
-            raise ValidationError("Only one Brand Kit can exist.")
 
     def save(self, *args, **kwargs):
-        self.pk = 1
         self.full_clean()
         return super().save(*args, **kwargs)
 
@@ -377,7 +379,7 @@ class OutboundMessage(TimestampedModel):
         return super().save(*args, **kwargs)
 
 
-class DeliveryAttempt(models.Model):
+class DeliveryAttempt(CompanyOwnedModel):
     message = models.ForeignKey(OutboundMessage, on_delete=models.CASCADE, related_name="delivery_attempts")
     attempt_number = models.PositiveIntegerField()
     started_at = models.DateTimeField(default=timezone.now)
@@ -391,10 +393,10 @@ class DeliveryAttempt(models.Model):
 
     class Meta:
         ordering = ["-started_at"]
-        constraints = [models.UniqueConstraint(fields=("message", "attempt_number"), name="marketing_attempt_number_unique")]
+        constraints = [models.UniqueConstraint(fields=['company', 'message', 'attempt_number'], name="marketing_attempt_number_unique")]
 
 
-class ProviderWebhookEvent(models.Model):
+class ProviderWebhookEvent(CompanyOwnedModel):
     provider = models.CharField(max_length=40)
     event_id = models.CharField(max_length=255)
     event_type = models.CharField(max_length=80)
@@ -405,4 +407,4 @@ class ProviderWebhookEvent(models.Model):
 
     class Meta:
         ordering = ["-received_at"]
-        constraints = [models.UniqueConstraint(fields=("provider", "event_id"), name="marketing_provider_event_unique")]
+        constraints = [models.UniqueConstraint(fields=['company', 'provider', 'event_id'], name="marketing_provider_event_unique")]

@@ -1,17 +1,18 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 
 from functionalities.documents.services import add_document_version
 from .models import Document, DocumentLibrary, DocumentVersion, Folder
 
 
-class DocumentLibrarySerializer(serializers.ModelSerializer):
+class DocumentLibrarySerializer(CompanyModelSerializer):
     class Meta:
         model = DocumentLibrary
         fields = ['id', 'name', 'scope', 'owner', 'created_at']
         read_only_fields = ['id', 'owner', 'created_at']
 
 
-class FolderSerializer(serializers.ModelSerializer):
+class FolderSerializer(CompanyModelSerializer):
     class Meta:
         model = Folder
         fields = ['id', 'library', 'parent', 'name', 'created_by', 'created_at']
@@ -28,7 +29,7 @@ class FolderSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class DocumentVersionSerializer(serializers.ModelSerializer):
+class DocumentVersionSerializer(CompanyModelSerializer):
     uploaded_by_name = serializers.CharField(source='uploaded_by.get_full_name', read_only=True)
 
     class Meta:
@@ -46,7 +47,7 @@ class DocumentVersionSerializer(serializers.ModelSerializer):
         return document
 
 
-class DocumentSerializer(serializers.ModelSerializer):
+class DocumentSerializer(CompanyModelSerializer):
     latest_version = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source='owner.get_full_name', read_only=True)
 

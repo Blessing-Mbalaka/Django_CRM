@@ -27,6 +27,7 @@ class DevelopmentLoginPageTests(TestCase):
         self.assertContains(response, 'data-demo-username="ndlamini"')
 
         login_response = self.client.post('/accounts/login/', {
+            'company': 'original',
             'username': 'ndlamini',
             'password': 'JBS@2026!',
         })

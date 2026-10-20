@@ -483,7 +483,7 @@
     </aside>
 
     <div class="main">
-      <header class="topbar">
+      <header class="topbar">{% include "partials/_company_badge.html" %}
         <div class="topbar-title">
           <button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button>
           <div><span class="eyebrow">LEARN · APPLY · GROW</span><h1 id="pageTitle">SME Academy</h1></div>
@@ -619,13 +619,19 @@ window.Academy = (() => {
 
   async function get(url) {
     if (!url) return [];
-    const response = await fetch(url, { credentials: 'same-origin', headers: { Accept: 'application/json' } });
-    if (!response.ok) throw new Error(`${response.status} ${response.statusText} — ${url}`);
-    return response.json();
+    const rows = []; let next = url;
+    while (next) {
+      const response = await fetch(next, {credentials:'same-origin', headers:{Accept:'application/json'}});
+      if (!response.ok) throw new Error('Unable to load Academy data (' + response.status + ').');
+      const data = await response.json();
+      if (!Array.isArray(data.results)) return data;
+      rows.push(...data.results); next = data.next;
+    }
+    return rows;
   }
 
   const state = {
-    page: 'dashboard', courseId: null, module: 0, completed: {}, outputs: {}, reflections: {}, quiz: {}, certificates: {},
+    page: 'dashboard', courseId: null, module: 0, enrollments: {}, responses: {}, quizzes: {}, certificateLinks: {}, completed: {}, outputs: {}, reflections: {}, quiz: {}, certificates: {},
     query: '', filters: { path: 'All', level: 'All', duration: 'All', stage: 'All', status: 'All' }, resourceCategory: 'All',
     profile: window.ACADEMY_USER || { name: 'Learner', business: '', email: '', location: '', industry: '', stage: 'Foundations' },
     diagnosticStep: 0, diagnosticAnswers: Array(13).fill(null), diagnosticFinished: false, sessions: [], registrations: new Set(), posts: [],
@@ -649,7 +655,8 @@ window.Academy = (() => {
     const outputTitle = String(val(c,'output_title','practical_output_title','task_title') ?? 'Apply this learning to your business');
     const outputText = String(val(c,'output_description','practical_output','task_description') ?? 'Record the next practical step for your business.');
     return {
-      id: String(val(c,'id','pk','uuid','slug') ?? ''),
+      id: String(val(c,'slug','id','pk','uuid') ?? ''),
+      slug: String(c.slug || ''), moduleCount: Number(c.module_count || 0), moduleRecords: unwrap(c.modules),
       title: String(val(c,'title','name') ?? 'Course'),
       path: String(objId(rawPath) ?? val(c,'path_slug','learning_path_slug') ?? 'general'),
       category: objText(rawPath, val(c,'category_name','category') ?? 'SME Academy'),
@@ -724,20 +731,61 @@ window.Academy = (() => {
 
   function applyEnrollments(rows) {
     for (const e of rows) {
-      const courseId = String(objId(val(e,'course')) ?? val(e,'course_id') ?? '');
+      const courseId = String(e.course?.slug || e.course?.id || '');
       if (!courseId) continue;
-      const completeModules = unwrap(val(e,'completed_modules','module_completions','completed_lessons'));
-      if (completeModules.length) state.completed[courseId] = completeModules.map((m,i) => number(val(m,'order','position','index'), i));
-      else {
-        const pct = number(val(e,'progress','progress_percent','completion_percentage'), val(e,'completed','is_completed') ? 100 : 0);
-        state.completed[courseId] = Array.from({length: Math.max(0, Math.min(9, Math.round(pct/100*9)))}, (_,i) => i);
+      state.enrollments[courseId] = e;
+      const course = A.courses.find(c => c.id === courseId);
+      const records = e.completed_modules || [];
+      state.completed[courseId] = records.map(m => {
+        const index = course?.moduleRecords?.findIndex(record => record.id === m.module_id);
+        return index >= 0 ? index : Number(m.module__position);
+      });
+      state.responses[courseId] = Object.fromEntries(records.map(m => [m.module_id, m.response || '']));
+      state.quizzes[courseId] = Object.fromEntries((e.quiz_attempts || []).map(q => [q.module_id, {correct:q.is_correct, selected:q.selected_option}]));
+      if (e.certificate) {
+        state.certificates[courseId] = String(e.certificate.issued_at || '').slice(0,10);
+        state.certificateLinks[courseId] = e.certificate.print_url;
       }
-      const completedAt = val(e,'completed_at','completion_date');
-      if (completedAt || val(e,'completed','is_completed') === true) state.certificates[courseId] = dateOnly(completedAt || new Date().toISOString());
     }
   }
-
-  A.progress = id => Math.round((state.completed[String(id)]?.length || 0) / 9 * 100);
+  A.applyEnrollments = applyEnrollments;
+  A.post = async function(url, body = {}) {
+    const csrf = document.cookie.split('; ').find(item => item.startsWith('csrftoken='));
+    const response = await fetch(url, {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json', 'X-CSRFToken':csrf ? decodeURIComponent(csrf.split('=').slice(1).join('=')) : '', Accept:'application/json'}, body:JSON.stringify(body)});
+    const result = await response.json();
+    if (!response.ok) throw new Error(Object.values(result).flat().join(' ') || 'Could not save your learning progress.');
+    return result;
+  };
+  A.ensureCourse = async function(id) {
+    const course = A.courses.find(c => c.id === id);
+    if (!course) throw new Error('Course not found.');
+    if (!course.detailLoaded) {
+      const details = await get(API.courses + encodeURIComponent(course.slug) + '/');
+      Object.assign(course, normalizeCourse(details), {detailLoaded:true});
+    }
+    if (!state.enrollments[id]) {
+      const enrollment = await A.post(API.courses + encodeURIComponent(course.slug) + '/enrol/');
+      applyEnrollments([enrollment]);
+    } else applyEnrollments([state.enrollments[id]]);
+    return course;
+  };
+  A.saveModule = async function(id, index, response) {
+    const course = await A.ensureCourse(id), module = course.moduleRecords[index];
+    if (!module) throw new Error('This lesson is unavailable.');
+    if (module.type === 'quiz') throw new Error('Submit your quiz answer to complete this lesson.');
+    const saved = await A.post(API.enrollments + state.enrollments[id].id + '/complete-module/', {module:module.id, response:response ?? state.responses[id]?.[module.id] ?? ''});
+    applyEnrollments([saved]);
+  };
+  A.submitQuiz = async function(id, index, selected) {
+    const course = await A.ensureCourse(id), module = course.moduleRecords[index];
+    const saved = await A.post(API.enrollments + state.enrollments[id].id + '/submit-quiz/', {module:module.id, selected_option:Number(selected)});
+    applyEnrollments([saved.enrollment]);
+    return saved.is_correct;
+  };
+  A.progress = id => {
+    const total = A.courses.find(c => c.id === String(id))?.moduleCount || 0;
+    return total ? Math.min(100, Math.round((state.completed[String(id)]?.length || 0) / total * 100)) : 0;
+  };
   A.summary = () => ({
     active: A.courses.filter(c => A.progress(c.id) > 0 && A.progress(c.id) < 100).length,
     completed: A.courses.filter(c => A.progress(c.id) === 100).length,
@@ -796,7 +844,7 @@ window.Academy = (() => {
   const title = (text, subtitle) => `<div class="page-heading"><div><h2>${text}</h2><p>${subtitle}</p></div></div>`;
   const progress = value => `<div class="learning-progress" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}"><span style="width:${value}%"></span></div>`;
   const empty = text => `<div class="empty"><strong>${text}</strong><p>Try another filter or explore a learning path.</p></div>`;
-  const stats = rows => `<div class="stats academy-stats">${rows.map(([label, value, glyph]) => `<article class="stat"><div class="stat-label"><span>${label}</span>${glyph ? icon(glyph) : ''}</div><strong>${value}</strong><small>Sample workspace</small></article>`).join('')}</div>`;
+  const stats = rows => `<div class="stats academy-stats">${rows.map(([label, value, glyph]) => `<article class="stat"><div class="stat-label"><span>${label}</span>${glyph ? icon(glyph) : ''}</div><strong>${value}</strong><small>Your learning</small></article>`).join('')}</div>`;
   const options = (items, value) => items.map(item => `<option value="${esc(item)}" ${item === value ? 'selected' : ''}>${esc(item)}</option>`).join('');
   const field = (name, label, value = '', type = 'text', extra = '') => `<label class="field">${label}<input name="${name}" type="${type}" value="${esc(value)}" ${extra}></label>`;
   const area = (name, label, value = '') => `<label class="field full">${label}<textarea name="${name}" maxlength="4000">${esc(value)}</textarea></label>`;
@@ -855,20 +903,20 @@ window.Academy = (() => {
   }
   function course() {
     const c = A.courses.find(c => c.id === S.courseId); if (!c) return U.empty('Course not found');
-    const module = S.module, done = S.completed[c.id] || [], output = S.outputs[c.id] || {}, quiz = S.quiz[c.id];
-    const safety = c.path === 'compliance' || c.path === 'funding' ? '<p class="notice">Educational sample only. Not legal, tax, financial advice or an eligibility decision. Confirm current requirements with the relevant authority or provider.</p>' : '';
-    let content = '';
-    if (module === 0) content = `<div class="video-placeholder"><span>▶</span><strong>${esc(c.title)}</strong><small>Video lesson placeholder · No streaming</small></div><p>${esc(c.description)}</p>`;
-    if (module === 1) content = `<h3>Begin with a useful question</h3><p>What would you like to improve in your business? Write down the current situation and what a better result would look like.</p><p>This course helps you work towards: <strong>${esc(c.output[0])}</strong>.</p>`;
-    if (module === 2) content = `<h3>A South African SME example</h3><p>A small Soweto business chooses one improvement to work on this week. The owner gathers the information available, tests a small change and records the result.</p><p class="notice">For this course, the next step is: ${esc(c.output[1])}</p>`;
-    if (module === 3) content = U.form('activity', U.area('notes', 'Guided Activity: what will you investigate?', output.notes || '') + '<p class="muted full">Save a short note for this preview session.</p>', 'Save Activity', c.id);
-    if (module === 4) content = `<h3>Review what you learnt</h3>${['What evidence do you have?', 'What assumption still needs checking?', 'What is the smallest next step?'].map(text => `<label class="learning-check"><input type="checkbox">${text}</label>`).join('')}`;
-    if (module === 5) content = `<form data-form="quiz" data-id="${c.id}"><fieldset class="quiz-options"><legend>Which is the most useful next step after this course?</legend>${[c.output[0], 'Wait until every detail is certain', 'Copy another business without checking', 'Make a large commitment without evidence'].map((text, i) => `<label><input type="radio" name="answer" value="${i}" required>${esc(text)}</label>`).join('')}</fieldset><button class="btn" type="submit">Submit Answer</button></form>${quiz ? `<p class="notice" role="status">${quiz.correct ? 'Correct — apply the learning through a practical task.' : 'Try again — choose an action that applies this course to your business.'}</p>` : ''}`;
-    if (module === 6) content = `<h3>Practical Business Task</h3><p><strong>${esc(c.output[0])}</strong></p><p>${esc(c.output[1])}</p>` + U.form('output', U.area('result', 'Your practical output', output.result || '') + (/pitch/i.test(c.title) ? '<label class="field full">Select pitch deck (preview only)<input type="file" name="attachment" accept=".pdf,.ppt,.pptx"><small>No file is uploaded or stored. Only the filename is shown.</small></label>' : '') + (output.attachment ? `<p class="muted full">Selected: ${esc(output.attachment)}</p>` : ''), 'Save Business Task', c.id);
-    if (module === 7) content = `<h3>Put a useful tool to work</h3><p>Use this sample worksheet to organise your next steps.</p>${btn('View worksheet', 'resource', resourceMap[c.path])}${c.path === 'marketing' ? `<p><a href="${esc(API.marketing)}">Open Marketing to plan your campaign ↗</a></p>` : ''}${c.path === 'compliance' ? '<p><a href="../knowledge-hub/index.html#compliance">Open the Compliance Knowledge Centre ↗</a></p>' : ''}`;
-    if (module === 8) content = U.form('reflection', U.area('reflection', 'What will you do differently in your business?', S.reflections[c.id] || ''), 'Save Reflection', c.id) + '<p class="muted">Private to this preview. Nothing is posted to the community.</p>';
-    const lessons = c.modules.map((name, i) => `<button class="lesson-button ${i === module ? 'selected' : ''}" data-action="module" data-id="${i}" ${i === module ? 'aria-current="step"' : ''}><span>${done.includes(i) ? '✓' : i + 1}</span>${name}</button>`).join('');
-    return `<div class="back-row">${btn('← Courses', 'navigate', 'courses')}<span class="badge">${c.level}</span></div>${title(esc(c.title), `${c.duration} minutes · ${c.instructor}`)}<p>${esc(c.description)}</p><div class="progress-label"><span>Learn → Apply → Improve</span><strong>${A.progress(c.id)}% complete</strong></div>${U.progress(A.progress(c.id))}<div class="course-layout"><aside class="panel lesson-list">${lessons}</aside><section class="panel lesson-content"><h2>${c.modules[module]}</h2>${safety}${content}<div class="form-actions"><button class="btn secondary" data-action="module" data-id="${module - 1}" ${module === 0 ? 'disabled' : ''}>Previous</button>${btn(done.includes(module) ? 'Completed ✓' : 'Mark Complete', 'complete', c.id, '')}<button class="btn secondary" data-action="module" data-id="${module + 1}" ${module === 8 ? 'disabled' : ''}>Next</button></div></section></div>`;
+    const index = S.module, module = c.moduleRecords[index], done = S.completed[c.id] || [];
+    if (!module) return title(esc(c.title), 'No published lessons are available yet.');
+    const response = S.responses[c.id]?.[module.id] || '', quiz = S.quizzes[c.id]?.[module.id];
+    let content = module.body ? `<p style="white-space:pre-wrap">${esc(module.body)}</p>` : '';
+    if (module.type === 'video' && module.video_embed_url) content = `<iframe title="${esc(module.title)}" src="${esc(module.video_embed_url)}" style="width:100%;aspect-ratio:16/9;border:0" allowfullscreen></iframe>` + content;
+    if (module.type === 'quiz') {
+      content += `<form data-form="quiz" data-id="${esc(c.id)}"><fieldset class="quiz-options"><legend>${esc(module.prompt || 'Choose an answer')}</legend>${module.quiz_options.map((option,i) => `<label><input type="radio" name="answer" value="${i}" ${quiz?.selected === i ? 'checked' : ''} required>${esc(option)}</label>`).join('')}</fieldset><button class="btn" type="submit">Submit Answer</button></form>${quiz ? `<p class="notice" role="status">${quiz.correct ? 'Correct — your result has been saved.' : 'Your attempt has been saved. Review the lesson and try again.'}</p>` : ''}`;
+    } else if (['activity','practical','reflection'].includes(module.type)) {
+      content += U.form('lesson-response', U.area('response', module.prompt || 'Your response', response), 'Save Response', c.id);
+    } else if (module.prompt) content += `<p>${esc(module.prompt)}</p>`;
+    if (module.type === 'resource' && module.resource_url && /^(https?:\/\/|\/(?!\/))/.test(module.resource_url)) content += `<a class="btn secondary" href="${esc(module.resource_url)}" target="_blank" rel="noopener">Open resource</a>`;
+    const lessons = c.modules.map((name,i) => `<button class="lesson-button ${i === index ? 'selected' : ''}" data-action="module" data-id="${i}" ${i === index ? 'aria-current="step"' : ''}><span>${done.includes(i) ? '✓' : i+1}</span>${esc(name)}</button>`).join('');
+    const complete = module.type === 'quiz' ? '' : U.btn(done.includes(index) ? 'Completed ✓' : 'Mark Complete', 'complete', c.id, '');
+    return `<div class="back-row">${U.btn('← Courses','navigate','courses')}<span class="badge">${esc(c.level)}</span></div>${title(esc(c.title), `${c.duration} minutes · ${esc(c.instructor)}`)}<p>${esc(c.description)}</p><div class="progress-label"><span>Learn → Apply → Improve</span><strong>${A.progress(c.id)}% complete</strong></div>${U.progress(A.progress(c.id))}<div class="course-layout"><aside class="panel lesson-list">${lessons}</aside><section class="panel lesson-content"><h2>${esc(module.title)}</h2>${content}<div class="form-actions"><button class="btn secondary" data-action="module" data-id="${index-1}" ${index === 0 ? 'disabled' : ''}>Previous</button>${complete}<button class="btn secondary" data-action="module" data-id="${index+1}" ${index === c.modules.length-1 ? 'disabled' : ''}>Next</button></div></section></div>`;
   }
   function diagnosticResults() {
     const metrics = [['Marketing', [7]], ['Financial Readiness', [4]], ['Digital Maturity', [6]], ['Market Validation', [1, 2, 3]], ['Investment Readiness', [10, 11, 12]]];
@@ -911,7 +959,7 @@ window.Academy = (() => {
     return title('My Business Growth', 'Illustrative business results, not verified data or outcomes attributed to course completion.') + stats([['Revenue Growth', '+18%'], ['Customers Acquired', '42'], ['Jobs Created', '2'], ['Funding Raised', 'R25,000'], ['Markets Entered', '2'], ['Digital Adoption Score', '64%'], ['Business Formalisation', 'In progress'], ['Investment Readiness', '45%']]) + `<div class="paths-grid">${chart('Growth over time · Revenue (R thousands)', [12, 14, 13, 16, 17, 19], '')}${chart('Learning completed · Courses', [1, 2, 3, 4, 5, 7], '')}${chart('Business readiness progression', [20, 25, 30, 34, 40, 45], '%')}</div>`;
   }
   function certificates() {
-    return title('Certificates & Achievements', 'Celebrate learning milestones. These are sample certificates, not accredited qualifications.') + `<div class="achievement-row"><span>✓ Foundations completed</span><span>✓ First practical steps</span><span>✓ Consistent learner</span></div><div class="knowledge-grid">${Object.keys(S.certificates).map(id => `<article class="panel knowledge-card">${U.icon('certificates')}<h2>${esc(A.courses.find(c => c.id === id).title)}</h2><p>Completed ${date(S.certificates[id])}</p><div class="card-actions">${btn('View Certificate', 'certificate', id)}${btn('Download', 'certificate-download', id)}${btn('Share', 'certificate-share', id)}</div></article>`).join('')}</div>`;
+    return title('Certificates & Achievements', 'Certificates earned through your completed courses.') + `<div class="knowledge-grid">${Object.keys(S.certificates).map(id => `<article class="panel knowledge-card">${U.icon('certificates')}<h2>${esc(A.courses.find(c => c.id === id).title)}</h2><p>Completed ${date(S.certificates[id])}</p><div class="card-actions">${btn('View Certificate', 'certificate', id)}${btn('Download', 'certificate-download', id)}${btn('Share', 'certificate-share', id)}</div></article>`).join('')}</div>`;
   }
   function profile() {
     const p = S.profile;
@@ -947,7 +995,7 @@ window.Academy = (() => {
     $('#academyContent').innerHTML = V[S.page]();
     document.body.classList.toggle('compact-cards', S.settings.compact);
   }
-  function navigate() {
+  async function navigate() {
     const [page, id] = location.hash.slice(1).split('/');
     if (page === 'manage' && window.AcademyAdmin?.canManage) {
       closeSidebar();
@@ -955,15 +1003,22 @@ window.Academy = (() => {
       return;
     }
     S.page = pages[page] || page === 'course' ? page : 'dashboard';
-    if (page === 'course') { S.courseId = id; const done = S.completed[id] || []; S.module = Array.from({ length: 9 }, (_, i) => i).find(i => !done.includes(i)) ?? 0; }
+    if (page === 'course') {
+      try {
+        S.courseId = id;
+        $('#academyContent').innerHTML = '<p role="status">Loading your course…</p>';
+        const course = await A.ensureCourse(id);
+        if (location.hash !== '#course/' + id) return;
+        const done = S.completed[id] || [];
+        S.module = course.modules.findIndex((_,i) => !done.includes(i));
+        if (S.module < 0) S.module = 0;
+      } catch (error) { $('#academyContent').innerHTML = `<p role="alert">${U.esc(error.message)}</p>`; return; }
+    }
     closeSidebar(); render(); $('#academyContent').focus({ preventScroll: true });
   }
   function modal(title, html) { trigger = document.activeElement; $('#modalTitle').textContent = title; $('#modalBody').innerHTML = html; $('#modal').showModal(); }
   function close() { $('#modal').close(); $('#modalBody').innerHTML = ''; if (trigger?.isConnected) trigger.focus(); }
-  function certificate(id) {
-    const c = A.courses.find(c => c.id === id);
-    modal('Sample Certificate', `<div class="certificate"><span>EIEAAS · SME Academy</span><h2>Certificate of Completion</h2><p>Presented to ${U.esc(S.profile.name)}</p><h3>${U.esc(c.title)}</h3><p>Completed ${U.date(S.certificates[id])}</p><small>Front-end sample · Not an accredited qualification</small></div>`);
-  }
+  function certificate(id) { if (S.certificateLinks[id]) window.open(S.certificateLinks[id], '_blank', 'noopener'); }
   document.addEventListener('click', event => {
     const t = event.target.closest('[data-action]');
     if (t) {
@@ -972,14 +1027,10 @@ window.Academy = (() => {
       if (action === 'course') location.hash = `course/${id}`;
       if (action === 'close') close();
       if (action === 'path') { S.query = ''; S.filters = { path: id, level: 'All', duration: 'All', stage: 'All', status: 'All' }; location.hash = 'courses'; }
-      if (action === 'module') { S.module = Math.max(0, Math.min(8, Number(id))); render(); }
+      if (action === 'module') { const count = A.courses.find(c => c.id === S.courseId)?.modules.length || 1; S.module = Math.max(0, Math.min(count-1, Number(id))); render(); }
       if (action === 'complete') {
-        if (S.module === 5 && !S.quiz[id]?.correct && !S.completed[id]?.includes(5)) { toast('Answer the practice question correctly first.'); return; }
-        if (S.module === 6 && !S.outputs[id]?.result?.trim() && !S.completed[id]?.includes(6)) { toast('Save your practical business task first.'); return; }
-        const before = S.completed[id] || [], done = new Set(before); done.add(S.module); S.completed[id] = [...done];
-        if (done.size > before.length) S.activity.unshift('Completed module: ' + A.courses.find(c => c.id === id).modules[S.module]);
-        if (done.size === 9) S.certificates[id] = S.certificates[id] || A.day(0);
-        render(); toast('Module completed');
+        if (t.disabled) return; t.disabled = true;
+        A.saveModule(id, S.module).then(() => {render(); toast('Progress saved to your account.');}).catch(error => {t.disabled=false; toast(error.message);});
       }
       if (action === 'diagnostic-back') { const checked = document.querySelector('input[name="answer"]:checked'); if (checked) S.diagnosticAnswers[S.diagnosticStep] = checked.value; S.diagnosticStep = Math.max(0, S.diagnosticStep - 1); render(); }
       if (action === 'diagnostic-review') { S.diagnosticFinished = false; S.diagnosticStep = 0; render(); }
@@ -992,7 +1043,7 @@ window.Academy = (() => {
         if (r?.downloadUrl) window.open(r.downloadUrl, '_blank', 'noopener');
         else toast('No downloadable file is attached to this resource yet.');
       }
-      if (action === 'certificate-download') toast('Certificate download can be linked to the server certificate view when available.');
+      if (action === 'certificate-download') { if (S.certificateLinks[id]) window.open(S.certificateLinks[id], '_blank', 'noopener'); }
       if (action === 'certificate-share') toast('Share preview only — nothing was posted or sent.');
       if (action === 'certificate') certificate(id);
       if (action === 'crm-preview') modal('CRM tool preview', '<p>Your CRM module can be linked here when its entry point is available.</p><p>No CRM connection has been created in this front-end preview.</p>');
@@ -1026,7 +1077,11 @@ window.Academy = (() => {
     const data = new FormData(form), values = Object.fromEntries(data), kind = form.dataset.form, id = form.dataset.id;
     const error = text => { const box = form.querySelector('#formError'); if (box) box.textContent = text; else toast(text); };
     if (kind === 'diagnostic') { S.diagnosticAnswers[S.diagnosticStep] = values.answer; if (S.diagnosticStep === 12) S.diagnosticFinished = true; else S.diagnosticStep++; render(); return; }
-    if (kind === 'quiz') { S.quiz[id] = { correct: values.answer === '0' }; render(); return; }
+    if (kind === 'quiz' || kind === 'lesson-response') {
+      const button = form.querySelector('button[type="submit"]'); if (button) button.disabled = true;
+      const save = kind === 'quiz' ? A.submitQuiz(id, S.module, values.answer) : A.saveModule(id, S.module, values.response);
+      save.then(() => {render(); toast('Your learning has been saved.');}).catch(err => {if (button) button.disabled=false; error(err.message);}); return;
+    }
     if (kind === 'activity' || kind === 'output') {
       if (kind === 'output' && !values.result.trim()) { error('Describe your practical output before saving.'); return; }
       S.outputs[id] = { ...S.outputs[id], ...values, attachment: data.get('attachment')?.name || S.outputs[id]?.attachment || '' }; render(); toast('Saved for this preview.'); return;

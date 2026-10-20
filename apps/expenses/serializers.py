@@ -1,16 +1,17 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 
 from .models import Expense, ExpenseApproval, ExpenseCategory
 
 
-class ExpenseCategorySerializer(serializers.ModelSerializer):
+class ExpenseCategorySerializer(CompanyModelSerializer):
     class Meta:
         model = ExpenseCategory
         fields = ['id', 'name', 'is_active']
         read_only_fields = ['id']
 
 
-class ExpenseApprovalSerializer(serializers.ModelSerializer):
+class ExpenseApprovalSerializer(CompanyModelSerializer):
     decided_by_name = serializers.CharField(source='decided_by.get_full_name', read_only=True)
 
     class Meta:
@@ -19,7 +20,7 @@ class ExpenseApprovalSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class ExpenseSerializer(serializers.ModelSerializer):
+class ExpenseSerializer(CompanyModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     submitted_by_name = serializers.CharField(source='submitted_by.get_full_name', read_only=True)
     approvals = ExpenseApprovalSerializer(many=True, read_only=True)

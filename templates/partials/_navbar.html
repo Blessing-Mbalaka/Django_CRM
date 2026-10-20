@@ -14,12 +14,13 @@
     {% endif %}
     <span class="sme-shell-brand" aria-label="EIEAAS SME workspace">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
-      <span><small>Your business, organised</small><strong>SME Workspace</strong></span>
+      <span><small>Your business, organised</small><strong>{{ request.company.name|default:'SME Workspace' }}</strong></span>
     </span>
   </div>
 
   <!-- Right-side controls -->
   <div class="topbar-right">
+    {% if request.user.role == 'admin' or request.user.role == 'dean' %}<a href="{% url 'accounts:company_users' %}">Company team</a>{% endif %}
 
     <div class="dropdown">
       <button class="btn btn-link p-0 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Project notifications" title="Project notifications">

@@ -6,6 +6,8 @@ app_name = 'accounts'
 
 urlpatterns = [
     path('login/',            views.login_view,           name='login'),
+    path('register/', views.register_view, name='register'),
+    path('team/', views.company_users_view, name='company_users'),
     path('logout/',           views.logout_view,          name='logout'),
     path('profile/',          views.profile_view,         name='profile'),
     path('change-password/',  views.change_password_view, name='change_password'),
@@ -13,12 +15,7 @@ urlpatterns = [
     # ── Password Reset Flow (emails printed to console in dev) ──────────────
     path(
         'password-reset/',
-        auth_views.PasswordResetView.as_view(
-            template_name='accounts/password_reset.html',
-            email_template_name='accounts/emails/password_reset_email.txt',
-            subject_template_name='accounts/emails/password_reset_subject.txt',
-            success_url='/accounts/password-reset/sent/',
-        ),
+        views.CompanyPasswordResetView.as_view(),
         name='password_reset',
     ),
     path(
@@ -30,10 +27,7 @@ urlpatterns = [
     ),
     path(
         'password-reset/<uidb64>/<token>/',
-        auth_views.PasswordResetConfirmView.as_view(
-            template_name='accounts/password_reset_confirm.html',
-            success_url='/accounts/password-reset/complete/',
-        ),
+        views.CompanyPasswordResetConfirmView.as_view(),
         name='password_reset_confirm',
     ),
     path(

@@ -1,8 +1,9 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from apps.alerts.models import Alert
 
 
-class AlertSerializer(serializers.ModelSerializer):
+class AlertSerializer(CompanyModelSerializer):
     severity_display   = serializers.SerializerMethodField()
     alert_type_display = serializers.SerializerMethodField()
 

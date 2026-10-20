@@ -1,3 +1,4 @@
+from apps.companies.serializers import CompanyModelSerializer
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -9,7 +10,7 @@ from .models import (
 )
 
 
-class CleanModelSerializer(serializers.ModelSerializer):
+class CleanModelSerializer(CompanyModelSerializer):
     def validate(self, attrs):
         values = {}
         if self.instance:
@@ -91,7 +92,7 @@ class BrandKitSerializer(CleanModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at"]
 
 
-class OutboundMessageSerializer(serializers.ModelSerializer):
+class OutboundMessageSerializer(CompanyModelSerializer):
     class Meta:
         model = OutboundMessage
         fields = ["id", "channel", "campaign", "content", "contact", "destination", "subject_snapshot", "content_snapshot", "html_snapshot", "media_url_snapshot", "scheduled_at", "status", "provider", "provider_message_id", "accepted_at", "sent_at", "delivered_at", "read_at", "failed_at", "attempt_count", "last_error", "created_by", "created_at", "updated_at"]

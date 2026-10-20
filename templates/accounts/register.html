@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Register your company{% endblock %}
+{% block auth_content %}
+<div class="login-wrapper"><div class="login-card">
+  <h1 class="login-title">Register your company</h1>
+  <p class="login-subtitle">Create your company workspace and its first administrator account.</p>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}{{ field.errors }}</div>{% endfor %}
+    <button class="btn-uj w-100" type="submit">Create company</button>
+  </form>
+  <p class="text-center mt-3"><a href="{% url 'accounts:login' %}">Already registered? Sign in</a></p>
+</div></div>
+{% endblock %}

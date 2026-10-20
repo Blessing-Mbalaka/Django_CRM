@@ -1,3 +1,4 @@
+from apps.companies.serializers import CompanyModelSerializer
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Max
@@ -6,7 +7,7 @@ from rest_framework import serializers
 from .models import Board, BoardColumn, Project, ProjectNotification, Task, TaskActivity, TaskAttachment, TaskComment
 
 
-class BoardColumnSerializer(serializers.ModelSerializer):
+class BoardColumnSerializer(CompanyModelSerializer):
     class Meta:
         model = BoardColumn
         fields = ['id', 'board', 'name', 'position']
@@ -18,7 +19,7 @@ class BoardColumnSerializer(serializers.ModelSerializer):
         return board
 
 
-class BoardSerializer(serializers.ModelSerializer):
+class BoardSerializer(CompanyModelSerializer):
     columns = BoardColumnSerializer(many=True, read_only=True)
 
     class Meta:
@@ -27,7 +28,7 @@ class BoardSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'owner', 'created_at']
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class TaskSerializer(CompanyModelSerializer):
     assignee_name = serializers.CharField(source='assignee.get_full_name', read_only=True)
     column_name = serializers.CharField(source='column.name', read_only=True)
     project = serializers.SerializerMethodField()
@@ -78,7 +79,7 @@ class TaskSerializer(serializers.ModelSerializer):
         return Project.objects.filter(kanban_task_id=obj.id).exists()
 
 
-class TaskCommentSerializer(serializers.ModelSerializer):
+class TaskCommentSerializer(CompanyModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
 
     class Meta:
@@ -92,14 +93,14 @@ class TaskCommentSerializer(serializers.ModelSerializer):
         return task
 
 
-class TaskActivitySerializer(serializers.ModelSerializer):
+class TaskActivitySerializer(CompanyModelSerializer):
     class Meta:
         model = TaskActivity
         fields = ['id', 'task', 'actor', 'action', 'detail', 'created_at']
         read_only_fields = fields
 
 
-class TaskAttachmentSerializer(serializers.ModelSerializer):
+class TaskAttachmentSerializer(CompanyModelSerializer):
     download_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -141,7 +142,7 @@ class TaskAttachmentSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'file': exc.messages}) from exc
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class ProjectSerializer(CompanyModelSerializer):
     assignees = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=get_user_model().objects.filter(is_active=True),

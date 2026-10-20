@@ -1,3 +1,4 @@
+from apps.companies.tenancy import company_job
 from dataclasses import dataclass
 from datetime import timedelta
 
@@ -16,6 +17,7 @@ class DispatchSummary:
     failed: int = 0
 
 
+@company_job
 def dispatch_due_marketing(*, limit=100):
     if limit < 0:
         raise ValueError("limit must be non-negative")

@@ -1,10 +1,11 @@
+from apps.companies.serializers import CompanyModelSerializer
 from django.db import transaction
 from rest_framework import serializers
 
 from .models import PayrollEmployee, PayRun, Payslip
 
 
-class PayrollEmployeeSerializer(serializers.ModelSerializer):
+class PayrollEmployeeSerializer(CompanyModelSerializer):
     employee_name = serializers.SerializerMethodField()
     department_name = serializers.CharField(source='user.centre.name', read_only=True)
 
@@ -17,7 +18,7 @@ class PayrollEmployeeSerializer(serializers.ModelSerializer):
         return obj.user.get_full_name() or obj.user.username
 
 
-class PayslipSerializer(serializers.ModelSerializer):
+class PayslipSerializer(CompanyModelSerializer):
     employee_name = serializers.SerializerMethodField()
     gross_pay = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
     total_deductions = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
@@ -64,7 +65,7 @@ class InitialPayslipSerializer(serializers.Serializer):
         return attrs
 
 
-class PayRunSerializer(serializers.ModelSerializer):
+class PayRunSerializer(CompanyModelSerializer):
     payslips = PayslipSerializer(many=True, read_only=True)
     gross_total = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
     deductions_total = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)

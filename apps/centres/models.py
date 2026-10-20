@@ -1,11 +1,12 @@
+from apps.companies.models import CompanyOwnedModel
 from django.db import models
 
 
-class Centre(models.Model):
+class Centre(CompanyOwnedModel):
     """Organisational department (legacy model name retained for compatibility)."""
 
-    name        = models.CharField(max_length=200, unique=True)
-    code        = models.CharField(max_length=20, unique=True)
+    name        = models.CharField(max_length=200)
+    code        = models.CharField(max_length=20)
     description = models.TextField(blank=True)
     director    = models.ForeignKey(
         'accounts.User',
@@ -19,6 +20,7 @@ class Centre(models.Model):
     updated_at  = models.DateTimeField(auto_now=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'name'], name='centres_centre_name_company'), models.UniqueConstraint(fields=['company', 'code'], name='centres_centre_code_company')]
         ordering = ['name']
         verbose_name = 'Department'
         verbose_name_plural = 'Departments'

@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 import uuid
 from urllib.parse import urlencode
 
@@ -166,7 +167,7 @@ class CourseModule(models.Model):
         return f'https://www.youtube-nocookie.com/embed/{self.youtube_video_id}?{query}'
 
 
-class CourseEnrollment(models.Model):
+class CourseEnrollment(CompanyOwnedModel):
     class Status(models.TextChoices):
         NOT_STARTED = 'not_started', 'Not started'
         IN_PROGRESS = 'in_progress', 'In progress'
@@ -184,20 +185,20 @@ class CourseEnrollment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['user', 'course'], name='academy_unique_enrollment')]
+        constraints = [models.UniqueConstraint(fields=['company', 'user', 'course'], name='academy_unique_enrollment')]
 
 
-class ModuleProgress(models.Model):
+class ModuleProgress(CompanyOwnedModel):
     enrollment = models.ForeignKey(CourseEnrollment, on_delete=models.CASCADE, related_name='module_progress')
     module = models.ForeignKey(CourseModule, on_delete=models.CASCADE, related_name='learner_progress')
     response = models.TextField(blank=True)
     completed_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['enrollment', 'module'], name='academy_unique_module_progress')]
+        constraints = [models.UniqueConstraint(fields=['company', 'enrollment', 'module'], name='academy_unique_module_progress')]
 
 
-class QuizAttempt(models.Model):
+class QuizAttempt(CompanyOwnedModel):
     enrollment = models.ForeignKey(CourseEnrollment, on_delete=models.CASCADE, related_name='quiz_attempts')
     module = models.ForeignKey(CourseModule, on_delete=models.CASCADE, related_name='quiz_attempts')
     selected_option = models.PositiveSmallIntegerField()
@@ -206,7 +207,7 @@ class QuizAttempt(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class Certificate(models.Model):
+class Certificate(CompanyOwnedModel):
     enrollment = models.OneToOneField(CourseEnrollment, on_delete=models.PROTECT, related_name='certificate')
     verification_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     learner_name = models.CharField(max_length=255)
@@ -296,7 +297,7 @@ class DiagnosticRecommendation(models.Model):
             raise ValidationError({'maximum_score': 'Maximum score must be at least the minimum score.'})
 
 
-class DiagnosticSubmission(models.Model):
+class DiagnosticSubmission(CompanyOwnedModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='diagnostic_submissions')
     diagnostic = models.ForeignKey(Diagnostic, on_delete=models.PROTECT, related_name='submissions')
     diagnostic_version = models.PositiveIntegerField()
@@ -344,13 +345,13 @@ class AcademyEvent(models.Model):
     is_published = models.BooleanField(default=False)
 
 
-class EventRegistration(models.Model):
+class EventRegistration(CompanyOwnedModel):
     event = models.ForeignKey(AcademyEvent, on_delete=models.CASCADE, related_name='registrations')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='academy_event_registrations')
     registered_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['event', 'user'], name='academy_unique_event_registration')]
+        constraints = [models.UniqueConstraint(fields=['company', 'event', 'user'], name='academy_unique_event_registration')]
 
 
 class MentorProfile(models.Model):
@@ -365,7 +366,7 @@ class MentorProfile(models.Model):
         return self.user.get_full_name() or self.user.username
 
 
-class MentorshipBooking(models.Model):
+class MentorshipBooking(CompanyOwnedModel):
     class Status(models.TextChoices):
         REQUESTED = 'requested', 'Requested'
         ACCEPTED = 'accepted', 'Accepted'
@@ -380,7 +381,7 @@ class MentorshipBooking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class Conversation(models.Model):
+class Conversation(CompanyOwnedModel):
     booking = models.OneToOneField(MentorshipBooking, on_delete=models.CASCADE, related_name='conversation')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -388,7 +389,7 @@ class Conversation(models.Model):
         return user.pk in {self.booking.learner_id, self.booking.mentor.user_id}
 
 
-class ChatMessage(models.Model):
+class ChatMessage(CompanyOwnedModel):
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='academy_chat_messages')
     body = models.TextField()
@@ -403,7 +404,7 @@ class ForumCategory(NamedCategory):
     pass
 
 
-class ForumPost(models.Model):
+class ForumPost(CompanyOwnedModel):
     class Status(models.TextChoices):
         PUBLISHED = 'published', 'Published'
         HIDDEN = 'hidden', 'Hidden'
@@ -422,7 +423,7 @@ class ForumPost(models.Model):
         ordering = ['-is_pinned', '-created_at']
 
 
-class ForumReply(models.Model):
+class ForumReply(CompanyOwnedModel):
     post = models.ForeignKey(ForumPost, on_delete=models.CASCADE, related_name='replies')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='forum_replies')
     body = models.TextField()

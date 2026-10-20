@@ -1,7 +1,8 @@
+from apps.companies.models import CompanyOwnedModel
 from django.db import models
 
 
-class Alert(models.Model):
+class Alert(CompanyOwnedModel):
     """System-generated risk alerts and notifications."""
 
     class Severity(models.TextChoices):

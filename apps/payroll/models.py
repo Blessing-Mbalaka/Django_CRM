@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from decimal import Decimal
 
 from django.conf import settings
@@ -5,22 +6,23 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
-class PayrollEmployee(models.Model):
+class PayrollEmployee(CompanyOwnedModel):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='payroll_profile')
-    employee_number = models.CharField(max_length=40, unique=True)
+    employee_number = models.CharField(max_length=40)
     tax_number = models.CharField(max_length=30, blank=True)
     monthly_basic = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'employee_number'], name='payroll_payrollemployee_employee_number_company')]
         ordering = ['employee_number']
 
     def __str__(self):
         return f'{self.employee_number} - {self.user.get_full_name() or self.user.username}'
 
 
-class PayRun(models.Model):
+class PayRun(CompanyOwnedModel):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         APPROVED = 'approved', 'Approved'
@@ -38,7 +40,7 @@ class PayRun(models.Model):
 
     class Meta:
         ordering = ['-period_end', '-id']
-        constraints = [models.UniqueConstraint(fields=['period_start', 'period_end'], name='payroll_unique_pay_run_period')]
+        constraints = [models.UniqueConstraint(fields=['company', 'period_start', 'period_end'], name='payroll_unique_pay_run_period')]
 
     @property
     def gross_total(self):
@@ -56,7 +58,7 @@ class PayRun(models.Model):
         return f'{self.period_start:%Y-%m-%d} to {self.period_end:%Y-%m-%d}'
 
 
-class Payslip(models.Model):
+class Payslip(CompanyOwnedModel):
     pay_run = models.ForeignKey(PayRun, on_delete=models.CASCADE, related_name='payslips')
     employee = models.ForeignKey(PayrollEmployee, on_delete=models.PROTECT, related_name='payslips')
     basic_salary = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
@@ -70,7 +72,7 @@ class Payslip(models.Model):
 
     class Meta:
         ordering = ['employee__employee_number']
-        constraints = [models.UniqueConstraint(fields=['pay_run', 'employee'], name='payroll_unique_employee_per_run')]
+        constraints = [models.UniqueConstraint(fields=['company', 'pay_run', 'employee'], name='payroll_unique_employee_per_run')]
 
     @property
     def gross_pay(self):

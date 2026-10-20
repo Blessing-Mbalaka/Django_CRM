@@ -1,8 +1,9 @@
+from apps.companies.models import CompanyOwnedModel
 from django.db import models
 from django.utils import timezone
 
 
-class Engagement(models.Model):
+class Engagement(CompanyOwnedModel):
     """A business engagement between JBS and a client."""
 
     class Status(models.TextChoices):

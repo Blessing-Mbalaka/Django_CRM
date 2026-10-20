@@ -29,7 +29,7 @@
       <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="signout-button" type="submit" aria-label="Sign out" title="Sign out"><svg class="nav-icon" viewBox="0 0 24 24"><path d="M9 4H4v16h5M13 8l4 4-4 4M8 12h13"/></svg><span>Sign out</span></button></form>
     </aside>
     <div class="main">
-      <header class="topbar"><div class="topbar-title"><button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">Dashboard</h1></div></div><div id="pageActions"></div></header>
+      <header class="topbar">{% include "partials/_company_badge.html" %}<div class="topbar-title"><button class="icon-button mobile-menu" id="menuButton" aria-label="Toggle navigation" aria-expanded="false">☰</button><div><span class="eyebrow">YOUR BUSINESS, ORGANISED</span><h1 id="pageTitle">Dashboard</h1></div></div><div id="pageActions"></div></header>
       <div id="workspaceStatus" class="workspace-status" role="status" aria-live="polite" hidden></div>
       <main id="content" tabindex="-1"><section class="panel"><p>Loading your inventory workspace…</p></section></main>
       <footer>EIEAAS <span>·</span> A little more clarity. A lot more control.</footer>

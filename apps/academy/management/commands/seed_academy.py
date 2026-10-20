@@ -1,3 +1,4 @@
+from apps.companies.tenancy import company_job
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
@@ -136,6 +137,7 @@ class Command(BaseCommand):
     help = 'Seed the editable SME Academy sample catalogue without overwriting administrator changes.'
 
     @transaction.atomic
+    @company_job
     def handle(self, *args, **options):
         created_paths = 0
         created_courses = 0

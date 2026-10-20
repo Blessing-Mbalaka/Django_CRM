@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from decimal import Decimal
 
 from django.conf import settings
@@ -6,11 +7,12 @@ from django.db import models
 from django.utils import timezone
 
 
-class ExpenseCategory(models.Model):
-    name = models.CharField(max_length=120, unique=True)
+class ExpenseCategory(CompanyOwnedModel):
+    name = models.CharField(max_length=120)
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'name'], name='expenses_expensecategory_name_company')]
         ordering = ['name']
         verbose_name_plural = 'Expense categories'
 
@@ -18,7 +20,7 @@ class ExpenseCategory(models.Model):
         return self.name
 
 
-class Expense(models.Model):
+class Expense(CompanyOwnedModel):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         SUBMITTED = 'submitted', 'Submitted'
@@ -56,7 +58,7 @@ class Expense(models.Model):
         return f'{self.description} — R{self.amount}'
 
 
-class ExpenseApproval(models.Model):
+class ExpenseApproval(CompanyOwnedModel):
     class Decision(models.TextChoices):
         APPROVED = 'approved', 'Approved'
         REJECTED = 'rejected', 'Rejected'

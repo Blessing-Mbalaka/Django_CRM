@@ -1,3 +1,4 @@
+from apps.companies.tenancy import company_job
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
@@ -24,6 +25,7 @@ class Command(BaseCommand):
     help = 'Create the canonical chart of system accounts without overwriting existing accounts.'
 
     @transaction.atomic
+    @company_job
     def handle(self, *args, **options):
         created = 0
         for code, name, account_type, role in DEFAULT_ACCOUNTS:

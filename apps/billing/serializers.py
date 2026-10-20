@@ -1,3 +1,4 @@
+from apps.companies.serializers import CompanyModelSerializer
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
@@ -5,7 +6,7 @@ from functionalities.billing.services import record_payment
 from .models import Invoice, InvoiceLine, Payment
 
 
-class InvoiceLineSerializer(serializers.ModelSerializer):
+class InvoiceLineSerializer(CompanyModelSerializer):
     net_amount = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
     tax_amount = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
 
@@ -26,7 +27,7 @@ class InvoiceLineSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class InvoiceSerializer(serializers.ModelSerializer):
+class InvoiceSerializer(CompanyModelSerializer):
     lines = InvoiceLineSerializer(many=True, read_only=True)
     subtotal = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
     tax_total = serializers.DecimalField(max_digits=14, decimal_places=2, read_only=True)
@@ -50,7 +51,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class PaymentSerializer(CompanyModelSerializer):
     class Meta:
         model = Payment
         fields = ['id', 'invoice', 'amount', 'paid_on', 'reference', 'recorded_by', 'created_at']

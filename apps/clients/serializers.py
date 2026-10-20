@@ -1,9 +1,10 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from apps.centres.models import Centre
 from apps.clients.models import Client
 
 
-class ClientSerializer(serializers.ModelSerializer):
+class ClientSerializer(CompanyModelSerializer):
     sector_display     = serializers.SerializerMethodField()
     visibility_display = serializers.SerializerMethodField()
     lead_name          = serializers.SerializerMethodField()

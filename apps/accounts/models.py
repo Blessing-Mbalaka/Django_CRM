@@ -1,8 +1,12 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from apps.companies.models import CompanyOwnedModel
+from .managers import CompanyUserManager
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.db.models.functions import Lower
 
 
-class User(AbstractUser):
+class User(CompanyOwnedModel, AbstractUser):
     """
     Extended User model with JBS role-based access control.
     Roles determine dashboard view, data visibility, and permissions.
@@ -15,6 +19,8 @@ class User(AbstractUser):
         ANALYST       = 'analyst',     'Analyst'
         STAFF         = 'staff',       'General Staff'
         ADMIN         = 'admin',       'System Administrator'
+
+    username = models.CharField(max_length=150, validators=[UnicodeUsernameValidator()])
 
     role = models.CharField(
         max_length=20,
@@ -34,8 +40,10 @@ class User(AbstractUser):
         verbose_name='Department',
     )
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    objects = CompanyUserManager()
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'username'], name='accounts_company_username')]
         verbose_name = 'User'
         verbose_name_plural = 'Users'
         ordering = ['last_name', 'first_name']

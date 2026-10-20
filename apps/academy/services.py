@@ -45,7 +45,7 @@ def complete_module(enrollment, module, response=''):
         raise ValidationError('Module does not belong to this published course.')
     if module.module_type == module.Type.QUIZ:
         raise ValidationError('Quiz modules are completed by a correct quiz submission.')
-    ModuleProgress.objects.get_or_create(enrollment=enrollment, module=module, defaults={'response': response})
+    ModuleProgress.objects.update_or_create(enrollment=enrollment, module=module, defaults={'response': response})
     return recalculate_enrollment(enrollment)
 
 

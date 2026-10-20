@@ -1,9 +1,10 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from apps.centres.models import Centre
 from apps.engagements.models import Engagement
 
 
-class EngagementSerializer(serializers.ModelSerializer):
+class EngagementSerializer(CompanyModelSerializer):
     status_display     = serializers.SerializerMethodField()
     client_name        = serializers.SerializerMethodField()
     lead_name          = serializers.SerializerMethodField()

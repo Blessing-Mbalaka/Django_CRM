@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from decimal import Decimal
 
 from django.conf import settings
@@ -6,7 +7,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class Supplier(models.Model):
+class Supplier(CompanyOwnedModel):
     name = models.CharField(max_length=180)
     contact_person = models.CharField(max_length=120, blank=True)
     email = models.EmailField(blank=True)
@@ -23,13 +24,16 @@ class Supplier(models.Model):
         return self.name
 
 
-class PurchaseSequence(models.Model):
-    key = models.CharField(max_length=30, unique=True, default='purchase_order')
+class PurchaseSequence(CompanyOwnedModel):
+    key = models.CharField(max_length=30, default='purchase_order')
     prefix = models.CharField(max_length=15, default='PO')
     next_number = models.PositiveBigIntegerField(default=1)
 
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'key'], name='purchasing_purchasesequence_key_company')]
 
-class PurchaseOrder(models.Model):
+
+class PurchaseOrder(CompanyOwnedModel):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         APPROVED = 'approved', 'Approved'
@@ -37,7 +41,7 @@ class PurchaseOrder(models.Model):
         RECEIVED = 'received', 'Received'
         CANCELLED = 'cancelled', 'Cancelled'
 
-    number = models.CharField(max_length=40, unique=True, null=True, blank=True)
+    number = models.CharField(max_length=40, null=True, blank=True)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT, related_name='purchase_orders')
     location = models.ForeignKey('inventory.StockLocation', on_delete=models.PROTECT, related_name='purchase_orders')
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT)
@@ -49,6 +53,7 @@ class PurchaseOrder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'number'], name='purchasing_purchaseorder_number_company')]
         ordering = ['-order_date', '-id']
 
     @property
@@ -56,7 +61,7 @@ class PurchaseOrder(models.Model):
         return sum((line.line_total for line in self.lines.all()), Decimal('0.00'))
 
 
-class PurchaseOrderLine(models.Model):
+class PurchaseOrderLine(CompanyOwnedModel):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='lines')
     product = models.ForeignKey('products.Product', on_delete=models.PROTECT, related_name='purchase_order_lines')
     description = models.CharField(max_length=255, blank=True)
@@ -70,7 +75,7 @@ class PurchaseOrderLine(models.Model):
         return (self.quantity * self.unit_cost).quantize(Decimal('0.01'))
 
 
-class GoodsReceipt(models.Model):
+class GoodsReceipt(CompanyOwnedModel):
     purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.PROTECT, related_name='goods_receipts')
     received_on = models.DateField(default=timezone.localdate)
     reference = models.CharField(max_length=100, blank=True)
@@ -78,13 +83,13 @@ class GoodsReceipt(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class GoodsReceiptLine(models.Model):
+class GoodsReceiptLine(CompanyOwnedModel):
     receipt = models.ForeignKey(GoodsReceipt, on_delete=models.CASCADE, related_name='lines')
     purchase_order_line = models.ForeignKey(PurchaseOrderLine, on_delete=models.PROTECT, related_name='receipt_lines')
     quantity = models.DecimalField(max_digits=14, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
 
 
-class SupplierBill(models.Model):
+class SupplierBill(CompanyOwnedModel):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         POSTED = 'posted', 'Posted'
@@ -105,7 +110,7 @@ class SupplierBill(models.Model):
 
     class Meta:
         ordering = ['-bill_date', '-id']
-        constraints = [models.UniqueConstraint(fields=['purchase_order', 'supplier_invoice_number'], name='purchasing_unique_supplier_bill_number')]
+        constraints = [models.UniqueConstraint(fields=['company', 'purchase_order', 'supplier_invoice_number'], name='purchasing_unique_supplier_bill_number')]
 
     @property
     def amount_paid(self):
@@ -116,7 +121,7 @@ class SupplierBill(models.Model):
         return max(self.total - self.amount_paid, Decimal('0.00'))
 
 
-class SupplierPayment(models.Model):
+class SupplierPayment(CompanyOwnedModel):
     supplier_bill = models.ForeignKey(SupplierBill, on_delete=models.PROTECT, related_name='payments')
     amount = models.DecimalField(max_digits=16, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     paid_on = models.DateField(default=timezone.localdate)

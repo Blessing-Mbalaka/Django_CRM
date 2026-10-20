@@ -1,8 +1,9 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from .models import CommunicationLog
 
 
-class CommunicationLogSerializer(serializers.ModelSerializer):
+class CommunicationLogSerializer(CompanyModelSerializer):
     engagement_title    = serializers.SerializerMethodField()
     logged_by_name      = serializers.SerializerMethodField()
     contact_type_display = serializers.SerializerMethodField()

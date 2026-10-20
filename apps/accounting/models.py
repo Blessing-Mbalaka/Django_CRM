@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from decimal import Decimal
 
 from django.conf import settings
@@ -5,7 +6,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 
-class Account(models.Model):
+class Account(CompanyOwnedModel):
     class Type(models.TextChoices):
         ASSET = 'asset', 'Asset'
         LIABILITY = 'liability', 'Liability'
@@ -27,33 +28,35 @@ class Account(models.Model):
         PAYROLL_PAYABLE = 'payroll_payable', 'Payroll Payable'
         PAYROLL_TAX_PAYABLE = 'payroll_tax_payable', 'Payroll Tax / Deductions Payable'
 
-    code = models.CharField(max_length=20, unique=True)
+    code = models.CharField(max_length=20)
     name = models.CharField(max_length=160)
     account_type = models.CharField(max_length=12, choices=Type.choices)
-    system_role = models.CharField(max_length=30, choices=SystemRole.choices, null=True, blank=True, unique=True)
+    system_role = models.CharField(max_length=30, choices=SystemRole.choices, null=True, blank=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'code'], name='accounting_account_code_company'), models.UniqueConstraint(fields=['company', 'system_role'], name='accounting_account_system_role_company')]
         ordering = ['code']
 
     def __str__(self):
         return f'{self.code} · {self.name}'
 
 
-class AccountingPeriod(models.Model):
-    name = models.CharField(max_length=80, unique=True)
+class AccountingPeriod(CompanyOwnedModel):
+    name = models.CharField(max_length=80)
     start_date = models.DateField()
     end_date = models.DateField()
     is_closed = models.BooleanField(default=False)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'name'], name='accounting_accountingperiod_name_company')]
         ordering = ['-start_date']
 
     def __str__(self):
         return self.name
 
 
-class JournalEntry(models.Model):
+class JournalEntry(CompanyOwnedModel):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         POSTED = 'posted', 'Posted'
@@ -74,7 +77,7 @@ class JournalEntry(models.Model):
         ordering = ['-date', '-id']
         constraints = [
             models.UniqueConstraint(
-                fields=['source_type', 'source_id'],
+                fields=['company', 'source_type', 'source_id'],
                 condition=~models.Q(source_type='') & models.Q(source_id__isnull=False),
                 name='accounting_unique_source_posting',
             ),
@@ -92,7 +95,7 @@ class JournalEntry(models.Model):
         return self.reference or f'Journal {self.pk}'
 
 
-class JournalLine(models.Model):
+class JournalLine(CompanyOwnedModel):
     entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='lines')
     account = models.ForeignKey(Account, on_delete=models.PROTECT, related_name='journal_lines')
     description = models.CharField(max_length=255, blank=True)
@@ -106,7 +109,7 @@ class JournalLine(models.Model):
         ]
 
 
-class BankStatement(models.Model):
+class BankStatement(CompanyOwnedModel):
     class Status(models.TextChoices):
         OPEN = 'open', 'Open'
         RECONCILED = 'reconciled', 'Reconciled'
@@ -123,13 +126,13 @@ class BankStatement(models.Model):
 
     class Meta:
         ordering = ['-end_date', '-id']
-        constraints = [models.UniqueConstraint(fields=['bank_account', 'reference'], name='accounting_unique_bank_statement_reference')]
+        constraints = [models.UniqueConstraint(fields=['company', 'bank_account', 'reference'], name='accounting_unique_bank_statement_reference')]
 
     def __str__(self):
         return f'{self.bank_account.code} - {self.reference}'
 
 
-class BankStatementLine(models.Model):
+class BankStatementLine(CompanyOwnedModel):
     statement = models.ForeignKey(BankStatement, on_delete=models.CASCADE, related_name='lines')
     transaction_date = models.DateField()
     description = models.CharField(max_length=255)

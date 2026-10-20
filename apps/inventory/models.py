@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from decimal import Decimal
 
 from django.conf import settings
@@ -6,7 +7,7 @@ from django.db import models
 from django.db.models.functions import Lower
 
 
-class InventoryCategory(models.Model):
+class InventoryCategory(CompanyOwnedModel):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
@@ -15,13 +16,13 @@ class InventoryCategory(models.Model):
 
     class Meta:
         ordering = ['name']
-        constraints = [models.UniqueConstraint(Lower('name'), name='inventory_category_name_ci_unique')]
+        constraints = [models.UniqueConstraint(Lower('name'), models.F('company'), name='inventory_category_name_ci_unique')]
 
     def __str__(self):
         return self.name
 
 
-class InventorySettings(models.Model):
+class InventorySettings(CompanyOwnedModel):
     business_name = models.CharField(max_length=180, default='My Business')
     currency = models.CharField(max_length=3, default='ZAR')
     default_unit = models.CharField(max_length=30, default='units')
@@ -29,29 +30,33 @@ class InventorySettings(models.Model):
     low_stock_alerts = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['company'], name='inventory_settings_company')]
+
     @classmethod
     def load(cls):
-        instance, _ = cls.objects.get_or_create(pk=1)
+        from apps.companies.tenancy import owned_company_id
+        instance, _ = cls.objects.get_or_create(company_id=owned_company_id())
         return instance
 
     def save(self, *args, **kwargs):
-        self.pk = 1
         return super().save(*args, **kwargs)
 
 
-class StockLocation(models.Model):
-    code = models.CharField(max_length=30, unique=True)
+class StockLocation(CompanyOwnedModel):
+    code = models.CharField(max_length=30)
     name = models.CharField(max_length=140)
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'code'], name='inventory_stocklocation_code_company')]
         ordering = ['name']
 
     def __str__(self):
         return self.name
 
 
-class StockMovement(models.Model):
+class StockMovement(CompanyOwnedModel):
     class Type(models.TextChoices):
         RECEIPT = 'receipt', 'Receipt'
         ISSUE = 'issue', 'Issue'
@@ -80,17 +85,17 @@ class StockMovement(models.Model):
         return self.quantity
 
 
-class ReorderRule(models.Model):
+class ReorderRule(CompanyOwnedModel):
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE, related_name='reorder_rules')
     location = models.ForeignKey(StockLocation, on_delete=models.CASCADE, related_name='reorder_rules')
     minimum_quantity = models.DecimalField(max_digits=14, decimal_places=3, default=0)
     reorder_quantity = models.DecimalField(max_digits=14, decimal_places=3, default=0)
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['product', 'location'], name='inventory_unique_reorder_rule')]
+        constraints = [models.UniqueConstraint(fields=['company', 'product', 'location'], name='inventory_unique_reorder_rule')]
 
 
-class ProductInventoryProfile(models.Model):
+class ProductInventoryProfile(CompanyOwnedModel):
     product = models.OneToOneField('products.Product', on_delete=models.CASCADE, related_name='inventory_profile')
     category = models.ForeignKey(InventoryCategory, null=True, blank=True, on_delete=models.PROTECT, related_name='product_profiles')
     unit = models.CharField(max_length=30, default='units')

@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from pathlib import Path
 from uuid import uuid4
 
@@ -7,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class Board(models.Model):
+class Board(CompanyOwnedModel):
     name = models.CharField(max_length=160)
     description = models.TextField(blank=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='task_boards')
@@ -20,7 +21,7 @@ class Board(models.Model):
         return self.name
 
 
-class BoardColumn(models.Model):
+class BoardColumn(CompanyOwnedModel):
     board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='columns')
     name = models.CharField(max_length=80)
     position = models.PositiveIntegerField(default=0)
@@ -28,15 +29,15 @@ class BoardColumn(models.Model):
     class Meta:
         ordering = ['position', 'id']
         constraints = [
-            models.UniqueConstraint(fields=['board', 'name'], name='tasks_unique_column_name'),
-            models.UniqueConstraint(fields=['board', 'position'], name='tasks_unique_column_position'),
+            models.UniqueConstraint(fields=['company', 'board', 'name'], name='tasks_unique_column_name'),
+            models.UniqueConstraint(fields=['company', 'board', 'position'], name='tasks_unique_column_position'),
         ]
 
     def __str__(self):
         return f'{self.board}: {self.name}'
 
 
-class Task(models.Model):
+class Task(CompanyOwnedModel):
     class Priority(models.TextChoices):
         LOW = 'low', 'Low'
         MEDIUM = 'medium', 'Medium'
@@ -72,7 +73,7 @@ class Task(models.Model):
         return self.title
 
 
-class TaskComment(models.Model):
+class TaskComment(CompanyOwnedModel):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='task_comments')
     body = models.TextField()
@@ -82,7 +83,7 @@ class TaskComment(models.Model):
         ordering = ['created_at']
 
 
-class TaskActivity(models.Model):
+class TaskActivity(CompanyOwnedModel):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='activities')
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name='+')
     action = models.CharField(max_length=40)
@@ -98,7 +99,7 @@ def task_attachment_upload_path(instance, filename):
     return f'tasks/{instance.task_id}/attachments/{uuid4().hex}{suffix}'
 
 
-class TaskAttachment(models.Model):
+class TaskAttachment(CompanyOwnedModel):
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='attachments')
     file = models.FileField(upload_to=task_attachment_upload_path)
     original_name = models.CharField(max_length=255)
@@ -116,7 +117,7 @@ class TaskAttachment(models.Model):
         ordering = ['-created_at', '-id']
 
 
-class Project(models.Model):
+class Project(CompanyOwnedModel):
     class Status(models.TextChoices):
         PLANNING = 'planning', 'Planning'
         ACTIVE = 'active', 'Active'
@@ -144,7 +145,7 @@ class Project(models.Model):
     class Meta:
         ordering = ['-created_at', 'name']
         constraints = [
-            models.UniqueConstraint(fields=['board', 'name'], name='tasks_unique_project_name_per_board'),
+            models.UniqueConstraint(fields=['company', 'board', 'name'], name='tasks_unique_project_name_per_board'),
         ]
 
     def __str__(self):
@@ -156,7 +157,7 @@ class Project(models.Model):
             raise ValidationError({'due_date': 'Due date cannot be before the start date.'})
 
 
-class ProjectNotification(models.Model):
+class ProjectNotification(CompanyOwnedModel):
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='project_notifications')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='notifications')
     message = models.CharField(max_length=500)
@@ -166,5 +167,5 @@ class ProjectNotification(models.Model):
     class Meta:
         ordering = ['-created_at']
         constraints = [
-            models.UniqueConstraint(fields=['recipient', 'project'], name='tasks_unique_project_notification'),
+            models.UniqueConstraint(fields=['company', 'recipient', 'project'], name='tasks_unique_project_notification'),
         ]

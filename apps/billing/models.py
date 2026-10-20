@@ -1,3 +1,4 @@
+from apps.companies.models import CompanyOwnedModel
 from decimal import Decimal
 
 from django.conf import settings
@@ -7,13 +8,16 @@ from django.db.models import Sum
 from django.utils import timezone
 
 
-class NumberSequence(models.Model):
-    key = models.CharField(max_length=40, unique=True)
+class NumberSequence(CompanyOwnedModel):
+    key = models.CharField(max_length=40)
     prefix = models.CharField(max_length=20, default='INV')
     next_number = models.PositiveBigIntegerField(default=1)
 
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'key'], name='billing_numbersequence_key_company')]
 
-class Invoice(models.Model):
+
+class Invoice(CompanyOwnedModel):
     class Status(models.TextChoices):
         DRAFT = 'draft', 'Draft'
         ISSUED = 'issued', 'Issued'
@@ -21,7 +25,7 @@ class Invoice(models.Model):
         PAID = 'paid', 'Paid'
         VOID = 'void', 'Void'
 
-    number = models.CharField(max_length=40, unique=True, null=True, blank=True)
+    number = models.CharField(max_length=40, null=True, blank=True)
     client = models.ForeignKey('clients.Client', on_delete=models.PROTECT, related_name='invoices')
     engagement = models.ForeignKey('engagements.Engagement', null=True, blank=True, on_delete=models.SET_NULL, related_name='invoices')
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT)
@@ -34,6 +38,7 @@ class Invoice(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        constraints = [models.UniqueConstraint(fields=['company', 'number'], name='billing_invoice_number_company')]
         ordering = ['-issue_date', '-id']
 
     @property
@@ -60,7 +65,7 @@ class Invoice(models.Model):
         return self.number or f'Draft invoice {self.pk}'
 
 
-class InvoiceLine(models.Model):
+class InvoiceLine(CompanyOwnedModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='lines')
     description = models.CharField(max_length=255)
     quantity = models.DecimalField(max_digits=12, decimal_places=2, default=1, validators=[MinValueValidator(Decimal('0.01'))])
@@ -80,7 +85,7 @@ class InvoiceLine(models.Model):
         return (self.net_amount * self.tax_rate / Decimal('100')).quantize(Decimal('0.01'))
 
 
-class Payment(models.Model):
+class Payment(CompanyOwnedModel):
     invoice = models.ForeignKey(Invoice, on_delete=models.PROTECT, related_name='payments')
     amount = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     paid_on = models.DateField(default=timezone.localdate)

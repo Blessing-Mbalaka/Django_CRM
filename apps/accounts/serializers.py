@@ -1,9 +1,10 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from apps.centres.models import Centre
 from .models import User
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(CompanyModelSerializer):
     full_name = serializers.SerializerMethodField()
     role_display = serializers.SerializerMethodField()
     department = serializers.PrimaryKeyRelatedField(source='centre', queryset=Centre.objects.all(), required=False, allow_null=True)

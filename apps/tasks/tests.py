@@ -55,8 +55,8 @@ class TaskLifecycleModelTests(APITestCase):
 
 
 class TaskThreeStateMigrationTests(TransactionTestCase):
-    migrate_from = [('tasks', '0002_project_projectnotification_task_parent_task')]
-    migrate_to = [('tasks', '0003_project_lifecycle_three_state')]
+    migrate_from = [('tasks', '0002_project_projectnotification_task_parent_task'), ('accounts', '0004_alter_user_managers_user_company_alter_user_username_and_more')]
+    migrate_to = [('tasks', '0003_project_lifecycle_three_state'), ('accounts', '0004_alter_user_managers_user_company_alter_user_username_and_more')]
 
     def setUp(self):
         super().setUp()
@@ -96,7 +96,8 @@ class TaskThreeStateMigrationTests(TransactionTestCase):
         self.apps = self.executor.loader.project_state(self.migrate_to).apps
 
     def tearDown(self):
-        MigrationExecutor(connection).migrate(self.migrate_to)
+        executor = MigrationExecutor(connection)
+        executor.migrate(executor.loader.graph.leaf_nodes())
         super().tearDown()
 
     def test_migration_preserves_tasks_and_maps_every_column(self):

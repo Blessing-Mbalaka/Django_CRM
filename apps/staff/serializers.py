@@ -1,8 +1,9 @@
+from apps.companies.serializers import CompanyModelSerializer
 from rest_framework import serializers
 from .models import StaffProfile
 
 
-class StaffProfileSerializer(serializers.ModelSerializer):
+class StaffProfileSerializer(CompanyModelSerializer):
     user_name   = serializers.SerializerMethodField()
     centre_name = serializers.SerializerMethodField()
     email       = serializers.SerializerMethodField()

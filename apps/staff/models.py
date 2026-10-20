@@ -1,7 +1,8 @@
+from apps.companies.models import CompanyOwnedModel
 from django.db import models
 
 
-class StaffProfile(models.Model):
+class StaffProfile(CompanyOwnedModel):
     """Extended profile for staff members (linked to User)."""
 
     user       = models.OneToOneField(

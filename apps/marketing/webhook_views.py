@@ -10,6 +10,19 @@ from functionalities.marketing.providers.twilio_sms import validate_twilio_reque
 from functionalities.marketing.webhooks import apply_delivery_status, record_event
 
 from .models import OutboundMessage
+from apps.companies.tenancy import company_context
+
+
+def find_provider_message(request, provider, provider_id):
+    if not provider_id:
+        return None
+    candidates = OutboundMessage.all_companies.filter(
+        provider=provider, provider_message_id=provider_id, company__is_active=True,
+    )
+    if request.GET.get('company'):
+        candidates = candidates.filter(company__slug=request.GET['company'])
+    matches = list(candidates[:2])
+    return matches[0] if len(matches) == 1 else None
 
 
 @csrf_exempt
@@ -23,15 +36,16 @@ def twilio_status_webhook(request):
         return HttpResponseForbidden()
     provider_id = params.get("MessageSid", "")
     status = params.get("MessageStatus", "").lower()
-    message = OutboundMessage.objects.filter(provider_message_id=provider_id).first()
-    event = record_event(
-        provider="twilio_sms", event_id=f"{provider_id}:{status}", event_type=status,
-        payload=params, raw_body=json.dumps(params, sort_keys=True).encode("utf-8"), message=message,
-    )
-    if event and message:
-        apply_delivery_status(message, status)
-        event.processed_at = event.received_at
-        event.save(update_fields=["processed_at"])
+    message = find_provider_message(request, "twilio_sms", provider_id)
+    with company_context(message.company_id if message else request.company.pk):
+        event = record_event(
+            provider="twilio_sms", event_id=f"{provider_id}:{status}", event_type=status,
+            payload=params, raw_body=json.dumps(params, sort_keys=True).encode("utf-8"), message=message,
+        )
+        if event and message:
+            apply_delivery_status(message, status)
+            event.processed_at = event.received_at
+            event.save(update_fields=["processed_at"])
     return HttpResponse(status=204)
 
 
@@ -59,13 +73,14 @@ def meta_webhook(request):
                 provider_id = str(status_item.get("id", ""))
                 status = str(status_item.get("status", "")).lower()
                 timestamp = str(status_item.get("timestamp", ""))
-                message = OutboundMessage.objects.filter(provider_message_id=provider_id).first()
-                event = record_event(
-                    provider="meta_whatsapp", event_id=f"{provider_id}:{status}:{timestamp}", event_type=status,
-                    payload=status_item, raw_body=request.body, message=message,
-                )
-                if event and message:
-                    apply_delivery_status(message, status)
-                    event.processed_at = event.received_at
-                    event.save(update_fields=["processed_at"])
+                message = find_provider_message(request, "meta_whatsapp", provider_id)
+                with company_context(message.company_id if message else request.company.pk):
+                    event = record_event(
+                        provider="meta_whatsapp", event_id=f"{provider_id}:{status}:{timestamp}", event_type=status,
+                        payload=status_item, raw_body=request.body, message=message,
+                    )
+                    if event and message:
+                        apply_delivery_status(message, status)
+                        event.processed_at = event.received_at
+                        event.save(update_fields=["processed_at"])
     return HttpResponse(status=204)
